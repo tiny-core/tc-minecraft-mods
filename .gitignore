@@ -38,6 +38,5 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
--e 
 # jars de dependencias locais
 libs/*.jar
