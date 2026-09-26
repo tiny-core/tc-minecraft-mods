@@ -1,0 +1,11 @@
+{
+  "block.tccolonybridge.colony_bridge": "Ponte ME da Colónia",
+  "status.tccolonybridge.starting": "Ponte da Colónia: a iniciar",
+  "status.tccolonybridge.offline": "Ponte da Colónia: rede ME offline ou sem canal",
+  "status.tccolonybridge.no_colony": "Ponte da Colónia: coloque dentro de uma colónia",
+  "status.tccolonybridge.no_permission": "Ponte da Colónia: quem a colocou não tem permissão nesta colónia",
+  "status.tccolonybridge.no_warehouse": "Ponte da Colónia: armazém sem racks carregados",
+  "status.tccolonybridge.idle": "Ponte da Colónia: sem pedidos em aberto",
+  "status.tccolonybridge.working": "Ponte da Colónia: a tratar pedidos",
+  "message.tccolonybridge.no_permission": "Precisa de permissão nesta colónia para colocar aqui uma Ponte"
+}

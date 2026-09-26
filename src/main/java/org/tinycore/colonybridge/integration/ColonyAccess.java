@@ -3,6 +3,9 @@ package org.tinycore.colonybridge.integration;
 import com.minecolonies.api.colony.IColony;
 import com.minecolonies.api.colony.IColonyManager;
 import com.minecolonies.api.colony.buildings.workerbuildings.IWareHouse;
+import com.minecolonies.api.colony.permissions.Action;
+import com.minecolonies.api.colony.permissions.IPermissions;
+import com.minecolonies.api.colony.permissions.Rank;
 import com.minecolonies.api.colony.requestsystem.manager.IRequestManager;
 import com.minecolonies.api.colony.requestsystem.request.IRequest;
 import com.minecolonies.api.colony.requestsystem.requestable.IDeliverable;
@@ -21,18 +24,50 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Único ponto do mod que fala com o MineColonies.
- * Se uma atualização do MineColonies partir algo, é aqui que se corrige.
+ * Se uma atualização do MineColonies quebrar algo, é aqui que se corrige.
  */
 public final class ColonyAccess {
 
     private ColonyAccess() {}
 
-    /** Colónia cujas fronteiras contêm a posição, ou null. */
+    /** Colônia cujas fronteiras contêm a posição, ou null. */
     public static @Nullable IColony findColony(Level level, BlockPos pos) {
         return IColonyManager.getInstance().getColonyByPosFromWorld(level, pos);
+    }
+
+    /**
+     * Chave estável da colônia entre reinícios. O id só é único dentro de uma dimensão,
+     * por isso a dimensão entra na chave.
+     */
+    public static String colonyKey(IColony colony) {
+        return colony.getDimension().location() + "#" + colony.getID();
+    }
+
+    /**
+     * true se a ponte pode ser colocada nesta posição: fora de qualquer colônia (fica inativa até
+     * uma colônia alcançá-la) ou dentro de uma colônia onde o jogador tem permissão.
+     */
+    public static boolean canPlaceBridge(Level level, BlockPos pos, @Nullable UUID player) {
+        IColony colony = findColony(level, pos);
+        return colony == null || canUseBridge(colony, player);
+    }
+
+    /**
+     * true se o jogador pode ligar uma ponte a esta colônia.
+     * Exige {@link Action#ACCESS_HUTS} (por padrão: dono, oficiais e amigos), a mesma permissão
+     * de abrir as cabanas — a ponte mexe no armazém, então faz sentido exigir o mesmo.
+     */
+    public static boolean canUseBridge(IColony colony, @Nullable UUID player) {
+        if (player == null) {
+            return false;
+        }
+        IPermissions permissions = colony.getPermissions();
+        Rank rank = permissions.getRank(player);
+        return rank != null && permissions.hasPermission(rank, Action.ACCESS_HUTS);
     }
 
     /**
@@ -62,7 +97,7 @@ public final class ColonyAccess {
         return result;
     }
 
-    /** Inventários de todos os racks dos armazéns da colónia (apenas chunks carregados). */
+    /** Inventários de todos os racks dos armazéns da colônia (apenas chunks carregados). */
     public static List<IItemHandler> warehouseRacks(IColony colony) {
         Level level = colony.getWorld();
         List<IItemHandler> handlers = new ArrayList<>();
@@ -87,7 +122,7 @@ public final class ColonyAccess {
 
     /**
      * Pede ao MineColonies para voltar a procurar um resolver para o pedido.
-     * Depois de pormos os itens no armazém, o resolver do armazém deve ficar com ele
+     * Depois de colocarmos os itens no armazém, o resolver do armazém deve ficar com ele
      * e um courier faz a entrega.
      */
     public static void reassign(IColony colony, IToken<?> token) {

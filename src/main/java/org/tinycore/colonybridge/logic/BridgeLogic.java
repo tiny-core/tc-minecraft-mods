@@ -10,7 +10,6 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import appeng.api.storage.StorageHelper;
 import com.minecolonies.api.colony.IColony;
-import com.minecolonies.api.colony.requestsystem.token.IToken;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
@@ -23,23 +22,21 @@ import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.OpenRequest;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Um ciclo:
  * 1. submete crafts cujo cálculo terminou;
- * 2. lê os pedidos em aberto da colónia;
- * 3. se o item existe na rede ME → move para os racks do armazém e reatribui o pedido;
- * 4. se não existe e o pedido é de um item exato → agenda autocrafting.
+ * 2. confere se o dono da ponte tem permissão na colônia;
+ * 3. lê os pedidos em aberto da colônia, pulando os que o {@link DeliveryLedger} marca como
+ *    já entregues ou sendo craftados por outra ponte;
+ * 4. se o item existe na rede ME → move para os racks do armazém e reatribui o pedido;
+ * 5. se não existe e o pedido é de um item exato → agenda autocrafting.
  */
 public final class BridgeLogic {
 
     private final ColonyBridgeBlockEntity host;
     private final CraftingTracker crafting = new CraftingTracker();
-    /** token do pedido → gameTime da última entrega (evita entregar duas vezes). */
-    private final Map<IToken<?>, Long> lastDelivery = new HashMap<>();
     private BridgeStatus status = BridgeStatus.STARTING;
 
     public BridgeLogic(ColonyBridgeBlockEntity host) {
@@ -55,6 +52,10 @@ public final class BridgeLogic {
             setStatus(BridgeStatus.NO_COLONY);
             return;
         }
+        if (!ColonyAccess.canUseBridge(colony, host.getOwner())) {
+            setStatus(BridgeStatus.NO_PERMISSION);
+            return;
+        }
         List<IItemHandler> racks = ColonyAccess.warehouseRacks(colony);
         if (racks.isEmpty()) {
             setStatus(BridgeStatus.NO_WAREHOUSE);
@@ -62,8 +63,10 @@ public final class BridgeLogic {
         }
 
         long now = level.getGameTime();
-        long cooldown = Config.REDELIVERY_COOLDOWN_TICKS.get();
-        lastDelivery.values().removeIf(t -> now - t > cooldown);
+        DeliveryLedger ledger = DeliveryLedger.get(level);
+        ledger.expire(now, Config.REDELIVERY_COOLDOWN_TICKS.get());
+        String colonyKey = ColonyAccess.colonyKey(colony);
+        long bridgeId = host.getBlockPos().asLong();
 
         List<OpenRequest> requests = ColonyAccess.openRequests(colony);
         KeyCounter stock = grid.getStorageService().getCachedInventory();
@@ -73,7 +76,7 @@ public final class BridgeLogic {
             if (handled >= Config.MAX_REQUESTS_PER_CYCLE.get()) {
                 break;
             }
-            if (lastDelivery.containsKey(request.token())) {
+            if (ledger.isBlocked(colonyKey, request.id(), bridgeId)) {
                 continue;
             }
 
@@ -81,7 +84,7 @@ public final class BridgeLogic {
             if (inStock != null) {
                 long delivered = deliver(grid, source, inStock, request.amount(), racks);
                 if (delivered > 0) {
-                    lastDelivery.put(request.token(), now);
+                    ledger.markDelivered(colonyKey, request.id(), bridgeId, now);
                     ColonyAccess.reassign(colony, request.token());
                     handled++;
                 }
@@ -91,6 +94,8 @@ public final class BridgeLogic {
             if (request.isExact()) {
                 AEItemKey key = AEItemKey.of(request.exactStack());
                 if (key != null && crafting.tryStart(level, grid, source, key, request.amount())) {
+                    // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
+                    ledger.markCrafting(colonyKey, request.id(), bridgeId, now);
                     handled++;
                 }
             }
@@ -165,10 +170,10 @@ public final class BridgeLogic {
             int inserted = chunk - stack.getCount();
             remaining -= inserted;
             if (!stack.isEmpty()) {
-                break; // já não cabe mais
+                break; // não cabe mais nada
             }
             // Nota: em simulação, vários chunks não "ocupam" espaço entre si,
-            // por isso a estimativa pode ser otimista. O excesso volta à rede no passo real.
+            // então a estimativa pode ser otimista. O excesso volta à rede no passo real.
         }
         return remaining;
     }

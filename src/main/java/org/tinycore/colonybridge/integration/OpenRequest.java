@@ -14,6 +14,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public record OpenRequest(IToken<?> token, IDeliverable deliverable, ItemStack exactStack) {
 
+    /**
+     * Id estável do pedido, igual entre reinícios (o token do MineColonies é um UUID salvo com a colônia).
+     * Usado como chave no {@code DeliveryLedger}.
+     */
+    public String id() {
+        return String.valueOf(token.getIdentifier());
+    }
+
     public int amount() {
         return Math.max(1, deliverable.getCount());
     }

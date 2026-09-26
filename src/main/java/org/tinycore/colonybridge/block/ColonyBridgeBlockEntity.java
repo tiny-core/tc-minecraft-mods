@@ -23,16 +23,19 @@ import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.registry.ModRegistries;
 
 import java.util.EnumSet;
+import java.util.UUID;
 
 /**
- * Ponto de ligação entre uma rede ME e a colónia onde o bloco está colocado.
- * Só expõe o nó da grid; a lógica de pedidos vive em {@link BridgeLogic}.
+ * Ponto de ligação entre uma rede ME e a colônia onde o bloco está colocado.
+ * Só expõe o nó da grid e guarda o dono; a lógica de pedidos vive em {@link BridgeLogic}.
  */
 public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGridNodeHost, IActionHost {
 
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
     private final BridgeLogic logic;
+    /** Jogador que colocou a ponte; a permissão dele na colônia é conferida a cada ciclo. */
+    private @Nullable UUID owner;
     private int tickCounter;
 
     public ColonyBridgeBlockEntity(BlockPos pos, BlockState state) {
@@ -70,8 +73,15 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         mainNode.destroy();
     }
 
+    /** Registra o dono para o AE2 (segurança da rede) e para a checagem de permissão da colônia. */
     public void setOwner(Player player) {
         mainNode.setOwningPlayer(player);
+        owner = player.getUUID();
+        setChanged();
+    }
+
+    public @Nullable UUID getOwner() {
+        return owner;
     }
 
     // ---------------------------------------------------------------- tick
@@ -118,12 +128,16 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         mainNode.saveToNBT(tag);
+        if (owner != null) {
+            tag.putUUID("owner", owner);
+        }
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         mainNode.loadFromNBT(tag);
+        owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
     }
 
     private enum NodeListener implements IGridNodeListener<ColonyBridgeBlockEntity> {

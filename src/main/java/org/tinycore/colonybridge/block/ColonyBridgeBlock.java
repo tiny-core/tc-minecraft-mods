@@ -6,6 +6,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -15,8 +16,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.registry.ModRegistries;
 
+/**
+ * Bloco da Ponte ME da Colônia. Cria o {@link ColonyBridgeBlockEntity} (onde fica o nó AE2 e a lógica),
+ * impede a colocação em colônias onde o jogador não tem permissão e mostra o estado no clique direito.
+ */
 public class ColonyBridgeBlock extends Block implements EntityBlock {
 
     public ColonyBridgeBlock(Properties props) {
@@ -35,6 +41,27 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
             return null;
         }
         return (lvl, pos, st, be) -> ((ColonyBridgeBlockEntity) be).serverTick();
+    }
+
+    /**
+     * Retornar null aqui cancela a colocação. Só decide no servidor; no cliente o bloco aparece por um
+     * instante e o servidor o remove em seguida (o item volta para a mão).
+     * Sem jogador (ex.: deployer sem fake player) dentro de uma colônia também é recusado.
+     */
+    @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        Level level = context.getLevel();
+        if (level.isClientSide) {
+            return defaultBlockState();
+        }
+        Player player = context.getPlayer();
+        if (ColonyAccess.canPlaceBridge(level, context.getClickedPos(), player == null ? null : player.getUUID())) {
+            return defaultBlockState();
+        }
+        if (player != null) {
+            player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
+        }
+        return null;
     }
 
     @Override
