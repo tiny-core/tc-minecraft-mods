@@ -1,22 +1,15 @@
 package org.tinycore.colonybridge.logic;
 
-import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
-import appeng.api.networking.energy.IEnergySource;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.KeyCounter;
-import appeng.api.storage.MEStorage;
-import appeng.api.storage.StorageHelper;
 import com.minecolonies.api.colony.IColony;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
@@ -30,8 +23,8 @@ import java.util.List;
  * 2. confere se o dono da ponte tem permissão na colônia;
  * 3. lê os pedidos em aberto da colônia, pulando os que o {@link DeliveryLedger} marca como
  *    já entregues ou sendo craftados por outra ponte;
- * 4. se o item existe na rede ME → move para os racks do armazém e reatribui o pedido;
- * 5. se não existe e o pedido é de um item exato → agenda autocrafting.
+ * 4. se o item existe na rede ME → move para os racks do armazém ({@link RackDelivery}) e reatribui o pedido;
+ * 5. se não existe e o pedido é de um item exato → agenda autocrafting ({@link CraftingTracker}).
  */
 public final class BridgeLogic {
 
@@ -82,7 +75,7 @@ public final class BridgeLogic {
 
             AEItemKey inStock = findInStock(stock, request);
             if (inStock != null) {
-                long delivered = deliver(grid, source, inStock, request.amount(), racks);
+                long delivered = RackDelivery.deliver(grid, source, inStock, request.amount(), racks);
                 if (delivered > 0) {
                     ledger.markDelivered(colonyKey, request.id(), bridgeId, now);
                     ColonyAccess.reassign(colony, request.token());
@@ -91,13 +84,23 @@ public final class BridgeLogic {
                 continue;
             }
 
-            if (request.isExact()) {
-                AEItemKey key = AEItemKey.of(request.exactStack());
-                if (key != null && crafting.tryStart(level, grid, source, key, request.amount())) {
-                    // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
-                    ledger.markCrafting(colonyKey, request.id(), bridgeId, now);
-                    handled++;
-                }
+            if (!request.isExact()) {
+                continue;
+            }
+            AEItemKey key = AEItemKey.of(request.exactStack());
+            if (key == null) {
+                continue;
+            }
+            if (crafting.isBusy(grid.getCraftingService(), key)) {
+                // Craft ainda rodando: renova a reserva (se for desta ponte) para ela não expirar
+                // no meio de um craft longo e outra ponte começar o mesmo craft.
+                ledger.renewCrafting(colonyKey, request.id(), bridgeId, now);
+                continue;
+            }
+            if (crafting.tryStart(level, grid, source, key, request.amount())) {
+                // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
+                ledger.markCrafting(colonyKey, request.id(), bridgeId, now);
+                handled++;
             }
         }
 
@@ -113,69 +116,16 @@ public final class BridgeLogic {
             }
         }
         // Pedidos por tag / ferramenta / comida: testa cada item da rede.
-        // TODO: indexar por item para não alocar um ItemStack por chave em redes grandes.
+        // getReadOnlyStack() devolve um ItemStack que a própria chave guarda em cache: zero alocação
+        // por item, o que importa em redes grandes do ATM10. Não pode ser modificado — matches() só lê.
         for (Object2LongMap.Entry<AEKey> entry : stock) {
             if (entry.getLongValue() > 0
                     && entry.getKey() instanceof AEItemKey itemKey
-                    && request.deliverable().matches(itemKey.toStack())) {
+                    && request.deliverable().matches(itemKey.getReadOnlyStack())) {
                 return itemKey;
             }
         }
         return null;
-    }
-
-    /**
-     * Move itens da rede ME para os racks.
-     * Simula primeiro para só extrair o que cabe; o que sobrar volta à rede.
-     *
-     * @return quantidade efetivamente colocada no armazém
-     */
-    private static long deliver(IGrid grid, IActionSource source, AEItemKey key, long wanted,
-                                List<IItemHandler> racks) {
-        MEStorage inventory = grid.getStorageService().getInventory();
-        IEnergySource energy = grid.getEnergyService();
-
-        long available = StorageHelper.poweredExtraction(energy, inventory, key, wanted, source, Actionable.SIMULATE);
-        if (available <= 0) {
-            return 0;
-        }
-        long fits = available - insert(racks, key, available, true);
-        if (fits <= 0) {
-            return 0; // racks cheios
-        }
-        long extracted = StorageHelper.poweredExtraction(energy, inventory, key, fits, source, Actionable.MODULATE);
-        long leftover = insert(racks, key, extracted, false);
-        if (leftover > 0) {
-            long returned = StorageHelper.poweredInsert(energy, inventory, key, leftover, source);
-            if (returned < leftover) {
-                ColonyBridgeMod.LOG.warn("Não foi possível devolver {}x {} à rede ME", leftover - returned, key);
-            }
-        }
-        return extracted - leftover;
-    }
-
-    /** @return quantidade que NÃO coube */
-    private static long insert(List<IItemHandler> racks, AEItemKey key, long amount, boolean simulate) {
-        long remaining = amount;
-        int maxStack = key.getMaxStackSize();
-        while (remaining > 0) {
-            int chunk = (int) Math.min(remaining, maxStack);
-            ItemStack stack = key.toStack(chunk);
-            for (IItemHandler rack : racks) {
-                stack = ItemHandlerHelper.insertItemStacked(rack, stack, simulate);
-                if (stack.isEmpty()) {
-                    break;
-                }
-            }
-            int inserted = chunk - stack.getCount();
-            remaining -= inserted;
-            if (!stack.isEmpty()) {
-                break; // não cabe mais nada
-            }
-            // Nota: em simulação, vários chunks não "ocupam" espaço entre si,
-            // então a estimativa pode ser otimista. O excesso volta à rede no passo real.
-        }
-        return remaining;
     }
 
     public BridgeStatus getStatus() {

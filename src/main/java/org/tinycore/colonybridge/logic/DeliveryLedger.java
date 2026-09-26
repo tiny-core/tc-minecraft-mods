@@ -68,6 +68,17 @@ public final class DeliveryLedger extends SavedData {
     }
 
     /**
+     * Atualiza o horário de uma reserva de craft, mas só se ela existe e é desta ponte.
+     * Chamado a cada ciclo enquanto o craft está ativo no AE2, para a reserva não expirar no meio.
+     */
+    public void renewCrafting(String colony, String request, long bridge, long now) {
+        Claim claim = claims.get(key(colony, request));
+        if (claim != null && !claim.delivered() && claim.bridge() == bridge) {
+            put(colony, request, new Claim(bridge, now, false));
+        }
+    }
+
+    /**
      * Remove registros mais velhos que {@code maxAge} ticks. Também descarta registros "do futuro"
      * (ex.: mundo restaurado de backup), que senão nunca expirariam.
      */

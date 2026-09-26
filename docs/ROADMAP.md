@@ -95,16 +95,13 @@ pacotes que o monitor precisa.
 
 ## Dicas de melhoria no código atual (prioridade alta → baixa)
 
-1. **Checar permissão da colônia** ao ligar a ponte. Hoje qualquer bloco dentro da fronteira funciona,
-   inclusive colocado por quem não tem permissão na colônia.
-2. **Persistir `lastDelivery`** em NBT: hoje um reinício do servidor zera o cooldown e pode causar
-   uma entrega duplicada.
-3. **Várias pontes na mesma colônia:** hoje as duas podem atender o mesmo pedido. Opções: só a
-   primeira ponte registrada atua, ou um registro compartilhado por colônia (`SavedData`).
-4. **Indexar o estoque** para pedidos por tag: evitar criar um `ItemStack` por item da rede em cada
-   pedido (importante em redes grandes do ATM10).
-5. **Simulação de inserção mais precisa** nos racks (hoje é otimista com vários stacks; o excesso
-   volta para a rede, então é seguro, mas gasta energia à toa).
+1. ~~Checar permissão da colônia~~ — **feito** (colocação + checagem a cada ciclo).
+2. ~~Persistir `lastDelivery`~~ — **feito** via `DeliveryLedger` (`SavedData`).
+3. ~~Várias pontes na mesma colônia~~ — **feito**: registro compartilhado; crafts reservados por ponte
+   e renovados enquanto estão ativos.
+4. ~~Indexar o estoque~~ — **feito** de forma mais simples: `AEItemKey.getReadOnlyStack()` (cache do AE2)
+   elimina a alocação por item. Se o custo de `matches()` pesar em redes enormes, aí sim indexar.
+5. ~~Simulação de inserção mais precisa~~ — **feito** em `RackDelivery.capacity()` (soma por slot).
 6. **GameTests** para a lógica de entrega (NeoForge suporta `@GameTest`) e **GitHub Actions** para
    compilar a cada push.
 7. Separar `ModRegistries` em arquivos por tipo quando passar de ~5 registros.
