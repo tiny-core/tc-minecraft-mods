@@ -5,6 +5,8 @@ Alvo: ATM10.
 
 ## Como funciona (MVP)
 Coloque o bloco **ME Colony Bridge** dentro das fronteiras da colônia e ligue-o à rede ME (usa 1 canal).
+A conexão é **só por baixo** e **só com cabo comum** (vidro, coberto ou smart — os de 8 canais).
+Cabo denso ou outro dispositivo AE2 encostado não conecta, e o estado avisa.
 Só dá para colocar a ponte numa colônia onde você tem permissão de acessar as cabanas
 (por padrão: dono, oficiais e amigos). A permissão de quem colocou é conferida de novo a cada ciclo:
 se ela for retirada, a ponte para e mostra o estado "sem permissão".

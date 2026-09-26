@@ -102,6 +102,16 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
         }
     }
 
+    /** Um vizinho mudou (ex.: cabo colocado/trocado embaixo): a ponte reavalia a conexão. */
+    @Override
+    protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
+                                   BlockPos neighborPos, boolean movedByPiston) {
+        super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
+        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be) {
+            be.onNeighborChanged();
+        }
+    }
+
     /** Clique direito mostra o estado atual (debug simples até existir GUI). */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,

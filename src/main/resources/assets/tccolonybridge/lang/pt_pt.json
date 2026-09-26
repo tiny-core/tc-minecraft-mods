@@ -2,6 +2,7 @@
   "block.tccolonybridge.colony_bridge": "Ponte ME da Colónia",
   "status.tccolonybridge.starting": "Ponte da Colónia: a iniciar",
   "status.tccolonybridge.offline": "Ponte da Colónia: rede ME offline ou sem canal",
+  "status.tccolonybridge.invalid_cable": "Ponte da Colónia: ligue um cabo ME comum (não denso) por baixo",
   "status.tccolonybridge.no_colony": "Ponte da Colónia: coloque dentro de uma colónia",
   "status.tccolonybridge.no_permission": "Ponte da Colónia: quem a colocou não tem permissão nesta colónia",
   "status.tccolonybridge.no_warehouse": "Ponte da Colónia: armazém sem racks carregados",
@@ -10,5 +11,5 @@
   "message.tccolonybridge.no_permission": "Precisa de permissão nesta colónia para colocar aqui uma Ponte",
   "itemGroup.tccolonybridge": "TC Colony Bridge",
   "tooltip.tccolonybridge.colony_bridge.line1": "Entrega itens da rede ME no armazém da colónia.",
-  "tooltip.tccolonybridge.colony_bridge.line2": "Coloque dentro da colónia e ligue-a à rede ME (1 canal)."
+  "tooltip.tccolonybridge.colony_bridge.line2": "Coloque dentro da colónia; ligue um cabo ME comum por baixo (o cabo denso não liga)."
 }

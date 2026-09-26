@@ -14,7 +14,7 @@ import org.tinycore.colonybridge.logic.BridgeStatus;
  * e nos arquivos JSON (o nome vira {@code offline}, {@code error}...).
  */
 public enum BridgeVisualState implements StringRepresentable {
-    /** Sem rede ME ativa (sem energia, sem canal, iniciando). */
+    /** Sem rede ME ativa (sem energia, sem canal, cabo inválido, iniciando). */
     OFFLINE("offline"),
     /** Rede ok, mas a colônia não está utilizável (fora de colônia, sem permissão, sem armazém). */
     ERROR("error"),
@@ -32,7 +32,7 @@ public enum BridgeVisualState implements StringRepresentable {
     /** Converte o status detalhado da lógica no estado visual. */
     public static BridgeVisualState of(BridgeStatus status) {
         return switch (status) {
-            case STARTING, OFFLINE -> OFFLINE;
+            case STARTING, OFFLINE, INVALID_CABLE -> OFFLINE;
             case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE -> ERROR;
             case IDLE -> IDLE;
             case WORKING -> WORKING;

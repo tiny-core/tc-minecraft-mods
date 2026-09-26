@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.integration.ae2.CableRules;
 import org.tinycore.colonybridge.logic.BridgeLogic;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.registry.ModRegistries;
@@ -29,6 +30,9 @@ import java.util.UUID;
 /**
  * Ponto de ligação entre uma rede ME e a colônia onde o bloco está colocado.
  * Só expõe o nó da grid e guarda o dono; a lógica de pedidos vive em {@link BridgeLogic}.
+ * <p>
+ * Conexão restrita ({@link CableRules}): o nó só fica exposto no lado de baixo, e só enquanto houver
+ * um cabo comum ali. Sem cabo válido nenhum lado é exposto, então o AE2 nem desenha a conexão.
  */
 public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGridNodeHost, IActionHost {
 
@@ -38,6 +42,10 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     /** Jogador que colocou a ponte; a permissão dele na colônia é conferida a cada ciclo. */
     private @Nullable UUID owner;
     private int tickCounter;
+    /** Se o lado de baixo está exposto agora (cabo válido encontrado). */
+    private boolean cableAllowed;
+    /** Um vizinho mudou: reavaliar o cabo no próximo tick (fora do evento de vizinhança do AE2). */
+    private boolean cableCheckPending = true;
 
     public ColonyBridgeBlockEntity(BlockPos pos, BlockState state) {
         super(ModRegistries.COLONY_BRIDGE_BE.get(), pos, state);
@@ -45,7 +53,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .setIdlePowerUsage(4.0)
                 .setInWorldNode(true)
-                .setExposedOnSides(EnumSet.allOf(Direction.class))
+                .setExposedOnSides(EnumSet.noneOf(Direction.class)) // aberto só com cabo válido
                 .setTagName("node")
                 .setVisualRepresentation(ModRegistries.COLONY_BRIDGE_ITEM.get());
         this.actionSource = IActionSource.ofMachine(this);
@@ -58,7 +66,10 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide) {
-            GridHelper.onFirstTick(this, be -> be.mainNode.create(be.level, be.worldPosition));
+            GridHelper.onFirstTick(this, be -> {
+                be.refreshCableConnection(); // define os lados antes de criar, sem conectar e desconectar
+                be.mainNode.create(be.level, be.worldPosition);
+            });
         }
     }
 
@@ -88,6 +99,10 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     // ---------------------------------------------------------------- tick
 
     public void serverTick() {
+        if (cableCheckPending) {
+            cableCheckPending = false;
+            refreshCableConnection();
+        }
         if (++tickCounter < Config.CYCLE_TICKS.get()) {
             return;
         }
@@ -96,12 +111,32 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (mainNode.isActive()) {
+        refreshCableConnection(); // rede de segurança caso algum evento de vizinhança tenha escapado
+        if (!cableAllowed) {
+            logic.setStatus(BridgeStatus.INVALID_CABLE);
+        } else if (mainNode.isActive()) {
             logic.runCycle(serverLevel, mainNode.getGrid());
         } else {
             logic.setStatus(BridgeStatus.OFFLINE);
         }
         syncVisualState(serverLevel);
+    }
+
+    /** Chamado pelo bloco quando um vizinho muda; a checagem acontece no próximo tick. */
+    public void onNeighborChanged() {
+        cableCheckPending = true;
+    }
+
+    /** Expõe o lado de baixo só se houver cabo válido; mexe no nó apenas quando o resultado muda. */
+    private void refreshCableConnection() {
+        boolean allowed = level != null && CableRules.hasAllowedCable(level, worldPosition);
+        if (allowed == cableAllowed) {
+            return;
+        }
+        cableAllowed = allowed;
+        mainNode.setExposedOnSides(allowed
+                ? EnumSet.of(CableRules.CONNECTION_SIDE)
+                : EnumSet.noneOf(Direction.class));
     }
 
     /**

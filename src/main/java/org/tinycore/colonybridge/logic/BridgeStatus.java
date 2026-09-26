@@ -4,6 +4,8 @@ package org.tinycore.colonybridge.logic;
 public enum BridgeStatus {
     STARTING,
     OFFLINE,
+    /** Sem cabo ME comum (não denso) embaixo da ponte. */
+    INVALID_CABLE,
     NO_COLONY,
     /** Quem colocou a ponte não tem (ou perdeu) permissão na colônia. */
     NO_PERMISSION,
