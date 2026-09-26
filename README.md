@@ -19,7 +19,17 @@ Um pedido já entregue não é atendido de novo durante `redeliveryCooldownTicks
 o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem coexistir: elas compartilham um
 registro salvo no mundo e nunca atendem o mesmo pedido.
 
-Clique direito no bloco mostra o estado.
+Clique direito no bloco mostra o estado. O próprio bloco também muda de visual: offline (sem rede ME),
+erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
+
+### Receita
+```
+ E      E = Processador de Engenharia (AE2)
+IRI     I = Interface ME (AE2)
+ E      R = Rack (MineColonies)
+```
+O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é um JSON comum
+(`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
 ## Setup
 1. Copia para `libs/` os jars do teu ATM10 (ver `libs/LEIA-ME.txt`).

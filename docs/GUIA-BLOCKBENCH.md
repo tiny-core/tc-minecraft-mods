@@ -26,6 +26,25 @@
 No JSON exportado, as texturas devem apontar para `tccolonybridge:block/<nome>`. Se o Blockbench
 gravar um caminho do seu PC, corrija à mão ou peça ao Claude Code.
 
+## Estados da ponte (um visual por estado)
+O bloco muda de modelo conforme o estado (`blockstates/colony_bridge.json`):
+
+| Estado | Quando | Arquivo do modelo |
+|---|---|---|
+| `offline` | rede ME sem energia/canal | `models/block/colony_bridge_offline.json` |
+| `error` | fora de colônia, sem permissão ou sem armazém | `models/block/colony_bridge_error.json` |
+| `idle` | ok, sem pedidos | `models/block/colony_bridge_idle.json` |
+| `working` | tratando pedidos | `models/block/colony_bridge_working.json` |
+
+Hoje os quatro só herdam o modelo base `colony_bridge.json`. Caminho mais simples: exporte o
+modelo uma vez como `colony_bridge.json` e, em cada arquivo de estado, troque só a textura
+(ex.: a face frontal com LEDs de cor diferente):
+```json
+{ "parent": "tccolonybridge:block/colony_bridge",
+  "textures": { "front": "tccolonybridge:block/colony_bridge_front_working" } }
+```
+(`front` é o nome da textura no Blockbench; use o nome que você der lá.)
+
 ## Dicas para iniciante
 - Aprenda 3 atalhos: `Ctrl+D` duplicar, `R` girar, `S` escalar. O resto é ir testando.
 - Mantenha o estilo coerente com AE2 (moldura escura, linhas de energia) para o bloco não destoar

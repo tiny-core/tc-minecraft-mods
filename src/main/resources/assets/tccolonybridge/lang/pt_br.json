@@ -7,5 +7,8 @@
   "status.tccolonybridge.no_warehouse": "Ponte da Colônia: armazém sem racks carregados",
   "status.tccolonybridge.idle": "Ponte da Colônia: sem pedidos em aberto",
   "status.tccolonybridge.working": "Ponte da Colônia: tratando pedidos",
-  "message.tccolonybridge.no_permission": "Você precisa de permissão nesta colônia para colocar uma Ponte aqui"
+  "message.tccolonybridge.no_permission": "Você precisa de permissão nesta colônia para colocar uma Ponte aqui",
+  "itemGroup.tccolonybridge": "TC Colony Bridge",
+  "tooltip.tccolonybridge.colony_bridge.line1": "Entrega itens da rede ME no armazém da colônia.",
+  "tooltip.tccolonybridge.colony_bridge.line2": "Coloque dentro da colônia e ligue à rede ME (1 canal)."
 }

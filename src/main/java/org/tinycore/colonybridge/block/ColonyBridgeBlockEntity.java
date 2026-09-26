@@ -14,6 +14,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -95,11 +96,24 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
-        if (!mainNode.isActive()) {
+        if (mainNode.isActive()) {
+            logic.runCycle(serverLevel, mainNode.getGrid());
+        } else {
             logic.setStatus(BridgeStatus.OFFLINE);
-            return;
         }
-        logic.runCycle(serverLevel, mainNode.getGrid());
+        syncVisualState(serverLevel);
+    }
+
+    /**
+     * Copia o status para o blockstate, só quando o visual muda (cada troca envia um pacote aos clientes).
+     * Trocar o estado do mesmo bloco mantém este block entity; {@code UPDATE_CLIENTS} evita avisar vizinhos.
+     */
+    private void syncVisualState(ServerLevel serverLevel) {
+        BlockState state = getBlockState();
+        BridgeVisualState visual = BridgeVisualState.of(logic.getStatus());
+        if (state.hasProperty(ColonyBridgeBlock.STATUS) && state.getValue(ColonyBridgeBlock.STATUS) != visual) {
+            serverLevel.setBlock(worldPosition, state.setValue(ColonyBridgeBlock.STATUS, visual), Block.UPDATE_CLIENTS);
+        }
     }
 
     public BridgeStatus getStatus() {

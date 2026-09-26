@@ -12,6 +12,10 @@ Ordem pensada para cada fase entregar algo jogável e reduzir risco antes da par
 - Modelo e textura próprios da ponte (Blockbench — ver `GUIA-BLOCKBENCH.md`).
   Sugestão visual: moldura escura estilo AE2 + detalhe com cores do MineColonies, com
   "estado" visível no bloco (blockstate `status`: offline / idle / working → textura muda).
+- **Feito (código):** aba própria no criativo, tooltip, receita (` E `/`IRI`/` E ` — processador de
+  engenharia, interface ME, rack do MineColonies) e blockstate `status` com 4 estados
+  (offline / error / idle / working). **Falta:** modelo e texturas no Blockbench e conferir a receita
+  no JEI/EMI do ATM10 (KubeJS pode ter alterado itens).
 - **Aba própria no modo criativo** (`registry/ModCreativeTabs.java`, `DeferredRegister` de
   `Registries.CREATIVE_MODE_TAB`), com ícone da ponte. Remover o item da aba "Functional Blocks".
 - Receita de craft usando itens do AE2 e do MineColonies. Confirmar os IDs no ATM10 com JEI/EMI

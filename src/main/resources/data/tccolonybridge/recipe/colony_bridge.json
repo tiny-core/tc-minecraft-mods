@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " E ",
+    "IRI",
+    " E "
+  ],
+  "key": {
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "I": {
+      "item": "ae2:interface"
+    },
+    "R": {
+      "item": "minecolonies:blockminecoloniesrack"
+    }
+  },
+  "result": {
+    "id": "tccolonybridge:colony_bridge",
+    "count": 1
+  }
+}

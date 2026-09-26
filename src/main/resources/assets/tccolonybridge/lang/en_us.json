@@ -7,5 +7,8 @@
   "status.tccolonybridge.no_warehouse": "Colony Bridge: colony has no warehouse racks loaded",
   "status.tccolonybridge.idle": "Colony Bridge: no open requests",
   "status.tccolonybridge.working": "Colony Bridge: handling requests",
-  "message.tccolonybridge.no_permission": "You need permission in this colony to place a Colony Bridge here"
+  "message.tccolonybridge.no_permission": "You need permission in this colony to place a Colony Bridge here",
+  "itemGroup.tccolonybridge": "TC Colony Bridge",
+  "tooltip.tccolonybridge.colony_bridge.line1": "Delivers items from the ME network to the colony warehouse.",
+  "tooltip.tccolonybridge.colony_bridge.line2": "Place inside the colony and connect to the ME network (1 channel)."
 }
