@@ -1,0 +1,9 @@
+{
+  "block.tccolonybridge.colony_bridge": "ME Colony Bridge",
+  "status.tccolonybridge.starting": "Colony Bridge: starting",
+  "status.tccolonybridge.offline": "Colony Bridge: ME network offline or no channel",
+  "status.tccolonybridge.no_colony": "Colony Bridge: must be placed inside a colony",
+  "status.tccolonybridge.no_warehouse": "Colony Bridge: colony has no warehouse racks loaded",
+  "status.tccolonybridge.idle": "Colony Bridge: no open requests",
+  "status.tccolonybridge.working": "Colony Bridge: handling requests"
+}

@@ -1,0 +1,8 @@
+Copia para esta pasta, a partir de mods/ do teu ATM10:
+  - minecolonies-*.jar
+  - structurize-*.jar
+  - blockui-*.jar
+  - domum_ornamentum-*.jar
+  - appliedenergistics2-*.jar
+  - guideme-*.jar   (dependencia do AE2)
+Os .jar desta pasta nao devem ir para o Git (ver .gitignore).

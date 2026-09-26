@@ -1,0 +1,111 @@
+# Roadmap — TC Colony Bridge
+
+Ordem pensada para cada fase entregar algo jogável e reduzir risco antes da parte mais difícil
+(os monitores). Cada fase termina com teste no ATM10.
+
+---
+
+## Fase 2 — Identidade do mod
+
+**Objetivo:** o mod deixa de parecer protótipo.
+
+- Modelo e textura próprios da ponte (Blockbench — ver `GUIA-BLOCKBENCH.md`).
+  Sugestão visual: moldura escura estilo AE2 + detalhe com cores do MineColonies, com
+  "estado" visível no bloco (blockstate `status`: offline / idle / working → textura muda).
+- **Aba própria no modo criativo** (`registry/ModCreativeTabs.java`, `DeferredRegister` de
+  `Registries.CREATIVE_MODE_TAB`), com ícone da ponte. Remover o item da aba "Functional Blocks".
+- Receita de craft usando itens do AE2 e do MineColonies. Confirmar os IDs no ATM10 com JEI/EMI
+  antes de escrever o JSON; considerar receita configurável via datapack (já é, por ser JSON).
+- Tooltip no item explicando uso (texto traduzível).
+
+## Fase 3 — Interface da ponte (GUI)
+
+**Objetivo:** configurar e ver o estado sem olhar logs.
+
+- Menu (container) + tela: estado, colônia ligada, pedidos pendentes, crafts em andamento.
+- Configuração **por bloco** (salva em NBT): ligar/desligar crafting, filtro de itens, controle por
+  redstone.
+- Pacotes em `network/` usando `CustomPacketPayload` + `RegisterPayloadHandlersEvent`.
+  Validação completa no servidor (ver regras de segurança no `CLAUDE.md`).
+
+## Fase 4 — Estatísticas
+
+**Objetivo:** dados que depois alimentam os monitores.
+
+- Coleta no servidor: itens entregues, crafts feitos/falhos, pedidos atendidos por hora, top itens.
+- Guardar em *ring buffer* (janela fixa, ex.: últimas 24h em blocos de 5 min) → memória constante.
+- Persistência em NBT do block entity (ou `SavedData` se for por colônia).
+
+## Fase 5 — Monitor multibloco (a feature grande)
+
+### O que se quer
+Parede de blocos de monitor que forma uma tela única (como o monitor do CC:Tweaked), mas sem a
+limitação de grade de caracteres: gráficos, ícones de itens, barras, texto em qualquer tamanho,
+visual moderno.
+
+### Análise honesta
+É de longe a parte mais complexa do projeto: envolve renderização no cliente (OpenGL via API do
+Minecraft), formação de multibloco, sincronização de rede e compatibilidade com shaders.
+Recomendo só começar depois das fases 3 e 4, porque elas criam os dados e a infraestrutura de
+pacotes que o monitor precisa.
+
+### Arquitetura proposta
+- **Formação:** blocos `monitor` adjacentes, mesma direção, formando retângulo (limite configurável,
+  ex.: 8×6). Um bloco vira **mestre** (canto inferior esquerdo) e guarda dados/estado; os outros só
+  apontam para ele. Revalidar ao colocar/quebrar um bloco, nunca por tick.
+- **Fonte de dados:** o monitor é ligado a uma ponte (adjacência, ou item "cartão de ligação" com
+  a posição gravada, validado no servidor por distância/dimensão).
+- **Sincronização:** o servidor monta um *snapshot* compacto (só números e IDs) e envia aos jogadores
+  próximos **só quando muda**, no máximo 1×/s. O cliente nunca pede dados arbitrários.
+- **Renderização — duas opções:**
+  1. **Desenhar direto no mundo com `BlockEntityRenderer`** (quads + `Font`), recomendada para
+     começar: nítida em qualquer tamanho, sem framebuffer extra, menos problemas com shaders.
+     Gráficos viram retângulos/linhas; ícones via `ItemRenderer`.
+  2. **Render-to-texture** (desenhar a UI num framebuffer e aplicar como textura): permite reutilizar
+     código de GUI e efeitos mais ricos, mas custa memória de GPU, é mais complexo e costuma dar
+     problemas com mods de shader (Iris). Deixar como evolução, se a opção 1 não bastar.
+- **Brilho:** tela renderizada com luz máxima (`LightTexture.FULL_BRIGHT`) para parecer um display.
+- **Culling:** não renderizar se o jogador estiver longe (ex.: > 32 blocos) ou atrás da tela.
+
+### Interface "moderna e bonita"
+- Criar um mini *design system* em `client/ui/`: tokens de cor, espaçamentos, tipografia, e
+  componentes (card, gráfico de linha, barra, lista de itens). Os monitores montam telas a partir
+  desses componentes — nada de coordenadas soltas espalhadas.
+- Paleta sugerida: reaproveitar a do TCMine (laranja `#F97316`, ciano `#22B8E8`, cinzas escuros) para
+  manter identidade visual entre os projetos.
+- Layout responsivo ao tamanho do multibloco (2×2 mostra um resumo; 6×4 mostra painel completo).
+- Animações leves (transição de valores, gráfico deslizando) interpoladas no cliente, sem pacotes extras.
+
+### Divisão em etapas
+1. Monitor 1×1 mostrando texto fixo via BER (valida renderização).
+2. Formação do multibloco + tela única.
+3. Pacote de snapshot + dados reais da ponte.
+4. Componentes de UI e gráficos.
+5. Polimento visual e configurações do monitor.
+
+## Fase 6 — Crafting avançado
+
+- Crafting para pedidos por **tag/ferramenta/comida**: escolher um item craftável que satisfaça o
+  pedido (percorrer os craftáveis do AE2 com `getCraftables(...)` e testar `deliverable.matches`),
+  com preferência configurável (ex.: mais barato, o que já tem mais material).
+- Trocar "craft sem requester" por `ICraftingRequester`: o resultado vai direto para o armazém, sem
+  passar pela rede. Exige persistir os `ICraftingLink` em NBT.
+
+---
+
+## Dicas de melhoria no código atual (prioridade alta → baixa)
+
+1. **Checar permissão da colônia** ao ligar a ponte. Hoje qualquer bloco dentro da fronteira funciona,
+   inclusive colocado por quem não tem permissão na colônia.
+2. **Persistir `lastDelivery`** em NBT: hoje um reinício do servidor zera o cooldown e pode causar
+   uma entrega duplicada.
+3. **Várias pontes na mesma colônia:** hoje as duas podem atender o mesmo pedido. Opções: só a
+   primeira ponte registrada atua, ou um registro compartilhado por colônia (`SavedData`).
+4. **Indexar o estoque** para pedidos por tag: evitar criar um `ItemStack` por item da rede em cada
+   pedido (importante em redes grandes do ATM10).
+5. **Simulação de inserção mais precisa** nos racks (hoje é otimista com vários stacks; o excesso
+   volta para a rede, então é seguro, mas gasta energia à toa).
+6. **GameTests** para a lógica de entrega (NeoForge suporta `@GameTest`) e **GitHub Actions** para
+   compilar a cada push.
+7. Separar `ModRegistries` em arquivos por tipo quando passar de ~5 registros.
+8. Publicação futura (CurseForge/Modrinth): definir licença final, página em PT/EN e ícone.

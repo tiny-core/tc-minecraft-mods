@@ -1,0 +1,9 @@
+{
+  "block.tccolonybridge.colony_bridge": "Ponte ME da Colônia",
+  "status.tccolonybridge.starting": "Ponte da Colônia: iniciando",
+  "status.tccolonybridge.offline": "Ponte da Colônia: rede ME offline ou sem canal",
+  "status.tccolonybridge.no_colony": "Ponte da Colônia: coloque dentro de uma colônia",
+  "status.tccolonybridge.no_warehouse": "Ponte da Colônia: armazém sem racks carregados",
+  "status.tccolonybridge.idle": "Ponte da Colônia: sem pedidos em aberto",
+  "status.tccolonybridge.working": "Ponte da Colônia: tratando pedidos"
+}
