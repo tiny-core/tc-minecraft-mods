@@ -21,7 +21,14 @@ Um pedido já entregue não é atendido de novo durante `redeliveryCooldownTicks
 o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem coexistir: elas compartilham um
 registro salvo no mundo e nunca atendem o mesmo pedido.
 
-Clique direito no bloco mostra o estado. O próprio bloco também muda de visual: offline (sem rede ME),
+### Tela da ponte
+Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono):
+- estado da ponte e nome da colônia;
+- lista dos pedidos em aberto com **o que a ponte fez com cada um** (entregue, craftando, sem estoque,
+  não craftável, racks cheios, atendido por outra ponte, na fila...). Passe o mouse para ver o texto completo;
+- **Crafting ligado/desligado** e **modo de redstone** (ignorar / só com sinal / só sem sinal).
+
+Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 
 ### Receita

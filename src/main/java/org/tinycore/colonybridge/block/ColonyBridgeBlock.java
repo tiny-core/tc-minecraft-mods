@@ -4,6 +4,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -22,6 +23,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
 import org.tinycore.colonybridge.registry.ModRegistries;
 
 import java.util.List;
@@ -112,13 +114,24 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
         }
     }
 
-    /** Clique direito mostra o estado atual (debug simples até existir GUI). */
+    /**
+     * Clique direito: quem pode configurar abre a tela; os demais só veem o estado na barra de ação.
+     * {@code openMenu(provider, pos)} cria o menu no servidor e manda o cliente abrir o seu,
+     * enviando a posição do bloco como "dado extra".
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be) {
-            player.displayClientMessage(Component.translatable(be.getStatus().translationKey()), true);
+        if (level.isClientSide || !(level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be)) {
+            return InteractionResult.sidedSuccess(level.isClientSide);
         }
-        return InteractionResult.sidedSuccess(level.isClientSide);
+        if (!be.canConfigure(player)) {
+            player.displayClientMessage(Component.translatable(be.getStatus().translationKey()), true);
+            return InteractionResult.CONSUME;
+        }
+        player.openMenu(new SimpleMenuProvider(
+                (containerId, inventory, p) -> new ColonyBridgeMenu(containerId, inventory, be),
+                Component.translatable("gui.tccolonybridge.title")), pos);
+        return InteractionResult.CONSUME;
     }
 }

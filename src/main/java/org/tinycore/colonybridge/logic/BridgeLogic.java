@@ -25,26 +25,40 @@ import java.util.List;
  *    já entregues ou sendo craftados por outra ponte;
  * 4. se o item existe na rede ME → move para os racks do armazém ({@link RackDelivery}) e reatribui o pedido;
  * 5. se não existe e o pedido é de um item exato → agenda autocrafting ({@link CraftingTracker}).
+ * O resultado de cada pedido vai para o {@link CycleReport}, que a tela da ponte mostra.
  */
 public final class BridgeLogic {
 
     private final ColonyBridgeBlockEntity host;
     private final CraftingTracker crafting = new CraftingTracker();
+    private final CycleReport report = new CycleReport();
     private BridgeStatus status = BridgeStatus.STARTING;
+    private String colonyName = "";
+
+    /**
+     * Dados que valem para o ciclo inteiro, agrupados para não passar dez parâmetros por método.
+     * {@code record} em Java ≈ {@code record} em C#: classe imutável só de dados.
+     */
+    private record Cycle(ServerLevel level, IGrid grid, IActionSource source, IColony colony,
+                         List<IItemHandler> racks, KeyCounter stock, DeliveryLedger ledger,
+                         String colonyKey, long bridgeId, long now, boolean craftingEnabled) {}
 
     public BridgeLogic(ColonyBridgeBlockEntity host) {
         this.host = host;
     }
 
     public void runCycle(ServerLevel level, IGrid grid) {
+        report.clear();
         IActionSource source = host.getActionSource();
         crafting.poll(level, grid, source);
 
         IColony colony = ColonyAccess.findColony(level, host.getBlockPos());
         if (colony == null) {
+            colonyName = "";
             setStatus(BridgeStatus.NO_COLONY);
             return;
         }
+        colonyName = ColonyAccess.colonyName(colony);
         if (!ColonyAccess.canUseBridge(colony, host.getOwner())) {
             setStatus(BridgeStatus.NO_PERMISSION);
             return;
@@ -58,53 +72,70 @@ public final class BridgeLogic {
         long now = level.getGameTime();
         DeliveryLedger ledger = DeliveryLedger.get(level);
         ledger.expire(now, Config.REDELIVERY_COOLDOWN_TICKS.get());
-        String colonyKey = ColonyAccess.colonyKey(colony);
-        long bridgeId = host.getBlockPos().asLong();
+        Cycle cycle = new Cycle(level, grid, source, colony, racks,
+                grid.getStorageService().getCachedInventory(), ledger, ColonyAccess.colonyKey(colony),
+                host.getBlockPos().asLong(), now, host.getSettings().craftingEnabled());
 
         List<OpenRequest> requests = ColonyAccess.openRequests(colony);
-        KeyCounter stock = grid.getStorageService().getCachedInventory();
         int handled = 0;
-
         for (OpenRequest request : requests) {
             if (handled >= Config.MAX_REQUESTS_PER_CYCLE.get()) {
-                break;
-            }
-            if (ledger.isBlocked(colonyKey, request.id(), bridgeId)) {
+                report.add(request, RequestOutcome.QUEUED);
                 continue;
             }
-
-            AEItemKey inStock = findInStock(stock, request);
-            if (inStock != null) {
-                long delivered = RackDelivery.deliver(grid, source, inStock, request.amount(), racks);
-                if (delivered > 0) {
-                    ledger.markDelivered(colonyKey, request.id(), bridgeId, now);
-                    ColonyAccess.reassign(colony, request.token());
-                    handled++;
-                }
-                continue;
-            }
-
-            if (!request.isExact()) {
-                continue;
-            }
-            AEItemKey key = AEItemKey.of(request.exactStack());
-            if (key == null) {
-                continue;
-            }
-            if (crafting.isBusy(grid.getCraftingService(), key)) {
-                // Craft ainda rodando: renova a reserva (se for desta ponte) para ela não expirar
-                // no meio de um craft longo e outra ponte começar o mesmo craft.
-                ledger.renewCrafting(colonyKey, request.id(), bridgeId, now);
-                continue;
-            }
-            if (crafting.tryStart(level, grid, source, key, request.amount())) {
-                // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
-                ledger.markCrafting(colonyKey, request.id(), bridgeId, now);
+            RequestOutcome outcome = process(cycle, request);
+            report.add(request, outcome);
+            if (outcome.countsTowardLimit()) {
                 handled++;
             }
         }
 
         setStatus(requests.isEmpty() ? BridgeStatus.IDLE : BridgeStatus.WORKING);
+    }
+
+    /** Trata um pedido e diz o que aconteceu. */
+    private RequestOutcome process(Cycle c, OpenRequest request) {
+        DeliveryLedger.ClaimState claim = c.ledger().state(c.colonyKey(), request.id(), c.bridgeId());
+        if (claim == DeliveryLedger.ClaimState.DELIVERED) {
+            return RequestOutcome.WAITING_COURIER;
+        }
+        if (claim == DeliveryLedger.ClaimState.OTHER_BRIDGE) {
+            return RequestOutcome.OTHER_BRIDGE;
+        }
+
+        AEItemKey inStock = findInStock(c.stock(), request);
+        if (inStock != null) {
+            long delivered = RackDelivery.deliver(c.grid(), c.source(), inStock, request.amount(), c.racks());
+            if (delivered <= 0) {
+                return RequestOutcome.RACKS_FULL;
+            }
+            c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+            ColonyAccess.reassign(c.colony(), request.token());
+            return RequestOutcome.DELIVERED;
+        }
+
+        if (!request.isExact()) {
+            return RequestOutcome.NO_STOCK;
+        }
+        AEItemKey key = AEItemKey.of(request.exactStack());
+        if (key == null) {
+            return RequestOutcome.NOT_CRAFTABLE;
+        }
+        if (crafting.isBusy(c.grid().getCraftingService(), key)) {
+            // Craft ainda rodando: renova a reserva (se for desta ponte) para ela não expirar
+            // no meio de um craft longo e outra ponte começar o mesmo craft.
+            c.ledger().renewCrafting(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+            return RequestOutcome.CRAFTING;
+        }
+        if (!c.craftingEnabled()) {
+            return RequestOutcome.CRAFTING_DISABLED;
+        }
+        if (!crafting.tryStart(c.level(), c.grid(), c.source(), key, request.amount())) {
+            return RequestOutcome.NOT_CRAFTABLE;
+        }
+        // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
+        c.ledger().markCrafting(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+        return RequestOutcome.CRAFT_STARTED;
     }
 
     /** Procura na rede um item que satisfaça o pedido (exato primeiro, depois por correspondência). */
@@ -132,9 +163,22 @@ public final class BridgeLogic {
         return status;
     }
 
+    public CycleReport getReport() {
+        return report;
+    }
+
+    /** Nome da colônia encontrada no último ciclo ("" se nenhuma). */
+    public String getColonyName() {
+        return colonyName;
+    }
+
+    /** Muda o status; fora de um ciclo completo o relatório fica vazio (nada foi processado). */
     public void setStatus(BridgeStatus status) {
         if (status == BridgeStatus.OFFLINE) {
             crafting.clear();
+        }
+        if (status != BridgeStatus.IDLE && status != BridgeStatus.WORKING) {
+            report.clear();
         }
         this.status = status;
     }

@@ -19,9 +19,11 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.CableRules;
 import org.tinycore.colonybridge.logic.BridgeLogic;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.menu.BridgeSnapshot;
 import org.tinycore.colonybridge.registry.ModRegistries;
 
 import java.util.EnumSet;
@@ -33,6 +35,9 @@ import java.util.UUID;
  * <p>
  * Conexão restrita ({@link CableRules}): o nó só fica exposto no lado de baixo, e só enquanto houver
  * um cabo comum ali. Sem cabo válido nenhum lado é exposto, então o AE2 nem desenha a conexão.
+ * <p>
+ * Também guarda as configurações da tela ({@link BridgeSettings}) e monta o {@link BridgeSnapshot}
+ * que o menu envia ao cliente.
  */
 public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGridNodeHost, IActionHost {
 
@@ -41,6 +46,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     private final BridgeLogic logic;
     /** Jogador que colocou a ponte; a permissão dele na colônia é conferida a cada ciclo. */
     private @Nullable UUID owner;
+    private BridgeSettings settings = BridgeSettings.DEFAULT;
     private int tickCounter;
     /** Se o lado de baixo está exposto agora (cabo válido encontrado). */
     private boolean cableAllowed;
@@ -114,12 +120,41 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         refreshCableConnection(); // rede de segurança caso algum evento de vizinhança tenha escapado
         if (!cableAllowed) {
             logic.setStatus(BridgeStatus.INVALID_CABLE);
+        } else if (!settings.redstoneMode().allows(serverLevel.hasNeighborSignal(worldPosition))) {
+            logic.setStatus(BridgeStatus.PAUSED);
         } else if (mainNode.isActive()) {
             logic.runCycle(serverLevel, mainNode.getGrid());
         } else {
             logic.setStatus(BridgeStatus.OFFLINE);
         }
         syncVisualState(serverLevel);
+    }
+
+    // ---------------------------------------------------------------- tela
+
+    public BridgeSettings getSettings() {
+        return settings;
+    }
+
+    /** Aplica configurações já validadas (ver {@code ModNetwork}) e marca o bloco para salvar. */
+    public void applySettings(BridgeSettings newSettings) {
+        settings = newSettings;
+        tickCounter = Config.CYCLE_TICKS.get(); // roda um ciclo no próximo tick para a tela refletir logo
+        setChanged();
+    }
+
+    /**
+     * Quem pode abrir a tela e mudar configurações: quem tem permissão na colônia; fora de colônia,
+     * só o dono (ou qualquer um, se a ponte é antiga e não tem dono salvo).
+     */
+    public boolean canConfigure(Player player) {
+        return level != null && ColonyAccess.canConfigureBridge(level, worldPosition, player.getUUID(), owner);
+    }
+
+    /** Foto atual do estado para a tela (chamado no servidor, no máximo 1×/s por tela aberta). */
+    public BridgeSnapshot snapshot() {
+        return new BridgeSnapshot(logic.getStatus(), logic.getColonyName(), settings.craftingEnabled(),
+                settings.redstoneMode(), logic.getReport().lines(), logic.getReport().total());
     }
 
     /** Chamado pelo bloco quando um vizinho muda; a checagem acontece no próximo tick. */
@@ -180,6 +215,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         if (owner != null) {
             tag.putUUID("owner", owner);
         }
+        tag.put("settings", settings.save());
     }
 
     @Override
@@ -187,6 +223,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         super.loadAdditional(tag, registries);
         mainNode.loadFromNBT(tag);
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
+        settings = BridgeSettings.load(tag.getCompound("settings"));
     }
 
     private enum NodeListener implements IGridNodeListener<ColonyBridgeBlockEntity> {

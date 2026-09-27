@@ -32,7 +32,7 @@ public enum BridgeVisualState implements StringRepresentable {
     /** Converte o status detalhado da lógica no estado visual. */
     public static BridgeVisualState of(BridgeStatus status) {
         return switch (status) {
-            case STARTING, OFFLINE, INVALID_CABLE -> OFFLINE;
+            case STARTING, OFFLINE, INVALID_CABLE, PAUSED -> OFFLINE;
             case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE -> ERROR;
             case IDLE -> IDLE;
             case WORKING -> WORKING;

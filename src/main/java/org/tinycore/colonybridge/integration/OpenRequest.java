@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.integration;
 
 import com.minecolonies.api.colony.requestsystem.requestable.IDeliverable;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -11,8 +12,11 @@ import net.minecraft.world.item.ItemStack;
  * @param deliverable o que o cidadão aceita (item exato, tag, ferramenta, comida...)
  * @param exactStack  item exato quando o pedido é um Stack; vazio caso contrário
  *                    (só pedidos exatos são candidatos a autocrafting no MVP)
+ * @param icon        item para mostrar na tela (o exato ou um exemplo do que é aceito); pode ser vazio
+ * @param label       descrição curta do pedido, vinda do MineColonies
  */
-public record OpenRequest(IToken<?> token, IDeliverable deliverable, ItemStack exactStack) {
+public record OpenRequest(IToken<?> token, IDeliverable deliverable, ItemStack exactStack,
+                          ItemStack icon, Component label) {
 
     /**
      * Id estável do pedido, igual entre reinícios (o token do MineColonies é um UUID salvo com a colônia).

@@ -50,13 +50,27 @@ public final class DeliveryLedger extends SavedData {
         return level.getServer().overworld().getDataStorage().computeIfAbsent(FACTORY, FILE_NAME);
     }
 
-    /**
-     * true se esta ponte deve pular o pedido: ele já foi entregue (por qualquer ponte)
-     * ou outra ponte está craftando para ele.
-     */
-    public boolean isBlocked(String colony, String request, long bridge) {
+    /** Situação de um pedido no registro, do ponto de vista de uma ponte. */
+    public enum ClaimState {
+        /** Ninguém reivindicou: a ponte pode atender. */
+        FREE,
+        /** Já entregue (por qualquer ponte), em cooldown: ninguém mexe. */
+        DELIVERED,
+        /** Esta ponte está craftando para ele: pode entregar quando ficar pronto. */
+        MINE_CRAFTING,
+        /** Outra ponte está craftando para ele: esta pula. */
+        OTHER_BRIDGE
+    }
+
+    public ClaimState state(String colony, String request, long bridge) {
         Claim claim = claims.get(key(colony, request));
-        return claim != null && (claim.delivered() || claim.bridge() != bridge);
+        if (claim == null) {
+            return ClaimState.FREE;
+        }
+        if (claim.delivered()) {
+            return ClaimState.DELIVERED;
+        }
+        return claim.bridge() == bridge ? ClaimState.MINE_CRAFTING : ClaimState.OTHER_BRIDGE;
     }
 
     public void markDelivered(String colony, String request, long bridge, long now) {

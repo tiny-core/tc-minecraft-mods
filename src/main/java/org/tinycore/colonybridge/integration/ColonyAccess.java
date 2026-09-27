@@ -57,6 +57,18 @@ public final class ColonyAccess {
     }
 
     /**
+     * true se o jogador pode abrir e configurar a ponte nesta posição: dentro de colônia, precisa da
+     * mesma permissão de {@link #canUseBridge}; fora, só o dono (ou qualquer um se não há dono salvo).
+     */
+    public static boolean canConfigureBridge(Level level, BlockPos pos, UUID player, @Nullable UUID owner) {
+        IColony colony = findColony(level, pos);
+        if (colony != null) {
+            return canUseBridge(colony, player);
+        }
+        return owner == null || owner.equals(player);
+    }
+
+    /**
      * true se o jogador pode ligar uma ponte a esta colônia.
      * Exige {@link Action#ACCESS_HUTS} (por padrão: dono, oficiais e amigos), a mesma permissão
      * de abrir as cabanas — a ponte mexe no armazém, então faz sentido exigir o mesmo.
@@ -92,9 +104,25 @@ public final class ColonyAccess {
                 continue; // não é um pedido de itens
             }
             ItemStack exact = request.getRequest() instanceof Stack stack ? stack.getStack().copy() : ItemStack.EMPTY;
-            result.add(new OpenRequest(token, deliverable, exact));
+            result.add(new OpenRequest(token, deliverable, exact, iconOf(request, exact),
+                    request.getShortDisplayString()));
         }
         return result;
+    }
+
+    /** Item para a tela: o pedido exato, senão o primeiro exemplo que o MineColonies mostra. */
+    private static ItemStack iconOf(IRequest<?> request, ItemStack exact) {
+        if (!exact.isEmpty()) {
+            return exact;
+        }
+        List<ItemStack> examples = request.getDisplayStacks();
+        return examples.isEmpty() ? ItemStack.EMPTY : examples.get(0).copyWithCount(1);
+    }
+
+    /** Nome da colônia (limitado a 64 caracteres para o pacote enviado à tela). */
+    public static String colonyName(IColony colony) {
+        String name = colony.getName();
+        return name.length() > 64 ? name.substring(0, 64) : name;
     }
 
     /** Inventários de todos os racks dos armazéns da colônia (apenas chunks carregados). */
