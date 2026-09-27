@@ -34,6 +34,8 @@ public final class BridgeLogic {
     private final CycleReport report = new CycleReport();
     private BridgeStatus status = BridgeStatus.STARTING;
     private String colonyName = "";
+    /** Preenchido por {@link #findInStock}: havia item compatível, mas o filtro barrou. */
+    private boolean lastSearchFiltered;
 
     /**
      * Dados que valem para o ciclo inteiro, agrupados para não passar dez parâmetros por método.
@@ -104,6 +106,7 @@ public final class BridgeLogic {
         }
 
         AEItemKey inStock = findInStock(c.stock(), request);
+        boolean filtered = lastSearchFiltered;
         if (inStock != null) {
             long delivered = RackDelivery.deliver(c.grid(), c.source(), inStock, request.amount(), c.racks());
             if (delivered <= 0) {
@@ -115,7 +118,10 @@ public final class BridgeLogic {
         }
 
         if (!request.isExact()) {
-            return RequestOutcome.NO_STOCK;
+            return filtered ? RequestOutcome.FILTERED : RequestOutcome.NO_STOCK;
+        }
+        if (!host.filterAllows(request.exactStack())) {
+            return RequestOutcome.FILTERED; // nem entrega nem crafta um item bloqueado
         }
         AEItemKey key = AEItemKey.of(request.exactStack());
         if (key == null) {
@@ -138,12 +144,19 @@ public final class BridgeLogic {
         return RequestOutcome.CRAFT_STARTED;
     }
 
-    /** Procura na rede um item que satisfaça o pedido (exato primeiro, depois por correspondência). */
-    private static @Nullable AEItemKey findInStock(KeyCounter stock, OpenRequest request) {
+    /**
+     * Procura na rede um item que satisfaça o pedido e que o filtro permita (exato primeiro, depois por
+     * correspondência). Se achou algo compatível mas o filtro barrou, marca {@link #lastSearchFiltered}.
+     */
+    private @Nullable AEItemKey findInStock(KeyCounter stock, OpenRequest request) {
+        lastSearchFiltered = false;
         if (request.isExact()) {
             AEItemKey exact = AEItemKey.of(request.exactStack());
             if (exact != null && stock.get(exact) > 0) {
-                return exact;
+                if (host.filterAllows(exact.getReadOnlyStack())) {
+                    return exact;
+                }
+                lastSearchFiltered = true;
             }
         }
         // Pedidos por tag / ferramenta / comida: testa cada item da rede.
@@ -153,7 +166,10 @@ public final class BridgeLogic {
             if (entry.getLongValue() > 0
                     && entry.getKey() instanceof AEItemKey itemKey
                     && request.deliverable().matches(itemKey.getReadOnlyStack())) {
-                return itemKey;
+                if (host.filterAllows(itemKey.getReadOnlyStack())) {
+                    return itemKey;
+                }
+                lastSearchFiltered = true; // continua procurando outro item compatível
             }
         }
         return null;

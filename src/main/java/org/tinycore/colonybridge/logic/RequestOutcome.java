@@ -21,6 +21,8 @@ public enum RequestOutcome {
     NO_STOCK,
     /** Pedido exato sem receita no AE2, na blacklist ou em espera após falha de craft. */
     NOT_CRAFTABLE,
+    /** O filtro da ponte não deixa este item sair da rede. */
+    FILTERED,
     /** Não há na rede e o crafting está desligado nas configurações da ponte. */
     CRAFTING_DISABLED,
     /** Limite de pedidos por ciclo atingido; será tratado num próximo ciclo. */

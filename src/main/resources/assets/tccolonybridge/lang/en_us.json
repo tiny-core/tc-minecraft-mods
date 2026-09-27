@@ -44,5 +44,15 @@
   "outcome.tccolonybridge.no_stock": "Not in ME network",
   "outcome.tccolonybridge.not_craftable": "Cannot craft",
   "outcome.tccolonybridge.crafting_disabled": "No stock (crafting off)",
-  "outcome.tccolonybridge.queued": "Queued for next cycle"
+  "outcome.tccolonybridge.queued": "Queued for next cycle",
+  "gui.tccolonybridge.tab.requests": "Requests",
+  "gui.tccolonybridge.tab.filter": "Filter",
+  "gui.tccolonybridge.filter_mode": "Filter: %s",
+  "filter.tccolonybridge.off": "Off",
+  "filter.tccolonybridge.allow": "Only allow",
+  "filter.tccolonybridge.block": "Block",
+  "gui.tccolonybridge.match.item": "Compare: item only",
+  "gui.tccolonybridge.match.exact": "Compare: exact",
+  "gui.tccolonybridge.filter_hint": "Item in hand copies · empty hand clears",
+  "outcome.tccolonybridge.filtered": "Blocked by filter"
 }

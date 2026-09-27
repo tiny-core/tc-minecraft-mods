@@ -14,6 +14,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -47,6 +48,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     /** Jogador que colocou a ponte; a permissão dele na colônia é conferida a cada ciclo. */
     private @Nullable UUID owner;
     private BridgeSettings settings = BridgeSettings.DEFAULT;
+    private final ItemFilter filter = new ItemFilter();
     private int tickCounter;
     /** Se o lado de baixo está exposto agora (cabo válido encontrado). */
     private boolean cableAllowed;
@@ -136,6 +138,15 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         return settings;
     }
 
+    public ItemFilter getFilter() {
+        return filter;
+    }
+
+    /** true se o filtro deixa este item sair da rede (entrega ou craft). */
+    public boolean filterAllows(ItemStack stack) {
+        return settings.filterMode().allows(filter.contains(stack, settings.exactMatch()));
+    }
+
     /** Aplica configurações já validadas (ver {@code ModNetwork}) e marca o bloco para salvar. */
     public void applySettings(BridgeSettings newSettings) {
         settings = newSettings;
@@ -153,8 +164,8 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
 
     /** Foto atual do estado para a tela (chamado no servidor, no máximo 1×/s por tela aberta). */
     public BridgeSnapshot snapshot() {
-        return new BridgeSnapshot(logic.getStatus(), logic.getColonyName(), settings.craftingEnabled(),
-                settings.redstoneMode(), logic.getReport().lines(), logic.getReport().total());
+        return new BridgeSnapshot(logic.getStatus(), logic.getColonyName(), settings,
+                logic.getReport().lines(), logic.getReport().total());
     }
 
     /** Chamado pelo bloco quando um vizinho muda; a checagem acontece no próximo tick. */
@@ -216,6 +227,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
             tag.putUUID("owner", owner);
         }
         tag.put("settings", settings.save());
+        tag.put("filter", filter.save(registries));
     }
 
     @Override
@@ -224,6 +236,7 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
         mainNode.loadFromNBT(tag);
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
         settings = BridgeSettings.load(tag.getCompound("settings"));
+        filter.load(tag.getCompound("filter"), registries);
     }
 
     private enum NodeListener implements IGridNodeListener<ColonyBridgeBlockEntity> {

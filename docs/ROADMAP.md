@@ -25,7 +25,7 @@ Ordem pensada para cada fase entregar algo jogável e reduzir risco antes da par
 ## Fase 3 — Interface da ponte (GUI)
 
 > **3a feita:** tela com estado, colônia, lista de pedidos com resultado, crafting on/off e modo redstone.
-> **3b pendente:** filtro de itens (ghost slots + arrastar do JEI/EMI).
+> **3b feita:** filtro de itens (permitir/bloquear, comparação exata ou por item, ghost slots, arrastar do JEI).
 
 **Objetivo:** configurar e ver o estado sem olhar logs.
 

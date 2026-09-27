@@ -59,9 +59,11 @@ dependencies {
     compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
 
     // MineColonies (+ Structurize, BlockUI, Domum Ornamentum) e o AE2 completo:
-    // copiados do teu ATM10 para ./libs, assim compilas e testas contra
-    // exatamente as mesmas versoes que o modpack usa.
+    // copiados do seu ATM10 para ./libs, assim você compila e testa contra
+    // exatamente as mesmas versões que o modpack usa.
     compileOnly fileTree(dir: 'libs', include: 'minecolonies-*.jar')
+    // JEI: opcional em jogo; só usado para arrastar itens para o filtro (client/jei/).
+    compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
     localRuntime fileTree(dir: 'libs', include: '*.jar')
 }
 

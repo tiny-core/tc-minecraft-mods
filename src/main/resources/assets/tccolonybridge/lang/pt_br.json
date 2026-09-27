@@ -44,5 +44,15 @@
   "outcome.tccolonybridge.no_stock": "Sem estoque na rede ME",
   "outcome.tccolonybridge.not_craftable": "Não é possível craftar",
   "outcome.tccolonybridge.crafting_disabled": "Sem estoque (crafting desligado)",
-  "outcome.tccolonybridge.queued": "Na fila para o próximo ciclo"
+  "outcome.tccolonybridge.queued": "Na fila para o próximo ciclo",
+  "gui.tccolonybridge.tab.requests": "Pedidos",
+  "gui.tccolonybridge.tab.filter": "Filtro",
+  "gui.tccolonybridge.filter_mode": "Filtro: %s",
+  "filter.tccolonybridge.off": "Desligado",
+  "filter.tccolonybridge.allow": "Só permitir",
+  "filter.tccolonybridge.block": "Bloquear",
+  "gui.tccolonybridge.match.item": "Comparar: só o item",
+  "gui.tccolonybridge.match.exact": "Comparar: exato",
+  "gui.tccolonybridge.filter_hint": "Item na mão copia · mão vazia limpa",
+  "outcome.tccolonybridge.filtered": "Bloqueado pelo filtro"
 }

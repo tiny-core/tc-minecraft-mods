@@ -28,6 +28,14 @@ Clique direito abre a tela (para quem tem permissão na colônia; fora de colôn
   não craftável, racks cheios, atendido por outra ponte, na fila...). Passe o mouse para ver o texto completo;
 - **Crafting ligado/desligado** e **modo de redstone** (ignorar / só com sinal / só sem sinal).
 
+A aba **Filtro** controla quais itens podem sair da rede (entrega ou craft):
+- modo **Desligado / Só permitir / Bloquear** e comparação **só o item** ou **exata** (encantamentos, durabilidade);
+- 18 slots "fantasma": clique com um item na mão para copiá-lo (o item continua com você), mão vazia ou
+  shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
+- com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
+
+Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte procura outro compatível.
+
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 

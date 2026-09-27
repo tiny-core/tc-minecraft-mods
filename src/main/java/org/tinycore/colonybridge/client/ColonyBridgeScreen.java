@@ -1,16 +1,16 @@
 package org.tinycore.colonybridge.client;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.locale.Language;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.tinycore.colonybridge.block.RedstoneMode;
+import org.tinycore.colonybridge.block.BridgeSettings;
+import org.tinycore.colonybridge.block.ItemFilter;
 import org.tinycore.colonybridge.client.ui.FlatButton;
 import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.RequestLine;
 import org.tinycore.colonybridge.logic.RequestOutcome;
 import org.tinycore.colonybridge.menu.BridgeSnapshot;
 import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
@@ -19,8 +19,11 @@ import org.tinycore.colonybridge.network.BridgeSettingsPayload;
 import java.util.List;
 
 /**
- * Tela da ponte (só cliente): estado, colônia, ajustes e a lista de pedidos com o resultado de cada um.
- * <p>
+ * Tela da ponte (só cliente), com duas abas:
+ * <ul>
+ *   <li><b>Pedidos:</b> lista de pedidos com o resultado ({@link RequestListView}), crafting on/off e redstone;</li>
+ *   <li><b>Filtro:</b> modo do filtro, tipo de comparação, 18 ghost slots e o inventário do jogador.</li>
+ * </ul>
  * Não tem textura: tudo é desenhado com retângulos e texto usando {@link UiColors}.
  * Os dados vêm do {@link BridgeSnapshot} guardado no menu; os botões mandam um
  * {@link BridgeSettingsPayload} e o servidor decide se aplica.
@@ -28,19 +31,21 @@ import java.util.List;
 public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu> {
 
     private static final int WIDTH = 236;
-    private static final int HEIGHT = 212;
-    private static final int LIST_TOP = 58;
-    private static final int ROW_HEIGHT = 22;
-    private static final int VISIBLE_ROWS = 6;
+    private static final int HEIGHT = 230;
     private static final int PADDING = 8;
+    private static final int LIST_TOP = 76;
 
+    /** Criada no init(): a fonte da tela só existe depois dele. */
+    private RequestListView requestList;
+    private FlatButton requestsTab;
+    private FlatButton filterTab;
     private FlatButton craftingButton;
     private FlatButton redstoneButton;
-    private int scroll;
+    private FlatButton filterModeButton;
+    private FlatButton exactMatchButton;
 
-    /** Estado local dos ajustes: muda na hora do clique e é corrigido pelo próximo snapshot. */
-    private boolean craftingEnabled;
-    private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
+    /** Ajustes locais: mudam na hora do clique e são corrigidos pelo próximo snapshot. */
+    private BridgeSettings settings = BridgeSettings.DEFAULT;
     private BridgeSnapshot lastSeen;
 
     public ColonyBridgeScreen(ColonyBridgeMenu menu, Inventory inventory, Component title) {
@@ -52,44 +57,65 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     @Override
     protected void init() {
         super.init();
-        int buttonWidth = (WIDTH - PADDING * 3) / 2;
-        craftingButton = addRenderableWidget(new FlatButton(leftPos + PADDING, topPos + 34, buttonWidth, 16,
-                Component.empty(), this::toggleCrafting));
-        redstoneButton = addRenderableWidget(new FlatButton(leftPos + PADDING * 2 + buttonWidth, topPos + 34,
-                buttonWidth, 16, Component.empty(), this::cycleRedstone));
+        if (requestList == null) {
+            requestList = new RequestListView(font);
+        }
+        int half = (WIDTH - PADDING * 3) / 2;
+        int left = leftPos + PADDING;
+        int right = leftPos + PADDING * 2 + half;
+        requestsTab = addRenderableWidget(new FlatButton(left, topPos + 34, 70, 14,
+                Component.translatable("gui.tccolonybridge.tab.requests"), () -> selectTab(false)));
+        filterTab = addRenderableWidget(new FlatButton(left + 74, topPos + 34, 70, 14,
+                Component.translatable("gui.tccolonybridge.tab.filter"), () -> selectTab(true)));
+
+        craftingButton = addRenderableWidget(new FlatButton(left, topPos + 54, half, 16, Component.empty(),
+                () -> send(settings.withCrafting(!settings.craftingEnabled()))));
+        redstoneButton = addRenderableWidget(new FlatButton(right, topPos + 54, half, 16, Component.empty(),
+                () -> send(settings.withRedstone(settings.redstoneMode().next()))));
+        filterModeButton = addRenderableWidget(new FlatButton(left, topPos + 54, half, 16, Component.empty(),
+                () -> send(settings.withFilterMode(settings.filterMode().next()))));
+        exactMatchButton = addRenderableWidget(new FlatButton(right, topPos + 54, half, 16, Component.empty(),
+                () -> send(settings.withExactMatch(!settings.exactMatch()))));
+
         lastSeen = null; // força copiar o snapshot atual para os botões
+        selectTab(menu.isFilterTabOpen());
     }
 
-    /** Chamado a cada tick do cliente: aplica um snapshot novo aos botões. */
+    private void selectTab(boolean filter) {
+        menu.setFilterTabOpen(filter);
+        requestsTab.setSelected(!filter);
+        filterTab.setSelected(filter);
+        craftingButton.visible = !filter;
+        redstoneButton.visible = !filter;
+        filterModeButton.visible = filter;
+        exactMatchButton.visible = filter;
+    }
+
+    /** Chamado a cada tick do cliente: aplica um snapshot novo e atualiza os textos dos botões. */
     @Override
     protected void containerTick() {
         super.containerTick();
         BridgeSnapshot snapshot = menu.getSnapshot();
         if (snapshot != lastSeen) {
             lastSeen = snapshot;
-            craftingEnabled = snapshot.craftingEnabled();
-            redstoneMode = snapshot.redstoneMode();
-            scroll = Math.min(scroll, maxScroll());
+            settings = snapshot.settings();
         }
-        craftingButton.setMessage(Component.translatable("gui.tccolonybridge.crafting",
-                Component.translatable(craftingEnabled ? "gui.tccolonybridge.on" : "gui.tccolonybridge.off")));
+        craftingButton.setMessage(Component.translatable("gui.tccolonybridge.crafting", onOff(settings.craftingEnabled())));
         redstoneButton.setMessage(Component.translatable("gui.tccolonybridge.redstone",
-                Component.translatable(redstoneMode.translationKey())));
+                Component.translatable(settings.redstoneMode().translationKey())));
+        filterModeButton.setMessage(Component.translatable("gui.tccolonybridge.filter_mode",
+                Component.translatable(settings.filterMode().translationKey())));
+        exactMatchButton.setMessage(Component.translatable(settings.exactMatch()
+                ? "gui.tccolonybridge.match.exact" : "gui.tccolonybridge.match.item"));
     }
 
-    private void toggleCrafting() {
-        craftingEnabled = !craftingEnabled;
-        sendSettings();
+    private static Component onOff(boolean value) {
+        return Component.translatable(value ? "gui.tccolonybridge.on" : "gui.tccolonybridge.off");
     }
 
-    private void cycleRedstone() {
-        redstoneMode = redstoneMode.next();
-        sendSettings();
-    }
-
-    private void sendSettings() {
-        PacketDistributor.sendToServer(
-                new BridgeSettingsPayload(menu.containerId, craftingEnabled, redstoneMode.ordinal()));
+    private void send(BridgeSettings newSettings) {
+        settings = newSettings;
+        PacketDistributor.sendToServer(new BridgeSettingsPayload(menu.containerId, newSettings));
     }
 
     // ---------------------------------------------------------------- desenho
@@ -109,56 +135,32 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         g.drawString(font, colony, x + PADDING, y + 20, UiColors.HIGHLIGHT, false);
 
         Component status = Component.translatable(snap.status().guiKey());
-        int statusWidth = font.width(status);
-        int statusX = x + WIDTH - PADDING - statusWidth;
+        int statusX = x + WIDTH - PADDING - font.width(status);
         g.fill(statusX - 9, y + 22, statusX - 4, y + 27, statusColor(snap.status()));
         g.drawString(font, status, statusX, y + 20, UiColors.TEXT, false);
 
-        renderRequests(g, snap, x, y + LIST_TOP, mouseX, mouseY);
-        renderFooter(g, snap, x, y + HEIGHT - 14);
+        if (menu.isFilterTabOpen()) {
+            renderFilterTab(g, x, y);
+        } else {
+            requestList.render(g, snap.lines(), x + PADDING, y + LIST_TOP, WIDTH - PADDING * 2, mouseX, mouseY);
+            renderRequestsFooter(g, snap, x, y + HEIGHT - 14);
+        }
     }
 
-    private void renderRequests(GuiGraphics g, BridgeSnapshot snap, int x, int y, int mouseX, int mouseY) {
-        List<RequestLine> lines = snap.lines();
-        if (lines.isEmpty()) {
-            g.drawCenteredString(font, Component.translatable("gui.tccolonybridge.no_requests"),
-                    x + WIDTH / 2, y + ROW_HEIGHT * VISIBLE_ROWS / 2 - 4, UiColors.TEXT_MUTED);
-            return;
+    /** Fundo dos slots (os itens são desenhados pelo próprio AbstractContainerScreen). */
+    private void renderFilterTab(GuiGraphics g, int x, int y) {
+        for (Slot slot : menu.slots) {
+            int sx = x + slot.x - 1;
+            int sy = y + slot.y - 1;
+            boolean ghost = slot.index < ItemFilter.SIZE; // index = posição no menu (0..17 = filtro)
+            g.fill(sx, sy, sx + 18, sy + 18, ghost ? UiColors.ACCENT : UiColors.BORDER);
+            g.fill(sx + 1, sy + 1, sx + 17, sy + 17, UiColors.PANEL);
         }
-        int rowWidth = WIDTH - PADDING * 2 - 4;
-        for (int i = 0; i < VISIBLE_ROWS && scroll + i < lines.size(); i++) {
-            RequestLine line = lines.get(scroll + i);
-            int rowX = x + PADDING;
-            int rowY = y + i * ROW_HEIGHT;
-            boolean hovered = mouseX >= rowX && mouseX < rowX + rowWidth && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT - 2;
-            g.fill(rowX, rowY, rowX + rowWidth, rowY + ROW_HEIGHT - 2, hovered ? UiColors.PANEL_HOVER : UiColors.PANEL);
-            g.renderItem(line.icon(), rowX + 2, rowY + 2);
-
-            int textX = rowX + 22;
-            int textWidth = rowWidth - 24;
-            String count = "x" + line.count();
-            g.drawString(font, count, rowX + rowWidth - 2 - font.width(count), rowY + 2, UiColors.TEXT_MUTED, false);
-            g.drawString(font, Language.getInstance().getVisualOrder(
-                    font.substrByWidth(line.label(), textWidth - font.width(count) - 4)),
-                    textX, rowY + 2, UiColors.TEXT, false);
-            g.drawString(font, Component.translatable(line.outcome().translationKey()),
-                    textX, rowY + 11, outcomeColor(line.outcome()), false);
-        }
-        renderScrollbar(g, lines.size(), x + WIDTH - PADDING - 2, y);
+        g.drawString(font, Component.translatable("gui.tccolonybridge.filter_hint"),
+                x + PADDING, y + HEIGHT - 14, UiColors.TEXT_MUTED, false);
     }
 
-    private void renderScrollbar(GuiGraphics g, int total, int x, int y) {
-        if (total <= VISIBLE_ROWS) {
-            return;
-        }
-        int trackHeight = ROW_HEIGHT * VISIBLE_ROWS - 2;
-        int thumbHeight = Math.max(10, trackHeight * VISIBLE_ROWS / total);
-        int thumbY = y + (trackHeight - thumbHeight) * scroll / maxScroll();
-        g.fill(x, y, x + 2, y + trackHeight, UiColors.BORDER);
-        g.fill(x, thumbY, x + 2, thumbY + thumbHeight, UiColors.ACCENT);
-    }
-
-    private void renderFooter(GuiGraphics g, BridgeSnapshot snap, int x, int y) {
+    private void renderRequestsFooter(GuiGraphics g, BridgeSnapshot snap, int x, int y) {
         long crafting = snap.lines().stream()
                 .filter(l -> l.outcome() == RequestOutcome.CRAFTING || l.outcome() == RequestOutcome.CRAFT_STARTED)
                 .count();
@@ -177,38 +179,23 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         renderTooltip(g, mouseX, mouseY);
-        renderRowTooltip(g, mouseX, mouseY);
-    }
-
-    /** Descrição completa ao passar o mouse sobre uma linha (o texto na linha pode estar cortado). */
-    private void renderRowTooltip(GuiGraphics g, int mouseX, int mouseY) {
-        List<RequestLine> lines = menu.getSnapshot().lines();
-        int rowX = leftPos + PADDING;
-        int relY = mouseY - (topPos + LIST_TOP);
-        if (mouseX < rowX || mouseX >= rowX + WIDTH - PADDING * 2 - 4 || relY < 0) {
-            return;
+        if (!menu.isFilterTabOpen()) {
+            requestList.renderTooltip(g, menu.getSnapshot().lines(), mouseX, mouseY);
         }
-        int index = scroll + relY / ROW_HEIGHT;
-        if (relY / ROW_HEIGHT >= VISIBLE_ROWS || index >= lines.size()) {
-            return;
-        }
-        RequestLine line = lines.get(index);
-        g.renderComponentTooltip(font, List.of(line.label(),
-                Component.translatable("gui.tccolonybridge.amount", line.count()),
-                Component.translatable(line.outcome().translationKey())), mouseX, mouseY);
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        scroll = Math.max(0, Math.min(maxScroll(), scroll - (int) Math.signum(scrollY)));
+        if (!menu.isFilterTabOpen()) {
+            requestList.scroll(scrollY, menu.getSnapshot().lines().size());
+        }
         return true;
     }
 
-    private int maxScroll() {
-        return Math.max(0, menu.getSnapshot().lines().size() - VISIBLE_ROWS);
+    /** Ghost slots visíveis agora (usado pela integração com JEI para saber onde soltar itens). */
+    public List<Slot> visibleFilterSlots() {
+        return menu.isFilterTabOpen() ? menu.slots.subList(0, ItemFilter.SIZE) : List.of();
     }
-
-    // ---------------------------------------------------------------- cores
 
     private static int statusColor(BridgeStatus status) {
         return switch (status) {
@@ -217,16 +204,6 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
             case STARTING, PAUSED -> UiColors.WARNING;
             case OFFLINE, INVALID_CABLE -> UiColors.TEXT_MUTED;
             case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE -> UiColors.DANGER;
-        };
-    }
-
-    private static int outcomeColor(RequestOutcome outcome) {
-        return switch (outcome) {
-            case DELIVERED, WAITING_COURIER -> UiColors.SUCCESS;
-            case CRAFT_STARTED, CRAFTING -> UiColors.HIGHLIGHT;
-            case QUEUED, OTHER_BRIDGE -> UiColors.TEXT_MUTED;
-            case RACKS_FULL, CRAFTING_DISABLED -> UiColors.WARNING;
-            case NO_STOCK, NOT_CRAFTABLE -> UiColors.DANGER;
         };
     }
 }
