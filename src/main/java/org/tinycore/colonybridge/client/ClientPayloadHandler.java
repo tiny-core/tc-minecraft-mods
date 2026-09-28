@@ -2,7 +2,9 @@ package org.tinycore.colonybridge.client;
 
 import net.minecraft.client.Minecraft;
 import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
+import org.tinycore.colonybridge.menu.ColonySupplyMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
+import org.tinycore.colonybridge.network.SupplySnapshotPayload;
 
 /**
  * Trata, no cliente, os pacotes vindos do servidor. Fica em {@code client/} porque usa
@@ -17,6 +19,16 @@ public final class ClientPayloadHandler {
         var player = Minecraft.getInstance().player;
         if (player != null
                 && player.containerMenu instanceof ColonyBridgeMenu menu
+                && menu.containerId == payload.containerId()) {
+            menu.setSnapshot(payload.snapshot());
+        }
+    }
+
+    /** Idem para a tela do bloco de abastecimento. */
+    public static void onSupplySnapshot(SupplySnapshotPayload payload) {
+        var player = Minecraft.getInstance().player;
+        if (player != null
+                && player.containerMenu instanceof ColonySupplyMenu menu
                 && menu.containerId == payload.containerId()) {
             menu.setSnapshot(payload.snapshot());
         }

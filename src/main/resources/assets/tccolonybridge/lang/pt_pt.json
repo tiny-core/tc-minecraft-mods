@@ -85,5 +85,15 @@
   "monitor.tccolonybridge.items_window": "Itens (%sh)",
   "monitor.tccolonybridge.no_requests": "Nenhum pedido em aberto",
   "monitor.tccolonybridge.more": "+%s não mostrados",
-  "monitor.tccolonybridge.top_items": "Mais entregues"
+  "monitor.tccolonybridge.top_items": "Mais entregues",
+  "block.tccolonybridge.colony_supply": "Abastecedor da Colónia",
+  "tooltip.tccolonybridge.colony_supply.line1": "Mantém no armazém os itens escolhidos e devolve o excedente à rede ME.",
+  "tooltip.tccolonybridge.colony_supply.line2": "Coloque dentro da colónia; ligue um cabo ME comum por baixo (o cabo denso não liga).",
+  "gui.tccolonybridge.supply.title": "Abastecedor da Colónia",
+  "gui.tccolonybridge.supply.keep": "Manter no armazém",
+  "gui.tccolonybridge.supply.surplus": "Excedente para a rede ME",
+  "gui.tccolonybridge.supply.hint": "Clique com um item · role o rato para mudar a quantidade",
+  "gui.tccolonybridge.supply.target": "Alvo: %s",
+  "gui.tccolonybridge.supply.current": "No armazém: %s",
+  "gui.tccolonybridge.supply.scroll": "Roda: ±1 · Shift ±10 · Ctrl ±64"
 }

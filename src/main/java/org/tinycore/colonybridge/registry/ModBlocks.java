@@ -8,6 +8,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.ColonyBridgeBlock;
 import org.tinycore.colonybridge.block.monitor.MonitorBlock;
+import org.tinycore.colonybridge.block.supply.ColonySupplyBlock;
 
 /**
  * Blocos do mod. {@code DeferredRegister} é uma lista de "coisas a registrar" que o NeoForge
@@ -20,6 +21,12 @@ public final class ModBlocks {
 
     public static final DeferredBlock<ColonyBridgeBlock> COLONY_BRIDGE = BLOCKS.register("colony_bridge",
             () -> new ColonyBridgeBlock(BlockBehaviour.Properties.of()
+                    .strength(2.2f, 11f)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<ColonySupplyBlock> COLONY_SUPPLY = BLOCKS.register("colony_supply",
+            () -> new ColonySupplyBlock(BlockBehaviour.Properties.of()
                     .strength(2.2f, 11f)
                     .sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()));

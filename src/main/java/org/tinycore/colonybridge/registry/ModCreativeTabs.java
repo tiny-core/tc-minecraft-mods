@@ -27,6 +27,7 @@ public final class ModCreativeTabs {
                     .icon(() -> new ItemStack(ModItems.COLONY_BRIDGE.get()))
                     .displayItems((params, output) -> {
                         output.accept(ModItems.COLONY_BRIDGE.get());
+                        output.accept(ModItems.COLONY_SUPPLY.get());
                         output.accept(ModItems.COLONY_MONITOR.get());
                         output.accept(ModItems.LINK_CARD.get());
                     })

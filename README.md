@@ -45,6 +45,20 @@ Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte proc
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 
+## Abastecedor da Colônia
+Segundo bloco, o caminho contrário da ponte. Mesmas regras (dentro da colônia, com permissão, cabo ME
+comum por baixo) e uma tela com duas listas de 9 itens:
+
+- **Manter no armazém** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede ME
+  e coloca nos racks.
+- **Excedente para a rede ME** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
+  entupido pelas fazendas da colônia.
+
+Clique num slot com o item na mão para escolher; role o mouse sobre ele para mudar a quantidade
+(Shift ±10, Ctrl ±64). O excedente **nunca sai** de um item que esteja em algum pedido em aberto da
+colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num vaivém sem fim.
+`supplyMaxPerCycle` limita quanto cada linha move por ciclo.
+
 ### Monitor da Colônia (em desenvolvimento)
 Coloque vários **Monitores da Colônia** lado a lado numa parede, virados para o mesmo lado: se formarem
 um retângulo completo (até 8×6, configurável em `monitorMaxWidth`/`monitorMaxHeight`), viram uma tela única.

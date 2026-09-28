@@ -24,6 +24,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.COLONY_BRIDGE.get(), ColonyBridgeScreen::new);
+        event.register(ModMenus.COLONY_SUPPLY.get(), ColonySupplyScreen::new);
     }
 
     /** Liga o block entity do monitor ao renderer que desenha a tela no mundo. */

@@ -97,6 +97,9 @@ pacotes que o monitor precisa.
 > preservada quando a tela muda de forma, `MonitorData` sincronizado 1×/s só quando muda, `MonitorPanels`
 > com layout por tamanho, `BarChart` desenhando via `Painter` (interface e mundo).
 >
+> **5.3 feita:** lista de pedidos paginada, faixa de itens mais entregues (4+ blocos de altura) e
+> animação dos números e barras (`MonitorAnimator`, suavização por tempo real).
+>
 > **5.3 (parte 1) feita:** lista de pedidos paginada no monitor (`MonitorRequestList`, ícones de item no
 > mundo, troca automática + clique por metade da tela, página só no cliente). **Falta na 5.3:** ranking de
 > itens no monitor e animações suaves.
@@ -129,3 +132,16 @@ pacotes que o monitor precisa.
    compilar a cada push.
 7. ~~Separar `ModRegistries` em arquivos por tipo~~ — **feito** (`ModBlocks`, `ModItems`, `ModBlockEntities`).
 8. Publicação futura (CurseForge/Modrinth): definir licença final, página em PT/EN e ícone.
+
+---
+
+## Fase 7 — Abastecedor da Colônia (feito)
+
+Bloco de mão dupla entre o armazém e a rede ME, com base compartilhada (`AbstractBridgeBlockEntity`)
+e menu base com os ghost slots (`AbstractGhostMenu`).
+
+- **Feito:** manter estoque no armazém, excedente do armazém para o ME, tela com as duas listas,
+  quantidade por linha, modo de redstone e guarda contra vaivém (não tira o que está em pedido aberto).
+- **Pendente:** alimentar craft do AE2 com o que falta usando os materiais do armazém
+  (depende de confirmar se o plano de craft do AE2 expõe a lista do que faltou), estatísticas do
+  abastecedor e ligação dele aos monitores.

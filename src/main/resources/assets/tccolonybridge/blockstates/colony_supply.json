@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "status=offline": {
+      "model": "tccolonybridge:block/colony_supply_offline"
+    },
+    "status=error": {
+      "model": "tccolonybridge:block/colony_supply_error"
+    },
+    "status=idle": {
+      "model": "tccolonybridge:block/colony_supply_idle"
+    },
+    "status=working": {
+      "model": "tccolonybridge:block/colony_supply_working"
+    }
+  }
+}

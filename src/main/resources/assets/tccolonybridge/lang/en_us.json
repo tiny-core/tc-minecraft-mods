@@ -85,5 +85,15 @@
   "monitor.tccolonybridge.items_window": "Items (%sh)",
   "monitor.tccolonybridge.no_requests": "No open requests",
   "monitor.tccolonybridge.more": "+%s more",
-  "monitor.tccolonybridge.top_items": "Top items"
+  "monitor.tccolonybridge.top_items": "Top items",
+  "block.tccolonybridge.colony_supply": "Colony Supply Interface",
+  "tooltip.tccolonybridge.colony_supply.line1": "Keeps chosen items stocked in the warehouse and sends surplus back to the ME network.",
+  "tooltip.tccolonybridge.colony_supply.line2": "Place inside the colony; connect a regular ME cable to the bottom (no dense cable).",
+  "gui.tccolonybridge.supply.title": "Colony Supply Interface",
+  "gui.tccolonybridge.supply.keep": "Keep stocked in the warehouse",
+  "gui.tccolonybridge.supply.surplus": "Send surplus to the ME network",
+  "gui.tccolonybridge.supply.hint": "Click a slot with an item · scroll to change the amount",
+  "gui.tccolonybridge.supply.target": "Target: %s",
+  "gui.tccolonybridge.supply.current": "In the warehouse: %s",
+  "gui.tccolonybridge.supply.scroll": "Scroll: ±1 · Shift ±10 · Ctrl ±64"
 }

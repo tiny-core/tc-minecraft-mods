@@ -16,6 +16,9 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> COLONY_BRIDGE =
             ITEMS.registerSimpleBlockItem("colony_bridge", ModBlocks.COLONY_BRIDGE, new Item.Properties());
 
+    public static final DeferredItem<BlockItem> COLONY_SUPPLY =
+            ITEMS.registerSimpleBlockItem("colony_supply", ModBlocks.COLONY_SUPPLY, new Item.Properties());
+
     public static final DeferredItem<BlockItem> COLONY_MONITOR =
             ITEMS.registerSimpleBlockItem("colony_monitor", ModBlocks.COLONY_MONITOR, new Item.Properties());
 
