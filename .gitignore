@@ -40,3 +40,5 @@ repo/
 !**/src/**/repo/
 # jars de dependencias locais
 libs/*.jar
+
+dist
