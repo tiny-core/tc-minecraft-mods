@@ -23,8 +23,10 @@ import java.util.List;
  * 2. confere se o dono da ponte tem permissão na colônia;
  * 3. lê os pedidos em aberto da colônia, pulando os que o {@link DeliveryLedger} marca como
  *    já entregues ou sendo craftados por outra ponte;
- * 4. se o item existe na rede ME → move para os racks do armazém ({@link RackDelivery}) e reatribui o pedido;
- * 5. se não existe e o pedido é de um item exato → agenda autocrafting ({@link CraftingTracker}).
+ * 4. desconta o que o armazém já tem ({@link WarehouseStock}); se já basta, só reatribui o pedido;
+ * 5. se a rede ME cobre a falta → move só a falta para os racks ({@link RackDelivery}) e reatribui;
+ * 6. se não cobre e o pedido é de um item exato → agenda autocrafting só da diferença
+ *    ({@link CraftingTracker}) e entrega tudo quando o craft terminar.
  * O resultado de cada pedido vai para o {@link CycleReport}, que a tela da ponte mostra.
  */
 public final class BridgeLogic {
@@ -42,7 +44,7 @@ public final class BridgeLogic {
      * {@code record} em Java ≈ {@code record} em C#: classe imutável só de dados.
      */
     private record Cycle(ServerLevel level, IGrid grid, IActionSource source, IColony colony,
-                         List<IItemHandler> racks, KeyCounter stock, DeliveryLedger ledger,
+                         List<IItemHandler> racks, KeyCounter stock, KeyCounter taken, DeliveryLedger ledger,
                          String colonyKey, long bridgeId, long now, boolean craftingEnabled) {}
 
     public BridgeLogic(ColonyBridgeBlockEntity host) {
@@ -75,7 +77,7 @@ public final class BridgeLogic {
         DeliveryLedger ledger = DeliveryLedger.get(level);
         ledger.expire(now, Config.REDELIVERY_COOLDOWN_TICKS.get());
         Cycle cycle = new Cycle(level, grid, source, colony, racks,
-                grid.getStorageService().getCachedInventory(), ledger, ColonyAccess.colonyKey(colony),
+                grid.getStorageService().getCachedInventory(), new KeyCounter(), ledger, ColonyAccess.colonyKey(colony),
                 host.getBlockPos().asLong(), now, host.getSettings().craftingEnabled());
 
         List<OpenRequest> requests = ColonyAccess.openRequests(colony);
@@ -95,7 +97,11 @@ public final class BridgeLogic {
         setStatus(requests.isEmpty() ? BridgeStatus.IDLE : BridgeStatus.WORKING);
     }
 
-    /** Trata um pedido e diz o que aconteceu. */
+    /**
+     * Trata um pedido e diz o que aconteceu. Só mexe no que <b>falta</b>:
+     * falta = pedido − o que o armazém já tem; da rede sai no máximo a falta, e o autocrafting
+     * só é pedido para a parte que nem o armazém nem a rede cobrem.
+     */
     private RequestOutcome process(Cycle c, OpenRequest request) {
         DeliveryLedger.ClaimState claim = c.ledger().state(c.colonyKey(), request.id(), c.bridgeId());
         if (claim == DeliveryLedger.ClaimState.DELIVERED) {
@@ -105,22 +111,49 @@ public final class BridgeLogic {
             return RequestOutcome.OTHER_BRIDGE;
         }
 
-        AEItemKey inStock = findInStock(c.stock(), request);
+        AEItemKey inStock = findInStock(c, request);
         boolean filtered = lastSearchFiltered;
-        if (inStock != null) {
-            long delivered = RackDelivery.deliver(c.grid(), c.source(), inStock, request.amount(), c.racks());
-            if (delivered <= 0) {
-                return RequestOutcome.RACKS_FULL;
-            }
-            c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridgeId(), c.now());
-            host.getStats().recordDelivery(c.now(), inStock.getItem(), delivered);
-            ColonyAccess.reassign(c.colony(), request.token());
-            return RequestOutcome.DELIVERED;
-        }
-
-        if (!request.isExact()) {
+        if (inStock == null && !request.isExact()) {
+            // Sem estoque e sem como craftar: nem vale a pena varrer os racks.
             return filtered ? RequestOutcome.FILTERED : RequestOutcome.NO_STOCK;
         }
+
+        long missing = request.amount() - WarehouseStock.count(c.racks(), request.deliverable()::matches);
+        if (missing <= 0) {
+            // O armazém já cobre o pedido (ex.: entrega anterior que o courier ainda não levou, ou pedido
+            // em "nova tentativa"). Não tira nada da rede: só pede ao MineColonies para reatribuir.
+            c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+            ColonyAccess.reassign(c.colony(), request.token());
+            return RequestOutcome.IN_WAREHOUSE;
+        }
+
+        long available = inStock == null ? 0 : available(c, inStock);
+        if (available < missing && request.isExact()) {
+            // A rede não cobre tudo: crafta só a diferença e espera o craft para entregar tudo de uma vez.
+            // Se não der para craftar (sem receita, falha, desligado), entrega o que houver na rede.
+            RequestOutcome craft = tryCraft(c, request, missing - available);
+            if (inStock == null || craft == RequestOutcome.CRAFT_STARTED || craft == RequestOutcome.CRAFTING) {
+                return craft;
+            }
+        }
+        return deliver(c, request, inStock, Math.min(available, missing));
+    }
+
+    /** Move {@code amount} da rede para os racks, registra e reatribui o pedido. */
+    private RequestOutcome deliver(Cycle c, OpenRequest request, AEItemKey key, long amount) {
+        long delivered = RackDelivery.deliver(c.grid(), c.source(), key, amount, c.racks());
+        if (delivered <= 0) {
+            return RequestOutcome.RACKS_FULL;
+        }
+        c.taken().add(key, delivered);
+        c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+        host.getStats().recordDelivery(c.now(), key.getItem(), delivered);
+        ColonyAccess.reassign(c.colony(), request.token());
+        return RequestOutcome.DELIVERED;
+    }
+
+    /** Tenta agendar o craft de {@code shortfall} unidades do item exato do pedido. */
+    private RequestOutcome tryCraft(Cycle c, OpenRequest request, long shortfall) {
         if (!host.filterAllows(request.exactStack())) {
             return RequestOutcome.FILTERED; // nem entrega nem crafta um item bloqueado
         }
@@ -137,7 +170,7 @@ public final class BridgeLogic {
         if (!c.craftingEnabled()) {
             return RequestOutcome.CRAFTING_DISABLED;
         }
-        if (!crafting.tryStart(c.level(), c.grid(), c.source(), key, request.amount())) {
+        if (!crafting.tryStart(c.level(), c.grid(), c.source(), key, shortfall)) {
             return RequestOutcome.NOT_CRAFTABLE;
         }
         // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
@@ -146,14 +179,22 @@ public final class BridgeLogic {
     }
 
     /**
+     * Quanto do item a rede ainda tem neste ciclo. O cache do AE2 só é atualizado no fim do tick, então
+     * sem descontar o que já saiu ({@code taken}) dois pedidos do mesmo item "veriam" o mesmo estoque.
+     */
+    private static long available(Cycle c, AEItemKey key) {
+        return c.stock().get(key) - c.taken().get(key);
+    }
+
+    /**
      * Procura na rede um item que satisfaça o pedido e que o filtro permita (exato primeiro, depois por
      * correspondência). Se achou algo compatível mas o filtro barrou, marca {@link #lastSearchFiltered}.
      */
-    private @Nullable AEItemKey findInStock(KeyCounter stock, OpenRequest request) {
+    private @Nullable AEItemKey findInStock(Cycle c, OpenRequest request) {
         lastSearchFiltered = false;
         if (request.isExact()) {
             AEItemKey exact = AEItemKey.of(request.exactStack());
-            if (exact != null && stock.get(exact) > 0) {
+            if (exact != null && available(c, exact) > 0) {
                 if (host.filterAllows(exact.getReadOnlyStack())) {
                     return exact;
                 }
@@ -163,9 +204,10 @@ public final class BridgeLogic {
         // Pedidos por tag / ferramenta / comida: testa cada item da rede.
         // getReadOnlyStack() devolve um ItemStack que a própria chave guarda em cache: zero alocação
         // por item, o que importa em redes grandes do ATM10. Não pode ser modificado — matches() só lê.
-        for (Object2LongMap.Entry<AEKey> entry : stock) {
+        for (Object2LongMap.Entry<AEKey> entry : c.stock()) {
             if (entry.getLongValue() > 0
                     && entry.getKey() instanceof AEItemKey itemKey
+                    && available(c, itemKey) > 0
                     && request.deliverable().matches(itemKey.getReadOnlyStack())) {
                 if (host.filterAllows(itemKey.getReadOnlyStack())) {
                     return itemKey;

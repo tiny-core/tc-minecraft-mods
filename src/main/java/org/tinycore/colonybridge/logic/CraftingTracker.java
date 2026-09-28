@@ -19,7 +19,8 @@ import java.util.concurrent.Future;
 
 /**
  * Agenda crafts no AE2 sem requester: o resultado entra na rede ME,
- * e o ciclo seguinte do {@link BridgeLogic} entrega-o ao armazém.
+ * e o ciclo seguinte do {@link BridgeLogic} o entrega ao armazém.
+ * A quantidade pedida é só a que falta (o {@link BridgeLogic} já desconta armazém e rede).
  * Mais simples que um ICraftingRequester (não há links para persistir).
  */
 final class CraftingTracker {
@@ -54,6 +55,8 @@ final class CraftingTracker {
     /** Submete os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
     void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
         long now = level.getGameTime();
+        // Esperas vencidas não servem mais: sem isto o mapa só cresceria enquanto a ponte existir.
+        failedUntil.values().removeIf(until -> until <= now);
         Iterator<Map.Entry<AEItemKey, Future<ICraftingPlan>>> it = calculating.entrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();

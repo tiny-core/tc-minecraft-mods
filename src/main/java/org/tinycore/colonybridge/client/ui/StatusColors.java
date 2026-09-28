@@ -20,7 +20,7 @@ public final class StatusColors {
 
     public static int of(RequestOutcome outcome) {
         return switch (outcome) {
-            case DELIVERED, WAITING_COURIER -> UiColors.SUCCESS;
+            case DELIVERED, WAITING_COURIER, IN_WAREHOUSE -> UiColors.SUCCESS;
             case CRAFT_STARTED, CRAFTING -> UiColors.HIGHLIGHT;
             case QUEUED, OTHER_BRIDGE -> UiColors.TEXT_MUTED;
             case RACKS_FULL, CRAFTING_DISABLED, FILTERED -> UiColors.WARNING;

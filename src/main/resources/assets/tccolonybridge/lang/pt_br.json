@@ -37,6 +37,7 @@
   "gui.tccolonybridge.status.working": "Trabalhando",
   "outcome.tccolonybridge.delivered": "Entregue no armazém",
   "outcome.tccolonybridge.waiting_courier": "Entregue, aguardando courier",
+  "outcome.tccolonybridge.in_warehouse": "Já está no armazém, reatribuído",
   "outcome.tccolonybridge.craft_started": "Craft iniciado",
   "outcome.tccolonybridge.crafting": "Craftando...",
   "outcome.tccolonybridge.other_bridge": "Atendido por outra ponte",

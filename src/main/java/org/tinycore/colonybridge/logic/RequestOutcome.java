@@ -26,7 +26,12 @@ public enum RequestOutcome {
     /** Não há na rede e o crafting está desligado nas configurações da ponte. */
     CRAFTING_DISABLED,
     /** Limite de pedidos por ciclo atingido; será tratado num próximo ciclo. */
-    QUEUED;
+    QUEUED,
+    /**
+     * O armazém já tem o suficiente: nada sai da rede, a ponte só pede ao MineColonies para reatribuir.
+     * Fica no fim do enum porque o ordinal vai no pacote para o cliente (RequestLine/MonitorLine).
+     */
+    IN_WAREHOUSE;
 
     public String translationKey() {
         return "outcome.tccolonybridge." + name().toLowerCase();
@@ -34,6 +39,6 @@ public enum RequestOutcome {
 
     /** true se o pedido "gastou" uma vaga do limite {@code maxRequestsPerCycle}. */
     boolean countsTowardLimit() {
-        return this == DELIVERED || this == CRAFT_STARTED;
+        return this == DELIVERED || this == CRAFT_STARTED || this == IN_WAREHOUSE;
     }
 }

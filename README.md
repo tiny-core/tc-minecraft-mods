@@ -13,9 +13,11 @@ se ela for retirada, a ponte para e mostra o estado "sem permissão".
 
 A cada ciclo (`cycleTicks`, 5 s por padrão):
 1. Lê os pedidos em aberto (resolver do jogador + resolver de novas tentativas).
-2. Se o item existe na rede → move para os racks do armazém e reatribui o pedido; um courier entrega.
-3. Se não existe e é um pedido de item exato → agenda autocrafting (sem requester; o resultado entra na rede
-   e é entregue num ciclo seguinte).
+2. Desconta o que o armazém já tem. Se já basta, nada sai da rede: a ponte só reatribui o pedido.
+3. Se a rede cobre a falta → move **só a falta** para os racks do armazém e reatribui o pedido; um courier entrega.
+4. Se não cobre e é um pedido de item exato → agenda autocrafting **só da diferença** (falta − estoque da rede;
+   sem requester: o resultado entra na rede e tudo é entregue num ciclo seguinte). Se não der para craftar,
+   entrega o que houver na rede.
 
 Um pedido já entregue não é atendido de novo durante `redeliveryCooldownTicks`, mesmo depois de reiniciar
 o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem coexistir: elas compartilham um

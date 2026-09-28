@@ -13,10 +13,12 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Leitura e retirada de itens dos racks do armazém — o caminho oposto ao {@link RackDelivery}.
- * Usado pelo {@link SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME.
+ * Usado pelo {@link SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME,
+ * e pelo {@link BridgeLogic} para descontar do pedido o que o armazém já tem.
  * <p>
  * Garantia contra perda e duplicação: cada retirada é simulada nos dois lados (rack e rede) antes de
  * valer; o que a rede não aceitar volta imediatamente para os racks.
@@ -27,11 +29,20 @@ final class WarehouseStock {
 
     /** Quanto existe do item nos racks. Compara item e componentes (encantamento, durabilidade). */
     static long count(List<IItemHandler> racks, ItemStack model) {
+        return count(racks, inSlot -> ItemStack.isSameItemSameComponents(model, inSlot));
+    }
+
+    /**
+     * Quanto existe nos racks de itens aceitos pelo filtro. Usado pela ponte para saber quanto de um
+     * pedido o armazém já tem. {@code Predicate<ItemStack>} ≈ {@code Func<ItemStack, bool>} em C#.
+     * O stack passado ao filtro é o do próprio rack: só pode ser lido, nunca modificado.
+     */
+    static long count(List<IItemHandler> racks, Predicate<ItemStack> filter) {
         long total = 0;
         for (IItemHandler rack : racks) {
             for (int slot = 0; slot < rack.getSlots(); slot++) {
                 ItemStack inSlot = rack.getStackInSlot(slot);
-                if (!inSlot.isEmpty() && ItemStack.isSameItemSameComponents(model, inSlot)) {
+                if (!inSlot.isEmpty() && filter.test(inSlot)) {
                     total += inSlot.getCount();
                 }
             }
