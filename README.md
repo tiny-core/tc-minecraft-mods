@@ -102,6 +102,6 @@ O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é 
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).
 
 ## Estrutura
-- `block/` — bloco e block entity (nó da grid AE2)
-- `logic/` — ciclo de pedidos, entrega e crafting
-- `integration/ColonyAccess` — único ponto que toca na API do MineColonies
+Cada camada (`block/`, `logic/`, `menu/`, `client/`) tem um subpacote por bloco (`bridge/`, `supply/`,
+`monitor/`); a raiz guarda o que é compartilhado. `integration/ColonyAccess` é o único ponto que toca na API
+do MineColonies. Responsabilidade de cada classe: [`docs/ARQUITETURA.md`](docs/ARQUITETURA.md).

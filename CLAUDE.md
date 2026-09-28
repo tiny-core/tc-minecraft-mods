@@ -42,16 +42,20 @@ src/main/java/org/tinycore/colonybridge/
 ├── ColonyBridgeMod.java        # entrada do mod: registros, config, capabilities
 ├── Config.java                 # config de servidor (ModConfigSpec)
 ├── registry/ModRegistries.java # blocos, itens, block entities (DeferredRegister)
-├── block/                      # bloco da ponte + block entity (nó da grid AE2)
-├── logic/                      # ciclo de pedidos, entrega, crafting, status
-└── integration/                # ÚNICO lugar que toca na API do MineColonies
+├── block/                      # bases compartilhadas + bridge/, supply/, monitor/
+├── logic/                      # BridgeStatus + bridge/, supply/, crafting/, warehouse/
+├── menu/  client/              # bases compartilhadas + bridge/, supply/ (client/ também render/, ui/, jei/)
+├── network/  stats/  multiblock/  item/
+└── integration/                # ÚNICO lugar que toca na API do MineColonies (ae2/ para regras do AE2)
 src/main/resources/             # assets (modelos, texturas, lang) e data (loot, tags)
 src/main/templates/META-INF/    # neoforge.mods.toml (com placeholders do Gradle)
 ```
+Responsabilidade de cada classe: `docs/ARQUITETURA.md`. Código na raiz de uma camada é compartilhado e
+**não** importa nada de `bridge/` ou `supply/`.
 
-Fluxo de um ciclo (a cada `cycleTicks`): `ColonyBridgeBlockEntity.serverTick()` →
-`BridgeLogic.runCycle()` → `ColonyAccess.openRequests()` → entrega (`deliver`) ou
-`CraftingTracker.tryStart()` → `ColonyAccess.reassign()`.
+Fluxo de um ciclo da Ponte (a cada `cycleTicks`): `AbstractBridgeBlockEntity.serverTick()` →
+`BridgeLogic.runCycle()` → `ColonyAccess.openRequests()` → desconta armazém (`WarehouseStock`) →
+entrega (`RackDelivery`) ou `RequestCrafter` → `ColonyAccess.reassign()`.
 
 ## 4. Regras de arquitetura (sem monolitos)
 
