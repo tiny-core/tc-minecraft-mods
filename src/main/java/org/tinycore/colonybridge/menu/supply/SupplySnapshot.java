@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.menu;
+package org.tinycore.colonybridge.menu.supply;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;

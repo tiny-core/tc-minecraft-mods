@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.supply;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
@@ -12,6 +12,9 @@ import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.OpenRequest;
+import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
+import org.tinycore.colonybridge.logic.warehouse.WarehouseStock;
 
 import java.util.List;
 

@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.multiblock.MonitorFormation;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 

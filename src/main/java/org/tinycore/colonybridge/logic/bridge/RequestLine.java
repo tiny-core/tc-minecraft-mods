@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.bridge;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;

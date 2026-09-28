@@ -1,8 +1,8 @@
 package org.tinycore.colonybridge.client;
 
 import net.minecraft.client.Minecraft;
-import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
-import org.tinycore.colonybridge.menu.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
+import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
 

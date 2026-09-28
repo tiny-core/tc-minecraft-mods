@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.client;
+package org.tinycore.colonybridge.client.bridge;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;

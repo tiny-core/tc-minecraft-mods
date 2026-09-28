@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.warehouse;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
@@ -17,18 +17,18 @@ import java.util.function.Predicate;
 
 /**
  * Leitura e retirada de itens dos racks do armazém — o caminho oposto ao {@link RackDelivery}.
- * Usado pelo {@link SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME,
- * e pelo {@link BridgeLogic} para descontar do pedido o que o armazém já tem.
+ * Usado pelo {@code SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME,
+ * e pelo {@code BridgeLogic} para descontar do pedido o que o armazém já tem.
  * <p>
  * Garantia contra perda e duplicação: cada retirada é simulada nos dois lados (rack e rede) antes de
  * valer; o que a rede não aceitar volta imediatamente para os racks.
  */
-final class WarehouseStock {
+public final class WarehouseStock {
 
     private WarehouseStock() {}
 
     /** Quanto existe do item nos racks. Compara item e componentes (encantamento, durabilidade). */
-    static long count(List<IItemHandler> racks, ItemStack model) {
+    public static long count(List<IItemHandler> racks, ItemStack model) {
         return count(racks, inSlot -> ItemStack.isSameItemSameComponents(model, inSlot));
     }
 
@@ -37,7 +37,7 @@ final class WarehouseStock {
      * pedido o armazém já tem. {@code Predicate<ItemStack>} ≈ {@code Func<ItemStack, bool>} em C#.
      * O stack passado ao filtro é o do próprio rack: só pode ser lido, nunca modificado.
      */
-    static long count(List<IItemHandler> racks, Predicate<ItemStack> filter) {
+    public static long count(List<IItemHandler> racks, Predicate<ItemStack> filter) {
         long total = 0;
         for (IItemHandler rack : racks) {
             for (int slot = 0; slot < rack.getSlots(); slot++) {
@@ -55,7 +55,7 @@ final class WarehouseStock {
      *
      * @return quantidade que entrou de fato na rede
      */
-    static long toNetwork(List<IItemHandler> racks, ItemStack model, long max, IGrid grid, IActionSource source) {
+    public static long toNetwork(List<IItemHandler> racks, ItemStack model, long max, IGrid grid, IActionSource source) {
         AEItemKey key = AEItemKey.of(model);
         if (key == null || max <= 0) {
             return 0;

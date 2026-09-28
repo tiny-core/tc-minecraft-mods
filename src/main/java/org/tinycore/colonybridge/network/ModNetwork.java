@@ -12,8 +12,8 @@ import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ClientPayloadHandler;
-import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
-import org.tinycore.colonybridge.menu.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
+import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 
 import java.util.List;
 

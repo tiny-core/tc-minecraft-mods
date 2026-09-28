@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.client;
+package org.tinycore.colonybridge.client.bridge;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -6,7 +6,7 @@ import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
-import org.tinycore.colonybridge.logic.RequestLine;
+import org.tinycore.colonybridge.logic.bridge.RequestLine;
 
 import java.util.List;
 

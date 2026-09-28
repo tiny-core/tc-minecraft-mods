@@ -6,11 +6,12 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
+import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.SupplyLogic;
-import org.tinycore.colonybridge.menu.SupplySnapshot;
+import org.tinycore.colonybridge.logic.supply.SupplyLogic;
+import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModItems;
 
@@ -58,7 +59,7 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity {
 
     @Override
     protected void afterCycle(ServerLevel level) {
-        syncVisualState(level, ColonySupplyBlock.STATUS);
+        syncVisualState(level, AbstractBridgeBlock.STATUS);
     }
 
     // ---------------------------------------------------------------- tela

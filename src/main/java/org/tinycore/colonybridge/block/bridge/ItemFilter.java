@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.block;
+package org.tinycore.colonybridge.block.bridge;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;

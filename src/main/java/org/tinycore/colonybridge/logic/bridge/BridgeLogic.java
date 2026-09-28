@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.bridge;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
@@ -11,9 +11,13 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.OpenRequest;
+import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.crafting.CraftingTracker;
+import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
+import org.tinycore.colonybridge.logic.warehouse.WarehouseStock;
 
 import java.util.List;
 

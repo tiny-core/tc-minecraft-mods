@@ -7,8 +7,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
-import org.tinycore.colonybridge.logic.RequestLine;
-import org.tinycore.colonybridge.logic.RequestOutcome;
+import org.tinycore.colonybridge.logic.bridge.RequestLine;
+import org.tinycore.colonybridge.logic.bridge.RequestOutcome;
 
 /**
  * Uma linha da lista de pedidos no monitor. Versão compacta do {@link RequestLine}: guarda o

@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.menu;
+package org.tinycore.colonybridge.menu.supply;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -12,6 +12,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
+import org.tinycore.colonybridge.menu.AbstractGhostMenu;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;

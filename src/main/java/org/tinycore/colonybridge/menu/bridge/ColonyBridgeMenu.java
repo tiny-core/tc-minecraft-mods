@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.menu;
+package org.tinycore.colonybridge.menu.bridge;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -10,8 +10,9 @@ import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
-import org.tinycore.colonybridge.block.ItemFilter;
+import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.bridge.ItemFilter;
+import org.tinycore.colonybridge.menu.AbstractGhostMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;

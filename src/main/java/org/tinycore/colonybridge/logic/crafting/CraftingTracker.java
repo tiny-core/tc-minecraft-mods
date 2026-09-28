@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.crafting;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.CalculationStrategy;
@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
 import org.tinycore.colonybridge.stats.BridgeStats;
 
 import java.util.HashMap;
@@ -23,17 +24,17 @@ import java.util.concurrent.Future;
  * A quantidade pedida é só a que falta (o {@link BridgeLogic} já desconta armazém e rede).
  * Mais simples que um ICraftingRequester (não há links para persistir).
  */
-final class CraftingTracker {
+public final class CraftingTracker {
 
     private final Map<AEItemKey, Future<ICraftingPlan>> calculating = new HashMap<>();
     private final Map<AEItemKey, Long> failedUntil = new HashMap<>();
 
     /** true se já existe um craft em cálculo ou a correr para este item. */
-    boolean isBusy(ICraftingService crafting, AEItemKey key) {
+    public boolean isBusy(ICraftingService crafting, AEItemKey key) {
         return calculating.containsKey(key) || crafting.isRequesting(key);
     }
 
-    boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount) {
+    public boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount) {
         long now = level.getGameTime();
         Long until = failedUntil.get(key);
         if (until != null && until > now) {
@@ -53,7 +54,7 @@ final class CraftingTracker {
     }
 
     /** Submete os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
-    void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
+    public void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
         long now = level.getGameTime();
         // Esperas vencidas não servem mais: sem isto o mapa só cresceria enquanto a ponte existir.
         failedUntil.values().removeIf(until -> until <= now);
@@ -84,7 +85,7 @@ final class CraftingTracker {
         }
     }
 
-    void clear() {
+    public void clear() {
         calculating.values().forEach(f -> f.cancel(true));
         calculating.clear();
     }

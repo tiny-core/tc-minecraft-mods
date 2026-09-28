@@ -1,12 +1,12 @@
-package org.tinycore.colonybridge.menu;
+package org.tinycore.colonybridge.menu.bridge;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.tinycore.colonybridge.block.BridgeSettings;
+import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.CycleReport;
-import org.tinycore.colonybridge.logic.RequestLine;
+import org.tinycore.colonybridge.logic.bridge.CycleReport;
+import org.tinycore.colonybridge.logic.bridge.RequestLine;
 import org.tinycore.colonybridge.stats.StatsSummary;
 
 import java.util.List;

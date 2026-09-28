@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.bridge;
 
 import org.tinycore.colonybridge.integration.OpenRequest;
 

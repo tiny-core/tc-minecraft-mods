@@ -5,7 +5,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
-import org.tinycore.colonybridge.client.ColonyBridgeScreen;
+import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 
 /**
  * Integração com o JEI: permite arrastar itens da lista do JEI para os ghost slots do filtro.

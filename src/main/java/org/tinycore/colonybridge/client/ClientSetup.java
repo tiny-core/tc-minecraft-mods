@@ -6,7 +6,9 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.tinycore.colonybridge.ColonyBridgeMod;
+import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.client.render.MonitorRenderer;
+import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModMenus;
 

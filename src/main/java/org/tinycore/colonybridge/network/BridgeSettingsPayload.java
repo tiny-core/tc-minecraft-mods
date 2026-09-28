@@ -6,7 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
-import org.tinycore.colonybridge.block.BridgeSettings;
+import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 
 /**
  * Pacote cliente → servidor: "quero estas configurações na ponte da tela aberta".

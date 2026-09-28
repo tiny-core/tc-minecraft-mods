@@ -1,7 +1,7 @@
 package org.tinycore.colonybridge.client.ui;
 
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.RequestOutcome;
+import org.tinycore.colonybridge.logic.bridge.RequestOutcome;
 
 /** Cores de estado da ponte e de resultado de pedido, iguais na tela da ponte e nos monitores. */
 public final class StatusColors {

@@ -8,7 +8,7 @@ import java.util.function.BooleanSupplier;
 
 /**
  * Slot "fantasma" do filtro: mostra um item, mas não aceita nem entrega itens de verdade.
- * O clique é tratado à parte em {@link ColonyBridgeMenu#clicked}, que só copia 1 unidade do item
+ * O clique é tratado à parte em {@link AbstractGhostMenu#clicked}, que só copia 1 unidade do item
  * do cursor (o item continua com o jogador).
  */
 final class GhostSlot extends TabSlot {

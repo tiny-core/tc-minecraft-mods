@@ -1,9 +1,10 @@
-package org.tinycore.colonybridge.block;
+package org.tinycore.colonybridge.block.bridge;
 
 import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import org.tinycore.colonybridge.block.RedstoneMode;
 
 /**
  * Configurações de uma ponte, salvas no NBT do block entity e alteradas pela tela.

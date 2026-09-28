@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.bridge;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

@@ -15,7 +15,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
 
 import java.util.List;

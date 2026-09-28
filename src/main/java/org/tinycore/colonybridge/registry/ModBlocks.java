@@ -6,7 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
-import org.tinycore.colonybridge.block.ColonyBridgeBlock;
+import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlock;
 import org.tinycore.colonybridge.block.monitor.MonitorBlock;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlock;
 

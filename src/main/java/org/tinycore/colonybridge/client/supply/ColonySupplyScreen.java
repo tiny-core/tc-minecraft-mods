@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.client;
+package org.tinycore.colonybridge.client.supply;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -11,8 +11,8 @@ import org.tinycore.colonybridge.client.ui.FlatButton;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.client.ui.UiFormat;
-import org.tinycore.colonybridge.menu.ColonySupplyMenu;
-import org.tinycore.colonybridge.menu.SupplySnapshot;
+import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
 import org.tinycore.colonybridge.network.SupplyConfigPayload;
 
 import java.util.List;

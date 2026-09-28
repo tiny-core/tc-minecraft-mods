@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.block;
+package org.tinycore.colonybridge.block.bridge;
 
 import appeng.api.networking.IGrid;
 import net.minecraft.core.BlockPos;
@@ -7,11 +7,14 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.tinycore.colonybridge.block.AbstractBridgeBlock;
+import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
+import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
-import org.tinycore.colonybridge.logic.BridgeLogic;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.menu.BridgeSnapshot;
+import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
+import org.tinycore.colonybridge.menu.bridge.BridgeSnapshot;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModItems;
 import org.tinycore.colonybridge.stats.BridgeStats;
@@ -60,7 +63,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
 
     @Override
     protected void afterCycle(ServerLevel level) {
-        syncVisualState(level, ColonyBridgeBlock.STATUS);
+        syncVisualState(level, AbstractBridgeBlock.STATUS);
         if (stats.consumeDirty()) {
             setChanged(); // só marca para salvar quando houve entrega/craft no ciclo
         }

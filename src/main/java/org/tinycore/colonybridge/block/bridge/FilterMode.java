@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.block;
+package org.tinycore.colonybridge.block.bridge;
 
 /** Como a lista do filtro é usada. Configurado na aba "Filtro" da tela. */
 public enum FilterMode {

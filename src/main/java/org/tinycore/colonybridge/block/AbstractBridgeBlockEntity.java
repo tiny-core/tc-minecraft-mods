@@ -31,7 +31,7 @@ import java.util.EnumSet;
 import java.util.UUID;
 
 /**
- * Base dos blocos que ligam uma rede ME a uma colônia ({@link ColonyBridgeBlockEntity} e o bloco de
+ * Base dos blocos que ligam uma rede ME a uma colônia (Ponte — {@code ColonyBridgeBlockEntity} — e o bloco de
  * abastecimento). Concentra o que os dois têm em comum, para nenhum deles virar um arquivo gigante:
  * <ul>
  *   <li>nó da grid do AE2 e seu ciclo de vida;</li>

@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.client;
+package org.tinycore.colonybridge.client.bridge;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -6,14 +6,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.tinycore.colonybridge.block.BridgeSettings;
-import org.tinycore.colonybridge.block.ItemFilter;
+import org.tinycore.colonybridge.block.bridge.BridgeSettings;
+import org.tinycore.colonybridge.block.bridge.ItemFilter;
 import org.tinycore.colonybridge.client.ui.FlatButton;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
-import org.tinycore.colonybridge.logic.RequestOutcome;
-import org.tinycore.colonybridge.menu.BridgeSnapshot;
-import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
+import org.tinycore.colonybridge.logic.bridge.RequestOutcome;
+import org.tinycore.colonybridge.menu.bridge.BridgeSnapshot;
+import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.network.BridgeSettingsPayload;
 
 import java.util.List;

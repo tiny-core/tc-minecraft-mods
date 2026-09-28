@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.bridge;
 
 /**
  * O que a ponte fez (ou por que não fez nada) com um pedido no último ciclo.

@@ -6,7 +6,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.tinycore.colonybridge.client.ColonyBridgeScreen;
+import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.network.FilterSlotPayload;
 
 import java.util.ArrayList;

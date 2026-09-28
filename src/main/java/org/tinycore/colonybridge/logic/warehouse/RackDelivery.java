@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic;
+package org.tinycore.colonybridge.logic.warehouse;
 
 import appeng.api.config.Actionable;
 import appeng.api.networking.IGrid;
@@ -21,11 +21,11 @@ import java.util.List;
  * nos racks, extrai da rede só essa quantidade ({@code SIMULATE} antes de {@code MODULATE}) e devolve à
  * rede o que por algum motivo não entrou.
  * <p>
- * Separada do {@link BridgeLogic} para o ciclo de pedidos não misturar "o que entregar" com "como mover".
+ * Compartilhada pela Ponte ({@code BridgeLogic}) e pelo Abastecedor ({@code SupplyLogic}), para o ciclo não misturar "o que entregar" com "como mover".
  * {@code IItemHandler} é a interface de inventário do NeoForge (≈ uma interface de "slots" em C#);
  * os racks do MineColonies a expõem, então esta classe não depende do MineColonies.
  */
-final class RackDelivery {
+public final class RackDelivery {
 
     private RackDelivery() {}
 
@@ -34,7 +34,7 @@ final class RackDelivery {
      *
      * @return quantidade efetivamente colocada nos racks
      */
-    static long deliver(IGrid grid, IActionSource source, AEItemKey key, long wanted, List<IItemHandler> racks) {
+    public static long deliver(IGrid grid, IActionSource source, AEItemKey key, long wanted, List<IItemHandler> racks) {
         MEStorage inventory = grid.getStorageService().getInventory();
         IEnergySource energy = grid.getEnergyService();
 

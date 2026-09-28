@@ -7,7 +7,7 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.CycleReport;
+import org.tinycore.colonybridge.logic.bridge.CycleReport;
 import org.tinycore.colonybridge.stats.StatsSummary;
 
 import java.util.ArrayList;

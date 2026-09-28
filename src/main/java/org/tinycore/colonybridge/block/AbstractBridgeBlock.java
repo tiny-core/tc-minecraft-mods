@@ -6,7 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -23,26 +25,50 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.ColonyAccess;
-import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
-import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 import java.util.List;
 
 /**
- * Bloco da Ponte ME da Colônia. Cria o {@link ColonyBridgeBlockEntity} (onde fica o nó AE2 e a lógica),
- * impede a colocação em colônias onde o jogador não tem permissão e mostra o estado no clique direito.
- * O estado visual ({@link #STATUS}) é atualizado pelo block entity; aqui só é declarado.
+ * Base dos blocos que ligam uma rede ME a uma colônia (Ponte e Abastecedor). Cuida de tudo o que é
+ * igual entre eles, para cada subclasse só dizer <b>qual</b> block entity, tela e tooltip usa:
+ * <ul>
+ *   <li>estado visual no blockstate ({@link #STATUS}, atualizado pelo block entity);</li>
+ *   <li>recusar a colocação em colônia onde o jogador não tem permissão e gravar o dono;</li>
+ *   <li>ticker só no servidor, que chama {@link AbstractBridgeBlockEntity#serverTick()};</li>
+ *   <li>avisar o block entity quando um vizinho muda (cabo trocado embaixo);</li>
+ *   <li>clique direito: abre a tela para quem pode configurar, senão mostra o estado.</li>
+ * </ul>
+ * Par do {@link AbstractBridgeBlockEntity}: o bloco é a "casca" no mundo (sem estado próprio) e o
+ * block entity guarda os dados e roda a lógica.
+ * <p>
+ * {@code <E extends AbstractBridgeBlockEntity>} é um generic com restrição, igual a
+ * {@code where E : AbstractBridgeBlockEntity} em C#: cada subclasse fixa o tipo do seu block entity.
  */
-public class ColonyBridgeBlock extends Block implements EntityBlock {
+public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> extends Block implements EntityBlock {
 
-    /** Propriedade do blockstate que escolhe o modelo (ver {@code blockstates/colony_bridge.json}). */
+    /** Propriedade do blockstate que escolhe o modelo (ver {@code blockstates/*.json}). */
     public static final EnumProperty<BridgeVisualState> STATUS =
             EnumProperty.create("status", BridgeVisualState.class);
 
-    public ColonyBridgeBlock(Properties props) {
+    private final Class<E> entityClass;
+
+    protected AbstractBridgeBlock(Properties props, Class<E> entityClass) {
         super(props);
+        this.entityClass = entityClass;
         registerDefaultState(stateDefinition.any().setValue(STATUS, BridgeVisualState.OFFLINE));
     }
+
+    /** Tipo registrado do block entity deste bloco (em {@code ModBlockEntities}). */
+    protected abstract BlockEntityType<E> blockEntityType();
+
+    /** Nome usado nas chaves de tradução do tooltip ({@code tooltip.tccolonybridge.<nome>.line1/2}). */
+    protected abstract String tooltipName();
+
+    /** Título da tela. */
+    protected abstract Component menuTitle();
+
+    /** Cria o menu (container) no servidor para o jogador que abriu a tela. */
+    protected abstract AbstractContainerMenu createMenu(int containerId, Inventory inventory, E blockEntity);
 
     /** Declara quais propriedades o bloco tem; o Minecraft gera uma combinação de estado para cada valor. */
     @Override
@@ -54,24 +80,18 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
                                 TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.tccolonybridge.colony_bridge.line1")
-                .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.tccolonybridge.colony_bridge.line2")
-                .withStyle(ChatFormatting.GRAY));
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ColonyBridgeBlockEntity(pos, state);
+        String prefix = "tooltip.tccolonybridge." + tooltipName();
+        tooltip.add(Component.translatable(prefix + ".line1").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable(prefix + ".line2").withStyle(ChatFormatting.GRAY));
     }
 
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                             BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.COLONY_BRIDGE.get()) {
+        if (level.isClientSide || type != blockEntityType()) {
             return null;
         }
-        return (lvl, pos, st, be) -> ((ColonyBridgeBlockEntity) be).serverTick();
+        return (lvl, pos, st, be) -> ((AbstractBridgeBlockEntity) be).serverTick();
     }
 
     /**
@@ -96,20 +116,22 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
     }
 
     @Override
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer,
+                            ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && placer instanceof Player player
-                && level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be) {
+        E be = entityAt(level, pos);
+        if (!level.isClientSide && placer instanceof Player player && be != null) {
             be.setOwner(player);
         }
     }
 
-    /** Um vizinho mudou (ex.: cabo colocado/trocado embaixo): a ponte reavalia a conexão. */
+    /** Um vizinho mudou (ex.: cabo colocado/trocado embaixo): o block entity reavalia a conexão. */
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighborBlock,
                                    BlockPos neighborPos, boolean movedByPiston) {
         super.neighborChanged(state, level, pos, neighborBlock, neighborPos, movedByPiston);
-        if (!level.isClientSide && level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be) {
+        E be = entityAt(level, pos);
+        if (!level.isClientSide && be != null) {
             be.onNeighborChanged();
         }
     }
@@ -122,7 +144,8 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
                                                BlockHitResult hit) {
-        if (level.isClientSide || !(level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity be)) {
+        E be = entityAt(level, pos);
+        if (level.isClientSide || be == null) {
             return InteractionResult.sidedSuccess(level.isClientSide);
         }
         if (!be.canConfigure(player)) {
@@ -130,8 +153,13 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
             return InteractionResult.CONSUME;
         }
         player.openMenu(new SimpleMenuProvider(
-                (containerId, inventory, p) -> new ColonyBridgeMenu(containerId, inventory, be),
-                Component.translatable("gui.tccolonybridge.title")), pos);
+                (containerId, inventory, p) -> createMenu(containerId, inventory, be), menuTitle()), pos);
         return InteractionResult.CONSUME;
+    }
+
+    /** Block entity deste bloco na posição, ou null se não houver (ou for de outro tipo). */
+    private @Nullable E entityAt(Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        return entityClass.isInstance(be) ? entityClass.cast(be) : null;
     }
 }
