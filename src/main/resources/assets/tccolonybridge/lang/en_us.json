@@ -84,5 +84,6 @@
   "monitor.tccolonybridge.items_hour": "Items (1h)",
   "monitor.tccolonybridge.items_window": "Items (%sh)",
   "monitor.tccolonybridge.no_requests": "No open requests",
-  "monitor.tccolonybridge.more": "+%s more"
+  "monitor.tccolonybridge.more": "+%s more",
+  "monitor.tccolonybridge.top_items": "Top items"
 }

@@ -84,5 +84,6 @@
   "monitor.tccolonybridge.items_hour": "Itens (1h)",
   "monitor.tccolonybridge.items_window": "Itens (%sh)",
   "monitor.tccolonybridge.no_requests": "Nenhum pedido em aberto",
-  "monitor.tccolonybridge.more": "+%s não mostrados"
+  "monitor.tccolonybridge.more": "+%s não mostrados",
+  "monitor.tccolonybridge.top_items": "Mais entregues"
 }

@@ -33,6 +33,11 @@ final class MonitorRequestList {
 
     private MonitorRequestList() {}
 
+    /** ItemStack reaproveitado deste item (ver {@link #ICONS}); usado também pela faixa de mais entregues. */
+    static ItemStack icon(Item item) {
+        return ICONS.computeIfAbsent(item, ItemStack::new);
+    }
+
     /** Quantos pedidos cabem numa página nesta área (0 se não cabe nenhum). */
     static int perPage(float width, float height) {
         int rows = (int) ((height - FOOTER) / ROW_HEIGHT);
@@ -72,7 +77,7 @@ final class MonitorRequestList {
 
     private static void row(MonitorCanvas c, MonitorLine line, float x, float y, float width) {
         c.fill(x, y, x + width, y + ROW_HEIGHT - 2, UiColors.PANEL, 1);
-        c.item(ICONS.computeIfAbsent(line.item(), ItemStack::new), x + 2, y + 2, 14, 2);
+        c.item(icon(line.item()), x + 2, y + 2, 14, 2);
         String count = "x" + line.count();
         float countWidth = c.width(Component.literal(count)) * 0.7f;
         c.text(Component.literal(count), x + width - 3 - countWidth, y + 3, UiColors.TEXT_MUTED, 0.7f, 2);

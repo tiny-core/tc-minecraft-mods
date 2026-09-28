@@ -12,6 +12,9 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.HashMap;
+import java.util.Map;
 import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
 import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.multiblock.MonitorFormation;
@@ -35,10 +38,26 @@ public class MonitorRenderer implements BlockEntityRenderer<MonitorBlockEntity> 
     /** Afasta a tela da face do bloco para não brigar com a textura dele. */
     private static final float FACE_OFFSET = 0.002f;
 
+    /** Tempo sem ser desenhada até uma tela perder o animador (saiu de vista ou foi quebrada). */
+    private static final long ANIMATOR_TTL_MILLIS = 30_000;
+
     private final Font font;
+    /** Animação por tela (só cliente): estado de exibição mantido entre frames. */
+    private final Map<BlockPos, MonitorAnimator> animators = new HashMap<>();
 
     public MonitorRenderer(BlockEntityRendererProvider.Context context) {
         this.font = context.getFont();
+    }
+
+    /** Animador desta tela, criando se preciso e descartando os que ninguém está vendo. */
+    private MonitorAnimator animatorFor(BlockPos pos) {
+        MonitorAnimator animator = animators.computeIfAbsent(pos.immutable(), p -> new MonitorAnimator());
+        animator.beginFrame();
+        if (animators.size() > 1) {
+            long cutoff = System.currentTimeMillis() - ANIMATOR_TTL_MILLIS;
+            animators.values().removeIf(a -> a.lastUsedMillis < cutoff);
+        }
+        return animator;
     }
 
     @Override
@@ -64,7 +83,8 @@ public class MonitorRenderer implements BlockEntityRenderer<MonitorBlockEntity> 
         MonitorCanvas canvas = new MonitorCanvas(pose, buffers, font,
                 Minecraft.getInstance().getItemRenderer(), monitor.getLevel());
         if (monitor.isValidStructure()) {
-            MonitorPanels.render(canvas, width, height, monitor.getData(), monitor::currentPage);
+            MonitorPanels.render(canvas, width, height, monitor.getData(), monitor::currentPage,
+                    animatorFor(monitor.getBlockPos()));
         } else {
             renderInvalid(canvas, width, height);
         }
