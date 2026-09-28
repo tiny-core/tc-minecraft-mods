@@ -62,5 +62,8 @@
   "gui.tccolonybridge.stats.crafts": "Crafts",
   "gui.tccolonybridge.stats.crafts_value": "%s ok · %s failed",
   "gui.tccolonybridge.stats.chart": "Items delivered per hour (last %sh)",
-  "gui.tccolonybridge.stats.no_data": "No deliveries yet"
+  "gui.tccolonybridge.stats.no_data": "No deliveries yet",
+  "block.tccolonybridge.colony_monitor": "Colony Monitor",
+  "monitor.tccolonybridge.size": "%s × %s screen",
+  "monitor.tccolonybridge.invalid": "Invalid structure"
 }

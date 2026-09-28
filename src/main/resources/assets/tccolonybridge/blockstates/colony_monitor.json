@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tccolonybridge:block/colony_monitor"
+    },
+    "facing=east": {
+      "model": "tccolonybridge:block/colony_monitor",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tccolonybridge:block/colony_monitor",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tccolonybridge:block/colony_monitor",
+      "y": 270
+    }
+  }
+}

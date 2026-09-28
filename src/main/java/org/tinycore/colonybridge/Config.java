@@ -41,6 +41,14 @@ public final class Config {
                     "Mudar este valor zera as estatísticas salvas.")
             .defineInRange("statsBuckets", 288, 24, 2016);
 
+    public static final ModConfigSpec.IntValue MONITOR_MAX_WIDTH = B
+            .comment("Largura máxima (em blocos) de uma tela formada por monitores.")
+            .defineInRange("monitorMaxWidth", 8, 1, 16);
+
+    public static final ModConfigSpec.IntValue MONITOR_MAX_HEIGHT = B
+            .comment("Altura máxima (em blocos) de uma tela formada por monitores.")
+            .defineInRange("monitorMaxHeight", 6, 1, 16);
+
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

@@ -88,6 +88,10 @@ pacotes que o monitor precisa.
 - Animações leves (transição de valores, gráfico deslizando) interpoladas no cliente, sem pacotes extras.
 
 ### Divisão em etapas
+
+> **5.1 feita:** bloco de monitor, formação de retângulo (`multiblock/MonitorFormation`, mestre no canto
+> inferior esquerdo), `MonitorRenderer` + `MonitorCanvas` (desenho no mundo, luz máxima, culling por
+> distância e por trás). Modelo ainda é placeholder. **Próxima: 5.2** — cartão de ligação e dados da ponte.
 1. Monitor 1×1 mostrando texto fixo via BER (valida renderização).
 2. Formação do multibloco + tela única.
 3. Pacote de snapshot + dados reais da ponte.

@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
 
 /**
  * Tipos de block entity. Um {@code BlockEntityType} liga o construtor do block entity aos blocos
@@ -21,6 +22,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ColonyBridgeBlockEntity>> COLONY_BRIDGE =
             BLOCK_ENTITIES.register("colony_bridge",
                     () -> BlockEntityType.Builder.of(ColonyBridgeBlockEntity::new, ModBlocks.COLONY_BRIDGE.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MonitorBlockEntity>> COLONY_MONITOR =
+            BLOCK_ENTITIES.register("colony_monitor",
+                    () -> BlockEntityType.Builder.of(MonitorBlockEntity::new, ModBlocks.COLONY_MONITOR.get()).build(null));
 
     private ModBlockEntities() {}
 

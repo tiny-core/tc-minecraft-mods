@@ -45,6 +45,12 @@ Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte proc
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 
+### Monitor da Colônia (em desenvolvimento)
+Coloque vários **Monitores da Colônia** lado a lado numa parede, virados para o mesmo lado: se formarem
+um retângulo completo (até 8×6, configurável em `monitorMaxWidth`/`monitorMaxHeight`), viram uma tela única.
+Formatos que não são retângulo mostram "Estrutura inválida". Nesta etapa a tela mostra só um texto de
+teste; os dados da ponte chegam na próxima (ligação por cartão).
+
 ### Receita
 ```
  E      E = Processador de Engenharia (AE2)

@@ -25,7 +25,10 @@ public final class ModCreativeTabs {
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.tccolonybridge"))
                     .icon(() -> new ItemStack(ModItems.COLONY_BRIDGE.get()))
-                    .displayItems((params, output) -> output.accept(ModItems.COLONY_BRIDGE.get()))
+                    .displayItems((params, output) -> {
+                        output.accept(ModItems.COLONY_BRIDGE.get());
+                        output.accept(ModItems.COLONY_MONITOR.get());
+                    })
                     .build());
 
     private ModCreativeTabs() {}

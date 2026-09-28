@@ -3,8 +3,11 @@ package org.tinycore.colonybridge.client;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.tinycore.colonybridge.ColonyBridgeMod;
+import org.tinycore.colonybridge.client.render.MonitorRenderer;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModMenus;
 
 /**
@@ -21,5 +24,11 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenus.COLONY_BRIDGE.get(), ColonyBridgeScreen::new);
+    }
+
+    /** Liga o block entity do monitor ao renderer que desenha a tela no mundo. */
+    @SubscribeEvent
+    public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModBlockEntities.COLONY_MONITOR.get(), MonitorRenderer::new);
     }
 }

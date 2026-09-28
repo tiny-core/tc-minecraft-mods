@@ -62,5 +62,8 @@
   "gui.tccolonybridge.stats.crafts": "Fabricos",
   "gui.tccolonybridge.stats.crafts_value": "%s ok · %s falhas",
   "gui.tccolonybridge.stats.chart": "Itens entregues por hora (últimas %sh)",
-  "gui.tccolonybridge.stats.no_data": "Ainda sem entregas"
+  "gui.tccolonybridge.stats.no_data": "Ainda sem entregas",
+  "block.tccolonybridge.colony_monitor": "Monitor da Colónia",
+  "monitor.tccolonybridge.size": "Ecrã %s × %s",
+  "monitor.tccolonybridge.invalid": "Estrutura inválida"
 }
