@@ -1,6 +1,7 @@
 package org.tinycore.colonybridge;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
+import org.tinycore.colonybridge.logic.crafting.CraftPreference;
 
 import java.util.List;
 
@@ -30,6 +31,34 @@ public final class Config {
     public static final ModConfigSpec.ConfigValue<List<? extends String>> CRAFT_BLACKLIST = B
             .comment("IDs de itens que nunca devem ser craftados automaticamente (ex: \"minecraft:diamond_block\").")
             .defineListAllowEmpty("craftBlacklist", List.of(), () -> "", o -> o instanceof String);
+
+    public static final ModConfigSpec.BooleanValue TAG_CRAFTING = B
+            .comment("Craftar para pedidos por tag/ferramenta/comida quando a rede não tem nenhum item que sirva.",
+                    "A ponte escolhe um item craftável que o pedido aceite (ver tagCraftPreference).")
+            .define("tagCrafting", true);
+
+    public static final ModConfigSpec.EnumValue<CraftPreference> TAG_CRAFT_PREFERENCE = B
+            .comment("Qual item craftar quando vários servem:",
+                    "CHEAPEST = menor custo estimado pelas receitas do AE2;",
+                    "MOST_EXPENSIVE = maior custo estimado;",
+                    "LIST = na ordem de tagCraftPreferredItems (os demais depois, do mais barato ao mais caro).")
+            .defineEnum("tagCraftPreference", CraftPreference.CHEAPEST);
+
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> TAG_CRAFT_PREFERRED_ITEMS = B
+            .comment("Itens preferidos, em ordem, para o modo LIST (ex: [\"minecraft:bread\", \"minecraft:stone_pickaxe\"]).")
+            .defineListAllowEmpty("tagCraftPreferredItems", List.of(), () -> "", o -> o instanceof String);
+
+    public static final ModConfigSpec.BooleanValue TAG_CRAFT_VANILLA_ONLY = B
+            .comment("Só escolher itens do Minecraft vanilla (namespace \"minecraft\") para pedidos por tag.")
+            .define("tagCraftVanillaOnly", false);
+
+    public static final ModConfigSpec.IntValue TAG_CRAFT_MAX_CANDIDATES = B
+            .comment("Máximo de itens craftáveis comparados por pedido (limita o custo em redes enormes).")
+            .defineInRange("tagCraftMaxCandidates", 64, 1, 1024);
+
+    public static final ModConfigSpec.IntValue CRAFT_COST_DEPTH = B
+            .comment("Quantos níveis de receita seguir ao estimar o custo de um item (mais = mais preciso e mais caro).")
+            .defineInRange("craftCostDepth", 4, 1, 8);
 
     public static final ModConfigSpec.IntValue STATS_BUCKET_TICKS = B
             .comment("Tamanho de cada bloco de tempo das estatísticas, em ticks (6000 = 5 min).",

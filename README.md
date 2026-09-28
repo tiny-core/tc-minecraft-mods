@@ -18,6 +18,14 @@ A cada ciclo (`cycleTicks`, 5 s por padrão):
 4. Se não cobre e é um pedido de item exato → agenda autocrafting **só da diferença** (falta − estoque da rede;
    sem requester: o resultado entra na rede e tudo é entregue num ciclo seguinte). Se não der para craftar,
    entrega o que houver na rede.
+5. Pedido por **tag/ferramenta/comida** sem nenhum item compatível na rede → a ponte escolhe um item craftável
+   que o pedido aceite e crafta a falta. A escolha segue a config do servidor:
+   - `tagCraftPreference`: `CHEAPEST` (menor custo estimado pelas receitas do AE2, padrão), `MOST_EXPENSIVE`
+     (maior custo) ou `LIST` (ordem de `tagCraftPreferredItems`; os demais depois, do mais barato ao mais caro);
+   - `tagCraftVanillaOnly`: só itens do Minecraft vanilla;
+   - o filtro da ponte também vale (bloqueie o que não quer que seja craftado);
+   - se faltar material para o item escolhido, o craft falha, entra em espera (`craftFailCooldownTicks`) e no
+     ciclo seguinte a ponte tenta o próximo candidato. `tagCrafting = false` desliga tudo isso.
 
 Um pedido já entregue não é atendido de novo durante `redeliveryCooldownTicks`, mesmo depois de reiniciar
 o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem coexistir: elas compartilham um

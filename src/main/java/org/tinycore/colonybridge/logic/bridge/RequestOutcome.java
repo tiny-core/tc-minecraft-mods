@@ -17,9 +17,12 @@ public enum RequestOutcome {
     OTHER_BRIDGE,
     /** Item existe na rede, mas os racks do armazém estão cheios. */
     RACKS_FULL,
-    /** Não há na rede e o pedido não é de item exato (tag/ferramenta/comida): não dá para craftar. */
+    /** Não há na rede e o pedido é por tag/ferramenta/comida com o craft por tag desligado ({@code tagCrafting}). */
     NO_STOCK,
-    /** Pedido exato sem receita no AE2, na blacklist ou em espera após falha de craft. */
+    /**
+     * Sem receita no AE2, na blacklist ou em espera após falha de craft. Em pedido por tag: nenhum item
+     * craftável que o pedido aceite passou pelo filtro, pela config "só vanilla" e pelas esperas.
+     */
     NOT_CRAFTABLE,
     /** O filtro da ponte não deixa este item sair da rede. */
     FILTERED,

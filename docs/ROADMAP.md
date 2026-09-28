@@ -100,9 +100,6 @@ pacotes que o monitor precisa.
 > **5.3 feita:** lista de pedidos paginada, faixa de itens mais entregues (4+ blocos de altura) e
 > animação dos números e barras (`MonitorAnimator`, suavização por tempo real).
 >
-> **5.3 (parte 1) feita:** lista de pedidos paginada no monitor (`MonitorRequestList`, ícones de item no
-> mundo, troca automática + clique por metade da tela, página só no cliente). **Falta na 5.3:** ranking de
-> itens no monitor e animações suaves.
 1. Monitor 1×1 mostrando texto fixo via BER (valida renderização).
 2. Formação do multibloco + tela única.
 3. Pacote de snapshot + dados reais da ponte.
@@ -111,9 +108,11 @@ pacotes que o monitor precisa.
 
 ## Fase 6 — Crafting avançado
 
-- Crafting para pedidos por **tag/ferramenta/comida**: escolher um item craftável que satisfaça o
-  pedido (percorrer os craftáveis do AE2 com `getCraftables(...)` e testar `deliverable.matches`),
-  com preferência configurável (ex.: mais barato, o que já tem mais material).
+> **6a feita:** crafting para pedidos por **tag/ferramenta/comida** (`logic/crafting/CraftCandidates`):
+> percorre os craftáveis do AE2, testa `deliverable.matches` e ordena por custo estimado (`CraftCost`),
+> custo invertido ou lista da config; opção "só vanilla". Falha de material → tenta o próximo candidato.
+> **Ideia futura:** preferência por ponte na tela (hoje é config do servidor).
+
 - Trocar "craft sem requester" por `ICraftingRequester`: o resultado vai direto para o armazém, sem
   passar pela rede. Exige persistir os `ICraftingLink` em NBT.
 

@@ -8,9 +8,9 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
+import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
 import org.tinycore.colonybridge.stats.BridgeStats;
 
 import java.util.HashMap;
@@ -19,32 +19,56 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
- * Agenda crafts no AE2 sem requester: o resultado entra na rede ME,
- * e o ciclo seguinte do {@link BridgeLogic} o entrega ao armazém.
- * A quantidade pedida é só a que falta (o {@link BridgeLogic} já desconta armazém e rede).
- * Mais simples que um ICraftingRequester (não há links para persistir).
+ * Agenda crafts no AE2 sem requester: o resultado entra na rede ME e o ciclo seguinte da ponte
+ * ({@code BridgeLogic}) o entrega ao armazém. A quantidade pedida é só a que falta (a ponte já
+ * desconta armazém e rede). Mais simples que um ICraftingRequester (não há links para persistir).
+ * <p>
+ * Também lembra <b>qual item está sendo craftado para cada pedido</b> ({@link #remember}): num pedido por
+ * tag a ponte escolhe o item, e nos ciclos seguintes precisa saber qual acompanhar. Essa memória não é
+ * salva: depois de um reinício o craft continua no AE2 e a reserva no {@code DeliveryLedger} expira sozinha.
  */
 public final class CraftingTracker {
 
     private final Map<AEItemKey, Future<ICraftingPlan>> calculating = new HashMap<>();
     private final Map<AEItemKey, Long> failedUntil = new HashMap<>();
+    /** Id do pedido → item que esta ponte está craftando para ele. */
+    private final Map<String, AEItemKey> byRequest = new HashMap<>();
 
     /** true se já existe um craft em cálculo ou a correr para este item. */
     public boolean isBusy(ICraftingService crafting, AEItemKey key) {
         return calculating.containsKey(key) || crafting.isRequesting(key);
     }
 
-    public boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount) {
-        long now = level.getGameTime();
+    /**
+     * true se vale a pena tentar craftar o item agora: não está na blacklist, não está em espera após
+     * uma falha e não há craft dele em andamento. Usado para filtrar candidatos de pedidos por tag.
+     */
+    public boolean canTry(ServerLevel level, ICraftingService crafting, AEItemKey key) {
         Long until = failedUntil.get(key);
-        if (until != null && until > now) {
-            return false;
+        return (until == null || until <= level.getGameTime()) && !isBlacklisted(key) && !isBusy(crafting, key);
+    }
+
+    /** Anota que o craft de {@code key} foi iniciado para o pedido {@code requestId}. */
+    public void remember(String requestId, AEItemKey key) {
+        byRequest.put(requestId, key);
+    }
+
+    /**
+     * Item que esta ponte ainda está craftando para o pedido, ou null. Quando o craft já terminou (ou
+     * falhou), a anotação é descartada.
+     */
+    public @Nullable AEItemKey activeFor(String requestId, ICraftingService crafting) {
+        AEItemKey key = byRequest.get(requestId);
+        if (key != null && !isBusy(crafting, key)) {
+            byRequest.remove(requestId);
+            return null;
         }
-        if (isBlacklisted(key)) {
-            return false;
-        }
+        return key;
+    }
+
+    public boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount) {
         ICraftingService crafting = grid.getCraftingService();
-        if (isBusy(crafting, key) || !crafting.isCraftable(key)) {
+        if (!canTry(level, crafting, key) || !crafting.isCraftable(key)) {
             return false;
         }
         long capped = Math.min(amount, Config.MAX_CRAFT_PER_REQUEST.get());
@@ -58,6 +82,9 @@ public final class CraftingTracker {
         long now = level.getGameTime();
         // Esperas vencidas não servem mais: sem isto o mapa só cresceria enquanto a ponte existir.
         failedUntil.values().removeIf(until -> until <= now);
+        // Pedidos que sumiram antes de o craft terminar deixariam anotações para sempre.
+        ICraftingService craftingService = grid.getCraftingService();
+        byRequest.values().removeIf(key -> !isBusy(craftingService, key));
         Iterator<Map.Entry<AEItemKey, Future<ICraftingPlan>>> it = calculating.entrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();
@@ -88,6 +115,7 @@ public final class CraftingTracker {
     public void clear() {
         calculating.values().forEach(f -> f.cancel(true));
         calculating.clear();
+        byRequest.clear();
     }
 
     private void fail(AEItemKey key, long now, String reason, BridgeStats stats) {
