@@ -1,11 +1,13 @@
 package org.tinycore.colonybridge.client.supply;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ui.IconButton;
@@ -18,6 +20,7 @@ import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
 import org.tinycore.colonybridge.network.SupplyConfigPayload;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -50,11 +53,11 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     @Override
     protected void init() {
         super.init();
-        toolbar = new SideToolbar();
+        toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));
         redstoneButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleRedstone)));
-        toolbar.layout(leftPos, topPos);
+        toolbar.layout(leftPos, topPos, WIDTH);
         lastSeen = null; // força copiar o snapshot atual
     }
 
@@ -142,7 +145,6 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         renderTooltip(g, mouseX, mouseY);
-        renderAmountTooltip(g, mouseX, mouseY);
     }
 
     /** Áreas fora da janela ocupadas pela tela (a barra lateral), para o JEI não desenhar por cima. */
@@ -150,17 +152,25 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         return List.of(toolbar.area());
     }
 
-    /** Sobre uma linha configurada: quantidade alvo, quanto existe hoje e como mudar. */
-    private void renderAmountTooltip(GuiGraphics g, int mouseX, int mouseY) {
-        int index = stockSlotAt(mouseX, mouseY);
-        if (index < 0 || menu.slots.get(index).getItem().isEmpty()) {
-            return;
+    /**
+     * Tooltip do item sob o cursor. Numa linha configurada, acrescenta ao tooltip normal do item a quantidade
+     * alvo, quanto existe hoje e como mudar — tudo num tooltip só (dois tooltips no mesmo lugar ficavam
+     * um por cima do outro). {@code hoveredSlot} é o slot sob o mouse, preenchido pela própria tela.
+     */
+    @Override
+    protected List<Component> getTooltipFromContainerItem(ItemStack stack) {
+        List<Component> lines = super.getTooltipFromContainerItem(stack);
+        if (hoveredSlot == null || hoveredSlot.index >= StockList.SIZE) {
+            return lines;
         }
-        SupplySnapshot snap = menu.getSnapshot();
-        g.renderComponentTooltip(font, List.of(
-                Component.translatable("gui.tccolonybridge.supply.target", settings.amount(index)),
-                Component.translatable("gui.tccolonybridge.supply.current", snap.count(index)),
-                Component.translatable("gui.tccolonybridge.supply.scroll")), mouseX, mouseY);
+        int index = hoveredSlot.index;
+        List<Component> extended = new ArrayList<>(lines);
+        extended.add(Component.translatable("gui.tccolonybridge.supply.target", settings.amount(index))
+                .withStyle(ChatFormatting.GOLD));
+        extended.add(Component.translatable("gui.tccolonybridge.supply.current", menu.getSnapshot().count(index))
+                .withStyle(ChatFormatting.AQUA));
+        extended.add(Component.translatable("gui.tccolonybridge.supply.scroll").withStyle(ChatFormatting.GRAY));
+        return extended;
     }
 
     /** Roda do mouse sobre uma linha muda a quantidade alvo (Shift ×10, Ctrl ×64). */
