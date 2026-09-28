@@ -48,8 +48,13 @@ erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 ### Monitor da Colônia (em desenvolvimento)
 Coloque vários **Monitores da Colônia** lado a lado numa parede, virados para o mesmo lado: se formarem
 um retângulo completo (até 8×6, configurável em `monitorMaxWidth`/`monitorMaxHeight`), viram uma tela única.
-Formatos que não são retângulo mostram "Estrutura inválida". Nesta etapa a tela mostra só um texto de
-teste; os dados da ponte chegam na próxima (ligação por cartão).
+Formatos que não são retângulo mostram "Estrutura inválida".
+
+Para mostrar dados, use o **Cartão de Ligação**: shift + clique direito na ponte grava a posição dela;
+clique direito em qualquer bloco da tela liga a tela à ponte. Precisa estar na mesma dimensão, a até
+64 blocos (`monitorLinkRange`) e com permissão na ponte. A tela mostra estado, colônia, pedidos em aberto,
+itens entregues e, com 2+ blocos de altura, o gráfico por hora. Atualiza 1×/s, só quando algo muda,
+e só lê a ponte se o chunk dela estiver carregado (senão mostra "Ponte não encontrada").
 
 ### Receita
 ```

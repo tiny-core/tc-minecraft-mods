@@ -9,8 +9,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.block.BridgeSettings;
 import org.tinycore.colonybridge.block.ItemFilter;
 import org.tinycore.colonybridge.client.ui.FlatButton;
+import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
-import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.RequestOutcome;
 import org.tinycore.colonybridge.menu.BridgeSnapshot;
 import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
@@ -150,7 +150,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
 
         Component status = Component.translatable(snap.status().guiKey());
         int statusX = x + WIDTH - PADDING - font.width(status);
-        g.fill(statusX - 9, y + 22, statusX - 4, y + 27, statusColor(snap.status()));
+        g.fill(statusX - 9, y + 22, statusX - 4, y + 27, StatusColors.of(snap.status()));
         g.drawString(font, status, statusX, y + 20, UiColors.TEXT, false);
 
         switch (tab) {
@@ -213,15 +213,5 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     /** Ghost slots visíveis agora (usado pela integração com JEI para saber onde soltar itens). */
     public List<Slot> visibleFilterSlots() {
         return menu.isFilterTabOpen() ? menu.slots.subList(0, ItemFilter.SIZE) : List.of();
-    }
-
-    private static int statusColor(BridgeStatus status) {
-        return switch (status) {
-            case WORKING -> UiColors.HIGHLIGHT;
-            case IDLE -> UiColors.SUCCESS;
-            case STARTING, PAUSED -> UiColors.WARNING;
-            case OFFLINE, INVALID_CABLE -> UiColors.TEXT_MUTED;
-            case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE -> UiColors.DANGER;
-        };
     }
 }

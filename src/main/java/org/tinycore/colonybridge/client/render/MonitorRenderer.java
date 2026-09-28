@@ -63,22 +63,11 @@ public class MonitorRenderer implements BlockEntityRenderer<MonitorBlockEntity> 
 
         MonitorCanvas canvas = new MonitorCanvas(pose, buffers, font);
         if (monitor.isValidStructure()) {
-            renderTestScreen(canvas, width, height, monitor);
+            MonitorPanels.render(canvas, width, height, monitor.getData());
         } else {
             renderInvalid(canvas, width, height);
         }
         pose.popPose();
-    }
-
-    /** Tela de teste da etapa 5.1: título e tamanho (os dados reais entram na 5.2). */
-    private static void renderTestScreen(MonitorCanvas canvas, int width, int height, MonitorBlockEntity monitor) {
-        canvas.fill(0, 0, width, height, UiColors.BACKGROUND | 0xFF000000, 0);
-        canvas.fill(0, 0, width, 3, UiColors.ACCENT, 1);
-        float y = height / 2f - 12;
-        y += canvas.textCentered(Component.literal("TC Colony Bridge"), width / 2f, y, UiColors.ACCENT,
-                1.5f, width - 8, 2) + 4;
-        canvas.textCentered(Component.translatable("monitor.tccolonybridge.size", monitor.getWidth(),
-                monitor.getHeight()), width / 2f, y, UiColors.HIGHLIGHT, 1f, width - 8, 2);
     }
 
     private static void renderInvalid(MonitorCanvas canvas, int width, int height) {

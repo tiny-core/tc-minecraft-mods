@@ -49,6 +49,10 @@ public final class Config {
             .comment("Altura máxima (em blocos) de uma tela formada por monitores.")
             .defineInRange("monitorMaxHeight", 6, 1, 16);
 
+    public static final ModConfigSpec.IntValue MONITOR_LINK_RANGE = B
+            .comment("Distância máxima (em blocos) entre a tela de monitor e a ponte ligada pelo cartão.")
+            .defineInRange("monitorLinkRange", 64, 8, 256);
+
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

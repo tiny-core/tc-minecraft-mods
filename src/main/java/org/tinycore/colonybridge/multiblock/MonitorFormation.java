@@ -67,6 +67,7 @@ public final class MonitorFormation {
                 && width <= Config.MONITOR_MAX_WIDTH.get()
                 && height <= Config.MONITOR_MAX_HEIGHT.get();
 
+        BlockPos link = valid ? takeLink(level, group) : null;
         for (BlockPos pos : group) {
             if (!(level.getBlockEntity(pos) instanceof MonitorBlockEntity monitor)) {
                 continue;
@@ -74,10 +75,30 @@ public final class MonitorFormation {
             if (valid) {
                 monitor.setStructure(along(pos, start, right) - minU, pos.getY() - start.getY() - minV,
                         width, height, true);
+                if (monitor.isMaster() && link != null) {
+                    monitor.setLink(link); // a ligação passa para o novo mestre
+                }
             } else {
                 monitor.setStructure(0, 0, 1, 1, false);
             }
         }
+    }
+
+    /**
+     * Retira a ligação de qualquer bloco do grupo (ela fica só no mestre). Assim, ao aumentar ou
+     * diminuir a tela, a ponte ligada não se perde mesmo que o mestre passe a ser outro bloco.
+     */
+    private static BlockPos takeLink(Level level, Set<BlockPos> group) {
+        BlockPos found = null;
+        for (BlockPos pos : group) {
+            if (level.getBlockEntity(pos) instanceof MonitorBlockEntity monitor && monitor.getLink() != null) {
+                if (found == null) {
+                    found = monitor.getLink();
+                }
+                monitor.setLink(null);
+            }
+        }
+        return found;
     }
 
     /**

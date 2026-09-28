@@ -65,5 +65,22 @@
   "gui.tccolonybridge.stats.no_data": "Nenhuma entrega ainda",
   "block.tccolonybridge.colony_monitor": "Monitor da Colônia",
   "monitor.tccolonybridge.size": "Tela %s × %s",
-  "monitor.tccolonybridge.invalid": "Estrutura inválida"
+  "monitor.tccolonybridge.invalid": "Estrutura inválida",
+  "item.tccolonybridge.link_card": "Cartão de Ligação",
+  "tooltip.tccolonybridge.link_card.empty": "Nenhuma ponte gravada",
+  "tooltip.tccolonybridge.link_card.bridge": "Ponte: %s, %s, %s",
+  "tooltip.tccolonybridge.link_card.usage": "Shift + clique na ponte grava; clique no monitor liga",
+  "link.tccolonybridge.saved": "Ponte gravada (%s, %s, %s)",
+  "link.tccolonybridge.linked": "Monitor ligado à ponte",
+  "link.tccolonybridge.empty": "Grave uma ponte antes (shift + clique nela)",
+  "link.tccolonybridge.wrong_dimension": "A ponte está em outra dimensão",
+  "link.tccolonybridge.not_found": "Ponte não encontrada ou não carregada",
+  "link.tccolonybridge.too_far": "Ponte longe demais (máx. %s blocos)",
+  "link.tccolonybridge.no_permission": "Você não tem permissão nesta ponte",
+  "monitor.tccolonybridge.unlinked": "Nenhuma ponte ligada",
+  "monitor.tccolonybridge.unlinked_hint": "Use o Cartão de Ligação",
+  "monitor.tccolonybridge.missing": "Ponte não encontrada",
+  "monitor.tccolonybridge.open_requests": "Pedidos em aberto",
+  "monitor.tccolonybridge.items_hour": "Itens (1h)",
+  "monitor.tccolonybridge.items_window": "Itens (%sh)"
 }

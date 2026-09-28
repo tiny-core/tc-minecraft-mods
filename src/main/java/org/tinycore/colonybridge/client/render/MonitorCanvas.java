@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import org.joml.Matrix4f;
+import org.tinycore.colonybridge.client.ui.Painter;
 
 /**
  * "Pincel" para desenhar na tela do monitor, no mundo 3D — o equivalente do {@code GuiGraphics}
@@ -21,7 +22,7 @@ import org.joml.Matrix4f;
  * {@code layer}: camadas sobrepostas ficam levemente à frente umas das outras para não "piscarem"
  * (z-fighting, quando duas superfícies no mesmo lugar brigam para aparecer).
  */
-final class MonitorCanvas {
+final class MonitorCanvas implements Painter {
 
     private static final float LAYER_STEP = 0.4f;
     private static final int LIGHT = LightTexture.FULL_BRIGHT;
@@ -37,7 +38,8 @@ final class MonitorCanvas {
     }
 
     /** Retângulo preenchido (cor ARGB, {@code 0xAARRGGBB}). Mesma ordem de vértices do GuiGraphics.fill. */
-    void fill(float x0, float y0, float x1, float y1, int color, int layer) {
+    @Override
+    public void fill(float x0, float y0, float x1, float y1, int color, int layer) {
         Matrix4f matrix = pose.last().pose();
         VertexConsumer consumer = buffers.getBuffer(RenderType.textBackground());
         float z = layer * LAYER_STEP;
@@ -55,6 +57,21 @@ final class MonitorCanvas {
         font.drawInBatch(text, 0, 0, color, false, pose.last().pose(), buffers,
                 Font.DisplayMode.POLYGON_OFFSET, 0, LIGHT);
         pose.popPose();
+    }
+
+    /** Largura do texto em pixels de tela, na escala 1. */
+    float width(Component text) {
+        return font.width(text);
+    }
+
+    /**
+     * Texto alinhado à esquerda, na escala {@code preferredScale} ou menor se não couber.
+     * @return a largura usada
+     */
+    float textFitted(Component text, float x, float y, int color, float preferredScale, float maxWidth, int layer) {
+        float scale = Math.min(preferredScale, maxWidth / Math.max(1, font.width(text)));
+        text(text, x, y, color, scale, layer);
+        return font.width(text) * scale;
     }
 
     /**

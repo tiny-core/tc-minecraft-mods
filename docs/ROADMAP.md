@@ -91,7 +91,11 @@ pacotes que o monitor precisa.
 
 > **5.1 feita:** bloco de monitor, formação de retângulo (`multiblock/MonitorFormation`, mestre no canto
 > inferior esquerdo), `MonitorRenderer` + `MonitorCanvas` (desenho no mundo, luz máxima, culling por
-> distância e por trás). Modelo ainda é placeholder. **Próxima: 5.2** — cartão de ligação e dados da ponte.
+> distância e por trás). Modelo ainda é placeholder.
+>
+> **5.2 feita:** `LinkCardItem` (validação de dimensão, distância, permissão), ligação guardada no mestre e
+> preservada quando a tela muda de forma, `MonitorData` sincronizado 1×/s só quando muda, `MonitorPanels`
+> com layout por tamanho, `BarChart` desenhando via `Painter` (interface e mundo). **Próxima: 5.3.**
 1. Monitor 1×1 mostrando texto fixo via BER (valida renderização).
 2. Formação do multibloco + tela única.
 3. Pacote de snapshot + dados reais da ponte.

@@ -11,10 +11,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.multiblock.MonitorFormation;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 /**
  * Bloco de monitor. Vários lado a lado na parede, virados para o mesmo lado, formam uma tela única
@@ -55,6 +58,16 @@ public class MonitorBlock extends HorizontalDirectionalBlock implements EntityBl
         return new MonitorBlockEntity(pos, state);
     }
 
+    /** Ticker só no servidor: o mestre lê a ponte ligada 1×/s ({@link MonitorBlockEntity#serverTick}). */
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
+                                                                            BlockEntityType<T> type) {
+        if (level.isClientSide || type != ModBlockEntities.COLONY_MONITOR.get()) {
+            return null;
+        }
+        return (lvl, pos, st, be) -> ((MonitorBlockEntity) be).serverTick();
+    }
+
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
         super.onPlace(state, level, pos, oldState, movedByPiston);
@@ -67,6 +80,7 @@ public class MonitorBlock extends HorizontalDirectionalBlock implements EntityBl
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         boolean removed = !state.is(newState.getBlock());
+        BlockPos link = removed && level.getBlockEntity(pos) instanceof MonitorBlockEntity monitor ? monitor.getLink() : null;
         super.onRemove(state, level, pos, newState, movedByPiston);
         if (!removed || level.isClientSide) {
             return;
@@ -74,9 +88,15 @@ public class MonitorBlock extends HorizontalDirectionalBlock implements EntityBl
         Direction right = MonitorFormation.right(state.getValue(FACING));
         for (Direction step : new Direction[]{right, right.getOpposite(), Direction.UP, Direction.DOWN}) {
             BlockPos neighbor = pos.relative(step);
-            if (level.getBlockState(neighbor).is(this)) {
-                level.scheduleTick(neighbor, this, 1);
+            if (!level.getBlockState(neighbor).is(this)) {
+                continue;
             }
+            // O mestre quebrado passa a ligação para um vizinho; a formação a leva ao novo mestre.
+            if (link != null && level.getBlockEntity(neighbor) instanceof MonitorBlockEntity other) {
+                other.setLink(link);
+                link = null;
+            }
+            level.scheduleTick(neighbor, this, 1);
         }
     }
 

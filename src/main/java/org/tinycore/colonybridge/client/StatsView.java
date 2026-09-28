@@ -5,7 +5,9 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import org.tinycore.colonybridge.client.ui.BarChart;
+import org.tinycore.colonybridge.client.ui.Painter;
 import org.tinycore.colonybridge.client.ui.UiColors;
+import org.tinycore.colonybridge.client.ui.UiFormat;
 import org.tinycore.colonybridge.stats.StatsSummary;
 
 import java.util.List;
@@ -36,20 +38,20 @@ final class StatsView {
         int cardWidth = (width - gap * 2) / 3;
         renderCard(g, x, y, cardWidth, Component.translatable("gui.tccolonybridge.stats.last_hour"),
                 Component.translatable("gui.tccolonybridge.stats.items_requests",
-                        compact(t.itemsLastHour()), compact(t.requestsLastHour())));
+                        UiFormat.compact(t.itemsLastHour()), UiFormat.compact(t.requestsLastHour())));
         renderCard(g, x + cardWidth + gap, y, cardWidth,
                 Component.translatable("gui.tccolonybridge.stats.window", stats.windowHours()),
                 Component.translatable("gui.tccolonybridge.stats.items_requests",
-                        compact(t.itemsWindow()), compact(t.requestsWindow())));
+                        UiFormat.compact(t.itemsWindow()), UiFormat.compact(t.requestsWindow())));
         renderCard(g, x + (cardWidth + gap) * 2, y, cardWidth,
                 Component.translatable("gui.tccolonybridge.stats.crafts"),
                 Component.translatable("gui.tccolonybridge.stats.crafts_value",
-                        compact(t.craftsStarted()), compact(t.craftsFailed())));
+                        UiFormat.compact(t.craftsStarted()), UiFormat.compact(t.craftsFailed())));
 
         int chartY = y + CARD_HEIGHT + 8;
         g.drawString(font, Component.translatable("gui.tccolonybridge.stats.chart", stats.windowHours()),
                 x, chartY, UiColors.TEXT_MUTED, false);
-        BarChart.render(g, x, chartY + 10, width, CHART_HEIGHT, stats.chart());
+        BarChart.render(Painter.of(g), x, chartY + 10, width, CHART_HEIGHT, stats.chart(), 0);
 
         renderTop(g, stats.top(), x, chartY + 10 + CHART_HEIGHT + 6, width);
     }
@@ -77,7 +79,7 @@ final class StatsView {
             StatsSummary.Top entry = top.get(i);
             g.drawString(font, (i + 1) + ".", cx, cy + 4, UiColors.ACCENT, false);
             g.renderItem(new ItemStack(entry.item()), cx + 12, cy);
-            g.drawString(font, compact(entry.count()), cx + 31, cy + 4, UiColors.TEXT, false);
+            g.drawString(font, UiFormat.compact(entry.count()), cx + 31, cy + 4, UiColors.TEXT, false);
         }
     }
 
@@ -102,16 +104,5 @@ final class StatsView {
         g.pose().scale(scale, scale, 1f);
         g.drawString(font, text, 0, 0, color, false);
         g.pose().popPose();
-    }
-
-    /** 1234 → "1.2k", 3400000 → "3.4M" (cabe nos cartões). */
-    static String compact(long value) {
-        if (value < 1_000) {
-            return Long.toString(value);
-        }
-        if (value < 1_000_000) {
-            return String.format("%.1fk", value / 1_000.0);
-        }
-        return String.format("%.1fM", value / 1_000_000.0);
     }
 }
