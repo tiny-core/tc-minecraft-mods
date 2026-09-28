@@ -31,6 +31,16 @@ public final class Config {
             .comment("IDs de itens que nunca devem ser craftados automaticamente (ex: \"minecraft:diamond_block\").")
             .defineListAllowEmpty("craftBlacklist", List.of(), () -> "", o -> o instanceof String);
 
+    public static final ModConfigSpec.IntValue STATS_BUCKET_TICKS = B
+            .comment("Tamanho de cada bloco de tempo das estatísticas, em ticks (6000 = 5 min).",
+                    "Mudar este valor zera as estatísticas salvas.")
+            .defineInRange("statsBucketTicks", 6000, 1200, 72000);
+
+    public static final ModConfigSpec.IntValue STATS_BUCKETS = B
+            .comment("Quantos blocos de tempo as estatísticas guardam (288 × 5 min = 24 h).",
+                    "Mudar este valor zera as estatísticas salvas.")
+            .defineInRange("statsBuckets", 288, 24, 2016);
+
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

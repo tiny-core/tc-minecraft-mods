@@ -7,6 +7,7 @@ import org.tinycore.colonybridge.block.BridgeSettings;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.CycleReport;
 import org.tinycore.colonybridge.logic.RequestLine;
+import org.tinycore.colonybridge.stats.StatsSummary;
 
 import java.util.List;
 
@@ -19,12 +20,13 @@ import java.util.List;
  * protegem contra pacotes gigantes.
  *
  * @param totalRequests total de pedidos em aberto (a lista pode estar cortada em {@link CycleReport#MAX_LINES})
+ * @param stats         resumo das estatísticas (records comparam por valor, então {@code equals} serve)
  */
 public record BridgeSnapshot(BridgeStatus status, String colonyName, BridgeSettings settings,
-                             List<RequestLine> lines, int totalRequests) {
+                             List<RequestLine> lines, int totalRequests, StatsSummary stats) {
 
-    public static final BridgeSnapshot EMPTY =
-            new BridgeSnapshot(BridgeStatus.STARTING, "", BridgeSettings.DEFAULT, List.of(), 0);
+    public static final BridgeSnapshot EMPTY = new BridgeSnapshot(BridgeStatus.STARTING, "",
+            BridgeSettings.DEFAULT, List.of(), 0, StatsSummary.EMPTY);
 
     private static final BridgeStatus[] STATUSES = BridgeStatus.values();
 
@@ -35,11 +37,13 @@ public record BridgeSnapshot(BridgeStatus status, String colonyName, BridgeSetti
             BridgeSettings.STREAM_CODEC, BridgeSnapshot::settings,
             RequestLine.STREAM_CODEC.apply(ByteBufCodecs.list(CycleReport.MAX_LINES)), BridgeSnapshot::lines,
             ByteBufCodecs.VAR_INT, BridgeSnapshot::totalRequests,
+            StatsSummary.STREAM_CODEC, BridgeSnapshot::stats,
             BridgeSnapshot::new);
 
     /** Igualdade de conteúdo (as linhas têm ItemStack, que não tem equals por valor). */
     public boolean sameAs(BridgeSnapshot other) {
         if (status != other.status || !settings.equals(other.settings) || totalRequests != other.totalRequests
+                || !stats.equals(other.stats)
                 || !colonyName.equals(other.colonyName) || lines.size() != other.lines.size()) {
             return false;
         }

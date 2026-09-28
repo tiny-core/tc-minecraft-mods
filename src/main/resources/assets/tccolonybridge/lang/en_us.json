@@ -54,5 +54,13 @@
   "gui.tccolonybridge.match.item": "Compare: item only",
   "gui.tccolonybridge.match.exact": "Compare: exact",
   "gui.tccolonybridge.filter_hint": "Item in hand copies · empty hand clears",
-  "outcome.tccolonybridge.filtered": "Blocked by filter"
+  "outcome.tccolonybridge.filtered": "Blocked by filter",
+  "gui.tccolonybridge.tab.stats": "Stats",
+  "gui.tccolonybridge.stats.last_hour": "Last hour",
+  "gui.tccolonybridge.stats.window": "Last %sh",
+  "gui.tccolonybridge.stats.items_requests": "%s items · %s req.",
+  "gui.tccolonybridge.stats.crafts": "Crafts",
+  "gui.tccolonybridge.stats.crafts_value": "%s ok · %s failed",
+  "gui.tccolonybridge.stats.chart": "Items delivered per hour (last %sh)",
+  "gui.tccolonybridge.stats.no_data": "No deliveries yet"
 }

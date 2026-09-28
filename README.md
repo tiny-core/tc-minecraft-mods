@@ -34,6 +34,12 @@ A aba **Filtro** controla quais itens podem sair da rede (entrega ou craft):
   shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
 - com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
 
+A aba **Estatísticas** mostra, por ponte: itens e pedidos entregues na última hora e nas últimas 24 h,
+crafts enviados/falhos, um gráfico de itens entregues por hora e os itens mais entregues (nome no tooltip).
+Contam só enquanto o mundo está rodando (tempo de jogo). Janela e resolução ajustáveis na config
+(`statsBucketTicks`, `statsBuckets`; mudar zera as estatísticas). "Crafts ok" = jobs aceitos pelo AE2
+(a ponte não sabe quando o craft termina, porque o craft não tem requester).
+
 Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte procura outro compatível.
 
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),

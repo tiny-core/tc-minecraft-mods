@@ -10,6 +10,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.stats.BridgeStats;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -50,8 +51,8 @@ final class CraftingTracker {
         return true;
     }
 
-    /** Submete os cálculos que já terminaram. Chamado a cada ciclo. */
-    void poll(ServerLevel level, IGrid grid, IActionSource source) {
+    /** Submete os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
+    void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
         long now = level.getGameTime();
         Iterator<Map.Entry<AEItemKey, Future<ICraftingPlan>>> it = calculating.entrySet().iterator();
         while (it.hasNext()) {
@@ -65,15 +66,17 @@ final class CraftingTracker {
                 ICraftingPlan plan = entry.getValue().get();
                 if (plan.simulation()) {
                     // faltam materiais: não submete, espera antes de tentar de novo
-                    fail(key, now, "faltam materiais");
+                    fail(key, now, "faltam materiais", stats);
                     continue;
                 }
                 var result = grid.getCraftingService().submitJob(plan, null, null, false, source);
-                if (!result.successful()) {
-                    fail(key, now, String.valueOf(result.errorCode()));
+                if (result.successful()) {
+                    stats.recordCraftStarted(now);
+                } else {
+                    fail(key, now, String.valueOf(result.errorCode()), stats);
                 }
             } catch (Exception e) {
-                fail(key, now, e.getMessage());
+                fail(key, now, e.getMessage(), stats);
             }
         }
     }
@@ -83,8 +86,9 @@ final class CraftingTracker {
         calculating.clear();
     }
 
-    private void fail(AEItemKey key, long now, String reason) {
+    private void fail(AEItemKey key, long now, String reason, BridgeStats stats) {
         failedUntil.put(key, now + Config.CRAFT_FAIL_COOLDOWN_TICKS.get());
+        stats.recordCraftFailed(now);
         ColonyBridgeMod.LOG.debug("Craft de {} falhou: {}", key, reason);
     }
 

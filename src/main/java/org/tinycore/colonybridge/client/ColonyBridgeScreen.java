@@ -22,7 +22,8 @@ import java.util.List;
  * Tela da ponte (só cliente), com duas abas:
  * <ul>
  *   <li><b>Pedidos:</b> lista de pedidos com o resultado ({@link RequestListView}), crafting on/off e redstone;</li>
- *   <li><b>Filtro:</b> modo do filtro, tipo de comparação, 18 ghost slots e o inventário do jogador.</li>
+ *   <li><b>Filtro:</b> modo do filtro, tipo de comparação, 18 ghost slots e o inventário do jogador;</li>
+ *   <li><b>Estatísticas:</b> totais, gráfico por hora e itens mais entregues ({@link StatsView}).</li>
  * </ul>
  * Não tem textura: tudo é desenhado com retângulos e texto usando {@link UiColors}.
  * Os dados vêm do {@link BridgeSnapshot} guardado no menu; os botões mandam um
@@ -35,10 +36,18 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     private static final int PADDING = 8;
     private static final int LIST_TOP = 76;
 
-    /** Criada no init(): a fonte da tela só existe depois dele. */
+    private static final int STATS_TOP = 54;
+
+    /** Abas da tela. Só a de filtro mostra slots (o menu é avisado em {@link #selectTab}). */
+    private enum Tab { REQUESTS, FILTER, STATS }
+
+    /** Criadas no init(): a fonte da tela só existe depois dele. */
     private RequestListView requestList;
+    private StatsView statsView;
+    private Tab tab = Tab.REQUESTS;
     private FlatButton requestsTab;
     private FlatButton filterTab;
+    private FlatButton statsTab;
     private FlatButton craftingButton;
     private FlatButton redstoneButton;
     private FlatButton filterModeButton;
@@ -59,14 +68,17 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         super.init();
         if (requestList == null) {
             requestList = new RequestListView(font);
+            statsView = new StatsView(font);
         }
         int half = (WIDTH - PADDING * 3) / 2;
         int left = leftPos + PADDING;
         int right = leftPos + PADDING * 2 + half;
         requestsTab = addRenderableWidget(new FlatButton(left, topPos + 34, 70, 14,
-                Component.translatable("gui.tccolonybridge.tab.requests"), () -> selectTab(false)));
+                Component.translatable("gui.tccolonybridge.tab.requests"), () -> selectTab(Tab.REQUESTS)));
         filterTab = addRenderableWidget(new FlatButton(left + 74, topPos + 34, 70, 14,
-                Component.translatable("gui.tccolonybridge.tab.filter"), () -> selectTab(true)));
+                Component.translatable("gui.tccolonybridge.tab.filter"), () -> selectTab(Tab.FILTER)));
+        statsTab = addRenderableWidget(new FlatButton(left + 148, topPos + 34, 70, 14,
+                Component.translatable("gui.tccolonybridge.tab.stats"), () -> selectTab(Tab.STATS)));
 
         craftingButton = addRenderableWidget(new FlatButton(left, topPos + 54, half, 16, Component.empty(),
                 () -> send(settings.withCrafting(!settings.craftingEnabled()))));
@@ -78,17 +90,19 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
                 () -> send(settings.withExactMatch(!settings.exactMatch()))));
 
         lastSeen = null; // força copiar o snapshot atual para os botões
-        selectTab(menu.isFilterTabOpen());
+        selectTab(tab); // init() roda de novo ao redimensionar a janela: mantém a aba atual
     }
 
-    private void selectTab(boolean filter) {
-        menu.setFilterTabOpen(filter);
-        requestsTab.setSelected(!filter);
-        filterTab.setSelected(filter);
-        craftingButton.visible = !filter;
-        redstoneButton.visible = !filter;
-        filterModeButton.visible = filter;
-        exactMatchButton.visible = filter;
+    private void selectTab(Tab selected) {
+        tab = selected;
+        menu.setFilterTabOpen(selected == Tab.FILTER);
+        requestsTab.setSelected(selected == Tab.REQUESTS);
+        filterTab.setSelected(selected == Tab.FILTER);
+        statsTab.setSelected(selected == Tab.STATS);
+        craftingButton.visible = selected == Tab.REQUESTS;
+        redstoneButton.visible = selected == Tab.REQUESTS;
+        filterModeButton.visible = selected == Tab.FILTER;
+        exactMatchButton.visible = selected == Tab.FILTER;
     }
 
     /** Chamado a cada tick do cliente: aplica um snapshot novo e atualiza os textos dos botões. */
@@ -139,11 +153,13 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         g.fill(statusX - 9, y + 22, statusX - 4, y + 27, statusColor(snap.status()));
         g.drawString(font, status, statusX, y + 20, UiColors.TEXT, false);
 
-        if (menu.isFilterTabOpen()) {
-            renderFilterTab(g, x, y);
-        } else {
-            requestList.render(g, snap.lines(), x + PADDING, y + LIST_TOP, WIDTH - PADDING * 2, mouseX, mouseY);
-            renderRequestsFooter(g, snap, x, y + HEIGHT - 14);
+        switch (tab) {
+            case FILTER -> renderFilterTab(g, x, y);
+            case STATS -> statsView.render(g, snap.stats(), x + PADDING, y + STATS_TOP, WIDTH - PADDING * 2);
+            case REQUESTS -> {
+                requestList.render(g, snap.lines(), x + PADDING, y + LIST_TOP, WIDTH - PADDING * 2, mouseX, mouseY);
+                renderRequestsFooter(g, snap, x, y + HEIGHT - 14);
+            }
         }
     }
 
@@ -179,14 +195,16 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         renderTooltip(g, mouseX, mouseY);
-        if (!menu.isFilterTabOpen()) {
+        if (tab == Tab.REQUESTS) {
             requestList.renderTooltip(g, menu.getSnapshot().lines(), mouseX, mouseY);
+        } else if (tab == Tab.STATS) {
+            statsView.renderTooltip(g, menu.getSnapshot().stats().top(), mouseX, mouseY);
         }
     }
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        if (!menu.isFilterTabOpen()) {
+        if (tab == Tab.REQUESTS) {
             requestList.scroll(scrollY, menu.getSnapshot().lines().size());
         }
         return true;

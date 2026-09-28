@@ -52,7 +52,7 @@ public final class BridgeLogic {
     public void runCycle(ServerLevel level, IGrid grid) {
         report.clear();
         IActionSource source = host.getActionSource();
-        crafting.poll(level, grid, source);
+        crafting.poll(level, grid, source, host.getStats());
 
         IColony colony = ColonyAccess.findColony(level, host.getBlockPos());
         if (colony == null) {
@@ -113,6 +113,7 @@ public final class BridgeLogic {
                 return RequestOutcome.RACKS_FULL;
             }
             c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridgeId(), c.now());
+            host.getStats().recordDelivery(c.now(), inStock.getItem(), delivered);
             ColonyAccess.reassign(c.colony(), request.token());
             return RequestOutcome.DELIVERED;
         }

@@ -37,6 +37,10 @@ Ordem pensada para cada fase entregar algo jogável e reduzir risco antes da par
 
 ## Fase 4 — Estatísticas
 
+> **Feita:** por ponte, em `stats/` — contadores em ring buffer (288 × 5 min), ranking aproximado
+> (24 grupos × 16 itens), NBT do block entity, aba "Estatísticas" e `BarChart` em `client/ui/`.
+> Não mede "craft concluído" (depende de `ICraftingRequester`, Fase 6).
+
 **Objetivo:** dados que depois alimentam os monitores.
 
 - Coleta no servidor: itens entregues, crafts feitos/falhos, pedidos atendidos por hora, top itens.
