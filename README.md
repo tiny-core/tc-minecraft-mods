@@ -21,10 +21,11 @@ A cada ciclo (`cycleTicks`, 5 s por padrão):
 5. Pedido por **tag/ferramenta/comida** sem nenhum item compatível na rede → a ponte escolhe um item craftável
    que o pedido aceite e crafta a falta; a tela mostra o item escolhido (ex.: "Qualquer picareta → Picareta
    de Pedra"). Se a rede tiver **vários** itens compatíveis (ex.: tábuas de carvalho e de bétula), a ponte
-   junta todos na mesma entrega. A escolha segue a config do servidor:
+   junta todos na mesma entrega. A escolha segue a **tela da ponte** (abas Geral, Preferidos e Mods); onde a
+   ponte está em "padrão do servidor", vale a config:
    - `tagCraftPreference`: `CHEAPEST` (menor custo estimado pelas receitas do AE2, padrão), `MOST_EXPENSIVE`
      (maior custo) ou `LIST` (ordem de `tagCraftPreferredItems`; os demais depois, do mais barato ao mais caro);
-   - `tagCraftVanillaOnly`: só itens do Minecraft vanilla;
+   - `tagCraftVanillaOnly`: regra do servidor, só itens do Minecraft vanilla (a ponte não muda);
    - o filtro da ponte também vale (bloqueie o que não quer que seja craftado);
    - se faltar material para o item escolhido, o craft falha, entra em espera (`craftFailCooldownTicks`) e no
      ciclo seguinte a ponte tenta o próximo candidato. `tagCrafting = false` desliga tudo isso.
@@ -34,23 +35,24 @@ o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem co
 registro salvo no mundo e nunca atendem o mesmo pedido.
 
 ### Tela da ponte
-Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono):
-- estado da ponte e nome da colônia;
-- lista dos pedidos em aberto com **o que a ponte fez com cada um** (entregue, craftando, sem estoque,
-  não craftável, racks cheios, atendido por outra ponte, na fila...). Passe o mouse para ver o texto completo;
-- **Crafting ligado/desligado** e **modo de redstone** (ignorar / só com sinal / só sem sinal).
+Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono). Quatro abas:
 
-A aba **Filtro** controla quais itens podem sair da rede (entrega ou craft):
-- modo **Desligado / Só permitir / Bloquear** e comparação **só o item** ou **exata** (encantamentos, durabilidade);
-- 18 slots "fantasma": clique com um item na mão para copiá-lo (o item continua com você), mão vazia ou
-  shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
-- com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
+- **Geral:** estado da ponte, nome da colônia, **crafting ligado/desligado**, **modo de redstone** (ignorar /
+  só com sinal / só sem sinal), **preferência de craft por tag** (padrão do servidor / mais barato / mais caro /
+  lista de preferidos) e um resumo do último ciclo (pedidos abertos, atendidos, craftando, pendentes).
+  A lista com o motivo de cada pedido e as estatísticas ficam no **Monitor da Colônia**.
+- **Filtro:** quais itens podem sair da rede (entrega ou craft):
+  - modo **Desligado / Só permitir / Bloquear** e comparação **só o item** ou **exata** (encantamentos, durabilidade);
+  - 18 slots "fantasma": clique com um item na mão para copiá-lo (o item continua com você), mão vazia ou
+    shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
+  - com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
+- **Preferidos:** 9 slots fantasma com a ordem usada pela "Lista de preferidos" (1º slot primeiro). Vazio =
+  usa `tagCraftPreferredItems` da config do servidor.
+- **Mods:** modo **Todos / Só os marcados / Todos menos os marcados / Preferir os marcados** e a lista dos mods
+  que a rede ME sabe craftar; clique para marcar.
 
-A aba **Estatísticas** mostra, por ponte: itens e pedidos entregues na última hora e nas últimas 24 h,
-crafts enviados/falhos, um gráfico de itens entregues por hora e os itens mais entregues (nome no tooltip).
-Contam só enquanto o mundo está rodando (tempo de jogo). Janela e resolução ajustáveis na config
-(`statsBucketTicks`, `statsBuckets`; mudar zera as estatísticas). "Crafts ok" = jobs aceitos pelo AE2
-(a ponte não sabe quando o craft termina, porque o craft não tem requester).
+As preferências de craft ficam salvas **em cada ponte**: cada jogador configura a sua. A regra
+`tagCraftVanillaOnly` e a `craftBlacklist` são do servidor e valem para todas as pontes.
 
 Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte procura outro compatível.
 

@@ -12,7 +12,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.bridge.ItemFilter;
+import org.tinycore.colonybridge.block.bridge.PreferredItems;
 import org.tinycore.colonybridge.menu.AbstractGhostMenu;
+import org.tinycore.colonybridge.menu.JoinedList;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
@@ -21,8 +23,9 @@ import org.tinycore.colonybridge.registry.ModMenus;
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:
  * o menu (existe no servidor <b>e</b> no cliente) e a {@code Screen} (só no cliente, em {@code client/}).
  * <p>
- * Slots: 0..17 são os ghost slots do filtro ({@link AbstractGhostMenu}), 18..53 o inventário do jogador
- * (só para pegar itens e clicar no filtro). Todos só aparecem na aba "Filtro".
+ * Slots: 0..17 são os ghost slots do filtro, 18..26 os dos itens preferidos ({@link AbstractGhostMenu}),
+ * e depois o inventário do jogador (só para pegar itens e clicar nos ghost slots). No cliente cada grupo
+ * só aparece na sua aba ({@link BridgeTab}); o inventário, nas abas "Filtro" e "Preferidos".
  * <p>
  * O menu do servidor envia um {@link BridgeSnapshot} quando os dados mudam (checagem a cada
  * {@link #SNAPSHOT_INTERVAL_TICKS}); o do cliente guarda o último recebido para a tela desenhar.
@@ -38,6 +41,10 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     public static final int INVENTORY_Y = 128;
     public static final int HOTBAR_Y = 186;
 
+    /** Primeiro índice dos ghost slots de itens preferidos (logo depois dos do filtro). */
+    public static final int PREFERRED_START = ItemFilter.SIZE;
+    public static final int GHOST_COUNT = ItemFilter.SIZE + PreferredItems.SIZE;
+
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */
     private final @Nullable ColonyBridgeBlockEntity bridge;
@@ -46,13 +53,15 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
 
     private @Nullable BridgeSnapshot lastSent;
     private int ticksUntilSync;
-    /** Só no cliente: último snapshot recebido e se a aba "Filtro" está aberta. */
+    /** Só no cliente: último snapshot recebido. */
     private BridgeSnapshot snapshot = BridgeSnapshot.EMPTY;
-    private boolean filterTabOpen;
+    /** Aba aberta: no cliente vem da tela; no servidor, do {@code BridgeTabPayload}. */
+    private BridgeTab tab = BridgeTab.GENERAL;
 
     /** Construtor do servidor, chamado ao abrir a tela. */
     public ColonyBridgeMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity bridge) {
-        super(ModMenus.COLONY_BRIDGE.get(), containerId, bridge.getFilter().items(), bridge::setChanged);
+        super(ModMenus.COLONY_BRIDGE.get(), containerId,
+                new JoinedList<>(bridge.getFilter().items(), bridge.getPreferred().items()), bridge::setChanged);
         this.pos = bridge.getBlockPos();
         this.bridge = bridge;
         this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
@@ -63,7 +72,7 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     /** Construtor do cliente: o servidor manda só a posição do bloco nos "dados extras" da abertura. */
     public ColonyBridgeMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf extraData) {
         super(ModMenus.COLONY_BRIDGE.get(), containerId,
-                NonNullList.withSize(ItemFilter.SIZE, ItemStack.EMPTY), () -> {});
+                NonNullList.withSize(GHOST_COUNT, ItemStack.EMPTY), () -> {});
         this.pos = extraData.readBlockPos();
         this.bridge = null;
         this.access = ContainerLevelAccess.NULL;
@@ -73,19 +82,38 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
 
     private void addSlots(Inventory inventory) {
         for (int i = 0; i < ItemFilter.SIZE; i++) {
-            addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, this::isFilterTabOpen);
+            addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, () -> isVisible(BridgeTab.FILTER));
         }
-        addPlayerInventory(inventory, FILTER_X, INVENTORY_Y, HOTBAR_Y, this::isFilterTabOpen);
+        for (int i = 0; i < PreferredItems.SIZE; i++) {
+            addGhostSlot(PREFERRED_START + i, FILTER_X + i * 18, FILTER_Y, () -> isVisible(BridgeTab.PREFERRED));
+        }
+        addPlayerInventory(inventory, FILTER_X, INVENTORY_Y, HOTBAR_Y,
+                () -> bridge != null || tab.showsInventory());
+    }
+
+    /** No servidor não existe "aba visível": os slots ficam sempre ativos; no cliente seguem a aba aberta. */
+    private boolean isVisible(BridgeTab slotTab) {
+        return bridge != null || tab == slotTab;
+    }
+
+    /** Shift-clique no inventário vai para o grupo de ghost slots da aba aberta. */
+    @Override
+    protected int quickMoveStart() {
+        return tab == BridgeTab.PREFERRED ? PREFERRED_START : 0;
+    }
+
+    @Override
+    protected int quickMoveEnd() {
+        return switch (tab) {
+            case FILTER -> ItemFilter.SIZE;
+            case PREFERRED -> GHOST_COUNT;
+            default -> 0;
+        };
     }
 
     @Override
     protected boolean canEditGhosts(Player player) {
         return bridge == null || bridge.canConfigure(player);
-    }
-
-    /** Nome antigo mantido para o pacote do JEI; hoje é o {@code setGhost} da base. */
-    public void setFilterSlot(int slot, ItemStack stack, Player player) {
-        setGhost(slot, stack, player);
     }
 
     // ---------------------------------------------------------------- sincronização
@@ -105,7 +133,7 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
         }
         ticksUntilSync = SNAPSHOT_INTERVAL_TICKS;
         BridgeSnapshot current = bridge.snapshot();
-        if (lastSent != null && lastSent.sameAs(current)) {
+        if (current.equals(lastSent)) {
             return;
         }
         lastSent = current;
@@ -134,14 +162,13 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
         this.snapshot = snapshot;
     }
 
-    /** No servidor não existe "aba": os slots ficam sempre ativos lá; no cliente seguem a aba aberta. */
-    public boolean isFilterTabOpen() {
-        return bridge != null || filterTabOpen;
+    public BridgeTab getTab() {
+        return tab;
     }
 
-    /** Só no cliente: a tela avisa qual aba está aberta para mostrar/esconder os slots. */
-    public void setFilterTabOpen(boolean open) {
-        this.filterTabOpen = open;
+    /** A tela (cliente) ou o {@code BridgeTabPayload} (servidor) avisam qual aba está aberta. */
+    public void setTab(BridgeTab tab) {
+        this.tab = tab;
     }
 
     /** Fecha a tela se o bloco sumiu ou o jogador se afastou mais de 8 blocos (validado no servidor). */

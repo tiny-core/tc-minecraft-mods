@@ -4,10 +4,10 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
+import org.tinycore.colonybridge.block.bridge.CraftSettings;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.bridge.CycleReport;
-import org.tinycore.colonybridge.logic.bridge.RequestLine;
-import org.tinycore.colonybridge.stats.StatsSummary;
+import org.tinycore.colonybridge.logic.bridge.RequestCounts;
+import org.tinycore.colonybridge.logic.crafting.CraftableMods;
 
 import java.util.List;
 
@@ -16,17 +16,18 @@ import java.util.List;
  * possa usar para decidir algo no servidor.
  * <p>
  * Montada no servidor por {@code ColonyBridgeBlockEntity.snapshot()} e enviada pelo
- * {@link ColonyBridgeMenu} só quando muda. Os limites do codec (tamanho do nome e da lista)
- * protegem contra pacotes gigantes.
+ * {@link ColonyBridgeMenu} só quando muda. A lista de pedidos e as estatísticas não vêm aqui: ficam nos
+ * monitores. Os limites do codec (tamanho do nome e da lista de mods) protegem contra pacotes gigantes.
+ * Todos os campos comparam por valor, então {@code equals} do record basta para saber se mudou.
  *
- * @param totalRequests total de pedidos em aberto (a lista pode estar cortada em {@link CycleReport#MAX_LINES})
- * @param stats         resumo das estatísticas (records comparam por valor, então {@code equals} serve)
+ * @param counts        resumo do último ciclo (aba "Geral")
+ * @param craftableMods mods com item craftável na rede (aba "Mods"), no máximo {@link CraftableMods#MAX}
  */
 public record BridgeSnapshot(BridgeStatus status, String colonyName, BridgeSettings settings,
-                             List<RequestLine> lines, int totalRequests, StatsSummary stats) {
+                             CraftSettings craftSettings, RequestCounts counts, List<String> craftableMods) {
 
     public static final BridgeSnapshot EMPTY = new BridgeSnapshot(BridgeStatus.STARTING, "",
-            BridgeSettings.DEFAULT, List.of(), 0, StatsSummary.EMPTY);
+            BridgeSettings.DEFAULT, CraftSettings.DEFAULT, RequestCounts.EMPTY, List.of());
 
     private static final BridgeStatus[] STATUSES = BridgeStatus.values();
 
@@ -35,23 +36,8 @@ public record BridgeSnapshot(BridgeStatus status, String colonyName, BridgeSetti
             BridgeSnapshot::status,
             ByteBufCodecs.stringUtf8(64), BridgeSnapshot::colonyName,
             BridgeSettings.STREAM_CODEC, BridgeSnapshot::settings,
-            RequestLine.STREAM_CODEC.apply(ByteBufCodecs.list(CycleReport.MAX_LINES)), BridgeSnapshot::lines,
-            ByteBufCodecs.VAR_INT, BridgeSnapshot::totalRequests,
-            StatsSummary.STREAM_CODEC, BridgeSnapshot::stats,
+            CraftSettings.STREAM_CODEC, BridgeSnapshot::craftSettings,
+            RequestCounts.STREAM_CODEC, BridgeSnapshot::counts,
+            ByteBufCodecs.stringUtf8(64).apply(ByteBufCodecs.list(CraftableMods.MAX)), BridgeSnapshot::craftableMods,
             BridgeSnapshot::new);
-
-    /** Igualdade de conteúdo (as linhas têm ItemStack, que não tem equals por valor). */
-    public boolean sameAs(BridgeSnapshot other) {
-        if (status != other.status || !settings.equals(other.settings) || totalRequests != other.totalRequests
-                || !stats.equals(other.stats)
-                || !colonyName.equals(other.colonyName) || lines.size() != other.lines.size()) {
-            return false;
-        }
-        for (int i = 0; i < lines.size(); i++) {
-            if (!lines.get(i).sameAs(other.lines.get(i))) {
-                return false;
-            }
-        }
-        return true;
-    }
 }

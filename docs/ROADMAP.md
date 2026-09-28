@@ -111,7 +111,7 @@ pacotes que o monitor precisa.
 > **6a feita:** crafting para pedidos por **tag/ferramenta/comida** (`logic/crafting/CraftCandidates`):
 > percorre os craftáveis do AE2, testa `deliverable.matches` e ordena por custo estimado (`CraftCost`),
 > custo invertido ou lista da config; opção "só vanilla". Falha de material → tenta o próximo candidato.
-> **Ideia futura:** preferência por ponte na tela (hoje é config do servidor).
+> **Feito:** preferência por ponte na tela (abas Geral, Preferidos e Mods), com a config do servidor como padrão.
 
 - Trocar "craft sem requester" por `ICraftingRequester`: o resultado vai direto para o armazém, sem
   passar pela rede. Exige persistir os `ICraftingLink` em NBT.

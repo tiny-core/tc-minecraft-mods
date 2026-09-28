@@ -30,7 +30,7 @@ final class FilterGhostHandler implements IGhostIngredientHandler<ColonyBridgeSc
             return List.of(); // fluido ou outro tipo: sem alvos
         }
         List<Target<I>> targets = new ArrayList<>();
-        for (Slot slot : screen.visibleFilterSlots()) {
+        for (Slot slot : screen.visibleGhostSlots()) {
             Rect2i area = new Rect2i(screen.getGuiLeft() + slot.x, screen.getGuiTop() + slot.y, 16, 16);
             targets.add(new SlotTarget<>(area, screen.getMenu().containerId, slot.index, stack.get()));
         }

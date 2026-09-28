@@ -12,6 +12,7 @@ import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ClientPayloadHandler;
+import org.tinycore.colonybridge.menu.bridge.BridgeTab;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 
@@ -28,7 +29,7 @@ import java.util.List;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "5";
+    private static final String PROTOCOL_VERSION = "6";
 
     private ModNetwork() {}
 
@@ -42,6 +43,10 @@ public final class ModNetwork {
                 ModNetwork::onSettings);
         registrar.playToServer(FilterSlotPayload.TYPE, FilterSlotPayload.STREAM_CODEC,
                 ModNetwork::onFilterSlot);
+        registrar.playToServer(CraftSettingsPayload.TYPE, CraftSettingsPayload.STREAM_CODEC,
+                ModNetwork::onCraftSettings);
+        registrar.playToServer(BridgeTabPayload.TYPE, BridgeTabPayload.STREAM_CODEC,
+                ModNetwork::onBridgeTab);
         registrar.playToServer(SupplyConfigPayload.TYPE, SupplyConfigPayload.STREAM_CODEC,
                 ModNetwork::onSupplyConfig);
     }
@@ -55,13 +60,34 @@ public final class ModNetwork {
         menu.requestSync();
     }
 
-    /** Item arrastado do JEI para o filtro. O menu grava só uma cópia de 1 unidade. */
+    /**
+     * Item arrastado do JEI para um ghost slot da ponte (filtro ou preferidos). O menu confere o índice
+     * e grava só uma cópia de 1 unidade.
+     */
     private static void onFilterSlot(FilterSlotPayload payload, IPayloadContext context) {
         ColonyBridgeMenu menu = validMenu(context, payload.containerId(), ColonyBridgeMenu.class);
         if (menu == null) {
             return;
         }
-        menu.setFilterSlot(payload.slot(), payload.stack(), context.player());
+        menu.setGhost(payload.slot(), payload.stack(), context.player());
+    }
+
+    /** Preferências de craft; o codec já limpou os ids de mod e limitou a lista. */
+    private static void onCraftSettings(CraftSettingsPayload payload, IPayloadContext context) {
+        ColonyBridgeMenu menu = validMenu(context, payload.containerId(), ColonyBridgeMenu.class);
+        if (menu == null) {
+            return;
+        }
+        menu.getBridge().applyCraftSettings(payload.settings());
+        menu.requestSync();
+    }
+
+    /** Aba aberta na tela: só decide o destino do shift-clique; não altera o bloco. */
+    private static void onBridgeTab(BridgeTabPayload payload, IPayloadContext context) {
+        ColonyBridgeMenu menu = validMenu(context, payload.containerId(), ColonyBridgeMenu.class);
+        if (menu != null) {
+            menu.setTab(BridgeTab.byId(payload.tab()));
+        }
     }
 
     /** Quantidades e modo de redstone do bloco de abastecimento; cada valor é limitado aqui. */

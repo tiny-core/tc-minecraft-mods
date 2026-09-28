@@ -18,7 +18,8 @@ import org.tinycore.colonybridge.logic.crafting.CraftingTracker;
  * <ul>
  *   <li><b>Pedido exato</b> (um item específico): crafta esse item.</li>
  *   <li><b>Pedido por tag/ferramenta/comida</b>: o {@link CraftCandidates} escolhe um item craftável que
- *       o pedido aceite, conforme a preferência da config (mais barato, mais caro ou lista).</li>
+ *       o pedido aceite, conforme as regras da ponte ({@code ColonyBridgeBlockEntity.craftRules()}:
+ *       preferência, itens preferidos e mods), completadas pela config do servidor.</li>
  * </ul>
  * Em ambos, enquanto o craft roda o pedido fica reservado para esta ponte no {@link DeliveryLedger}
  * (renovado a cada ciclo), e o {@link CraftingTracker} guarda qual item acompanhar.
@@ -88,7 +89,7 @@ final class RequestCrafter {
         if (!c.craftingEnabled()) {
             return RequestOutcome.CRAFTING_DISABLED;
         }
-        @Nullable AEItemKey key = candidates.choose(crafting,
+        @Nullable AEItemKey key = candidates.choose(crafting, host.craftRules(),
                 stack -> request.deliverable().matches(stack) && host.filterAllows(stack),
                 k -> tracker.canTry(c.level(), crafting, k));
         return key == null ? RequestOutcome.NOT_CRAFTABLE : start(c, request, key, shortfall);

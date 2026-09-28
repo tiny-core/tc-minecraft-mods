@@ -38,18 +38,20 @@ public final class Config {
             .define("tagCrafting", true);
 
     public static final ModConfigSpec.EnumValue<CraftPreference> TAG_CRAFT_PREFERENCE = B
-            .comment("Qual item craftar quando vários servem:",
+            .comment("Padrão para pontes em \"Padrão do servidor\": qual item craftar quando vários servem:",
                     "CHEAPEST = menor custo estimado pelas receitas do AE2;",
                     "MOST_EXPENSIVE = maior custo estimado;",
                     "LIST = na ordem de tagCraftPreferredItems (os demais depois, do mais barato ao mais caro).")
             .defineEnum("tagCraftPreference", CraftPreference.CHEAPEST);
 
     public static final ModConfigSpec.ConfigValue<List<? extends String>> TAG_CRAFT_PREFERRED_ITEMS = B
-            .comment("Itens preferidos, em ordem, para o modo LIST (ex: [\"minecraft:bread\", \"minecraft:stone_pickaxe\"]).")
+            .comment("Itens preferidos, em ordem, para o modo LIST quando a ponte não tem itens preferidos próprios",
+                    "(ex: [\"minecraft:bread\", \"minecraft:stone_pickaxe\"]).")
             .defineListAllowEmpty("tagCraftPreferredItems", List.of(), () -> "", o -> o instanceof String);
 
     public static final ModConfigSpec.BooleanValue TAG_CRAFT_VANILLA_ONLY = B
-            .comment("Só escolher itens do Minecraft vanilla (namespace \"minecraft\") para pedidos por tag.")
+            .comment("Regra do servidor: só escolher itens do Minecraft vanilla (namespace \"minecraft\") para pedidos",
+                    "por tag. Vale para todas as pontes, que não podem passar por cima dela.")
             .define("tagCraftVanillaOnly", false);
 
     public static final ModConfigSpec.IntValue TAG_CRAFT_MAX_CANDIDATES = B

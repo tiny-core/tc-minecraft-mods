@@ -17,7 +17,8 @@ import java.util.function.Predicate;
  * <p>
  * Passos: percorre os itens que a rede sabe craftar ({@code getCraftables}), fica com os que o pedido
  * aceita e que podem ser tentados agora (filtro, blacklist, espera após falha — decididos por quem
- * chama), aplica "só vanilla" se configurado e ordena conforme {@link CraftPreference}.
+ * chama), aplica as regras de mod ({@link CraftRules}: só vanilla, só/exceto mods marcados) e ordena:
+ * mods preferidos primeiro (modo {@link ModFilterMode#PREFER}), depois a {@link CraftPreference}.
  * <p>
  * Custo: a lista de craftáveis da rede (pode ter milhares de itens no ATM10) é montada no máximo uma
  * vez por ciclo e só se algum pedido precisar; o custo de cada candidato também fica em cache no ciclo.
@@ -42,13 +43,13 @@ public final class CraftCandidates {
      * @param usable  dá para tentar craftar este item agora (não está em espera, blacklist...)
      * @return o melhor candidato segundo a preferência configurada, ou null se nenhum serve
      */
-    public @Nullable AEItemKey choose(ICraftingService crafting, Predicate<ItemStack> accepts,
+    public @Nullable AEItemKey choose(ICraftingService crafting, CraftRules rules, Predicate<ItemStack> accepts,
                                       Predicate<AEItemKey> usable) {
-        boolean vanillaOnly = Config.TAG_CRAFT_VANILLA_ONLY.get();
         int max = Config.TAG_CRAFT_MAX_CANDIDATES.get();
         List<AEItemKey> found = new ArrayList<>();
         for (AEItemKey key : craftables(crafting)) {
-            if (vanillaOnly && !VANILLA.equals(key.getModId())) {
+            String mod = key.getModId();
+            if ((rules.vanillaOnly() && !VANILLA.equals(mod)) || !rules.modMode().allows(mod, rules.mods())) {
                 continue;
             }
             // getReadOnlyStack(): stack em cache na própria chave, sem alocar; só leitura.
@@ -62,24 +63,32 @@ public final class CraftCandidates {
         if (found.isEmpty()) {
             return null;
         }
-        found.sort(order(crafting));
+        found.sort(order(crafting, rules));
         return found.get(0);
     }
 
-    /** Ordem dos candidatos: a preferência configurada, com o id do item como desempate estável. */
-    private Comparator<AEItemKey> order(ICraftingService crafting) {
+    /**
+     * Ordem dos candidatos: mods preferidos primeiro (se o modo for PREFER), depois a preferência
+     * configurada, com o id do item como desempate estável.
+     */
+    private Comparator<AEItemKey> order(ICraftingService crafting, CraftRules rules) {
         Comparator<AEItemKey> cheapest = Comparator.comparingDouble(k -> cost.of(crafting, k));
-        Comparator<AEItemKey> byPreference = switch (Config.TAG_CRAFT_PREFERENCE.get()) {
+        Comparator<AEItemKey> byPreference = switch (rules.preference()) {
             case CHEAPEST -> cheapest;
             case MOST_EXPENSIVE -> cheapest.reversed();
-            case LIST -> Comparator.<AEItemKey>comparingInt(CraftCandidates::listIndex).thenComparing(cheapest);
+            case LIST -> Comparator.<AEItemKey>comparingInt(k -> listIndex(rules, k)).thenComparing(cheapest);
         };
+        if (rules.modMode() == ModFilterMode.PREFER) {
+            // false vem antes de true: itens de mods marcados (não "fora da lista") primeiro.
+            byPreference = Comparator.<AEItemKey, Boolean>comparing(k -> !rules.mods().contains(k.getModId()))
+                    .thenComparing(byPreference);
+        }
         return byPreference.thenComparing(k -> k.getId().toString());
     }
 
-    /** Posição do item em {@code tagCraftPreferredItems}; fora da lista vai para o fim. */
-    private static int listIndex(AEItemKey key) {
-        int index = Config.TAG_CRAFT_PREFERRED_ITEMS.get().indexOf(key.getId().toString());
+    /** Posição do item na lista de preferidos; fora da lista vai para o fim. */
+    private static int listIndex(CraftRules rules, AEItemKey key) {
+        int index = rules.preferredIds().indexOf(key.getId().toString());
         return index < 0 ? Integer.MAX_VALUE : index;
     }
 

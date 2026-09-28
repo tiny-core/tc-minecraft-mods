@@ -10,7 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Relatório do último ciclo: o que aconteceu com cada pedido. Alimenta a tela da ponte.
+ * Relatório do último ciclo: o que aconteceu com cada pedido. A lista alimenta os monitores; as
+ * contagens ({@link RequestCounts}) alimentam a aba "Geral" da tela da ponte.
  * <p>
  * Guarda no máximo {@link #MAX_LINES} linhas (limite de tamanho do pacote enviado ao cliente),
  * mas conta o total para a tela mostrar "+N pedidos".
@@ -22,10 +23,14 @@ public final class CycleReport {
 
     private final List<RequestLine> lines = new ArrayList<>();
     private int total;
+    private int served;
+    private int crafting;
 
     void clear() {
         lines.clear();
         total = 0;
+        served = 0;
+        crafting = 0;
     }
 
     /**
@@ -34,6 +39,12 @@ public final class CycleReport {
      */
     void add(OpenRequest request, RequestOutcome outcome, @Nullable AEItemKey chosen) {
         total++;
+        if (outcome == RequestOutcome.DELIVERED || outcome == RequestOutcome.WAITING_COURIER
+                || outcome == RequestOutcome.IN_WAREHOUSE) {
+            served++;
+        } else if (outcome.isCraftActive()) {
+            crafting++;
+        }
         if (lines.size() >= MAX_LINES) {
             return;
         }
@@ -53,5 +64,10 @@ public final class CycleReport {
 
     public int total() {
         return total;
+    }
+
+    /** Contagens de todos os pedidos do ciclo (não só das {@link #MAX_LINES} linhas guardadas). */
+    public RequestCounts counts() {
+        return new RequestCounts(total, served, crafting);
     }
 }

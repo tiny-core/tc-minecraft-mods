@@ -20,7 +20,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/BridgeStatus` | Estado mostrado ao jogador (sem colônia, sem permissão, trabalhando...). |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
-| `menu/AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot` | Ghost slots: mostram um item-modelo, nunca guardam nem entregam itens. |
+| `menu/AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot`, `JoinedList` | Ghost slots: mostram um item-modelo, nunca guardam nem entregam itens. |
 | `integration/ColonyAccess`, `OpenRequest` | **Único** ponto que fala com o MineColonies: colônia, permissões, pedidos em aberto, racks, reatribuir. |
 | `integration/ae2/CableRules` | Só conecta por baixo e só com cabo comum. |
 
@@ -31,6 +31,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `block/bridge/ColonyBridgeBlock` | Liga o bloco ao block entity e à tela da ponte (o resto vem da base). |
 | `block/bridge/ColonyBridgeBlockEntity` | Dados da ponte (configurações, filtro, estatísticas) e ponte com a tela e os monitores. |
 | `block/bridge/BridgeSettings`, `ItemFilter`, `FilterMode` | Configuração salva no NBT: crafting on/off, redstone, filtro permitir/bloquear. |
+| `block/bridge/CraftSettings`, `PreferredItems` | Preferências de craft por tag da ponte (preferência, modo de mods, mods marcados, 9 itens preferidos), salvas no NBT. |
 | `logic/bridge/BridgeLogic` | **Ciclo de pedidos:** para cada pedido decide *entregar, craftar ou esperar*, só com o que falta (pedido − armazém − rede). |
 | `logic/bridge/StockSearch` | Acha na rede os itens que servem para o pedido (pode juntar vários de uma tag). |
 | `logic/bridge/BridgeCycle` | Dados de um ciclo (grid, colônia, racks, estoque, o que já saiu neste ciclo). |
@@ -41,8 +42,11 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/crafting/CraftCandidates` | Escolhe o item a craftar para pedidos por tag (preferência, só vanilla, limite de candidatos). |
 | `logic/crafting/CraftCost` | Custo estimado de um item pelas receitas do AE2 (cache por ciclo). |
 | `logic/crafting/CraftPreference` | `CHEAPEST` / `MOST_EXPENSIVE` / `LIST`. |
-| `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot` | Container da tela e a "foto" do estado enviada ao cliente. |
-| `client/bridge/ColonyBridgeScreen`, `RequestListView`, `StatsView` | Tela: abas Pedidos, Filtro e Estatísticas. |
+| `logic/crafting/CraftRules`, `ModFilterMode` | Regras prontas (ponte + config do servidor) que o `CraftCandidates` recebe; filtro/prioridade por mod. |
+| `logic/crafting/CraftableMods` | Mods com item craftável na rede, para a aba "Mods". |
+| `logic/bridge/RequestCounts` | Resumo do ciclo (abertos, atendidos, craftando) para a aba "Geral". |
+| `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots do filtro e dos preferidos), a "foto" enviada ao cliente e as abas. |
+| `client/bridge/ColonyBridgeScreen`, `ModListView` | Tela: abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
 | `stats/*` | Estatísticas da ponte em ring buffer (entregas, crafts, ranking de itens). |
 
 ## Abastecedor da Colônia (`supply/`) — mantém o armazém abastecido

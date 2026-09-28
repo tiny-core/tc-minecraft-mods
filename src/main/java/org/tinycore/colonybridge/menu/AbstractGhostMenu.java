@@ -1,6 +1,5 @@
 package org.tinycore.colonybridge.menu;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -9,6 +8,7 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.List;
 import java.util.function.BooleanSupplier;
 
 /**
@@ -24,8 +24,11 @@ public abstract class AbstractGhostMenu extends AbstractContainerMenu {
     private final GhostContainer ghosts;
     private final int ghostCount;
 
-    protected AbstractGhostMenu(MenuType<?> type, int containerId, NonNullList<ItemStack> items,
-                                Runnable onChanged) {
+    /**
+     * @param items lista viva dos ghost slots (no servidor, a do bloco; várias listas podem ser juntadas
+     *              com {@link JoinedList}); só {@code get}/{@code set} são usados, o tamanho nunca muda
+     */
+    protected AbstractGhostMenu(MenuType<?> type, int containerId, List<ItemStack> items, Runnable onChanged) {
         super(type, containerId);
         this.ghostCount = items.size();
         this.ghosts = new GhostContainer(items, onChanged);
@@ -85,6 +88,18 @@ public abstract class AbstractGhostMenu extends AbstractContainerMenu {
         }
     }
 
+    /**
+     * Faixa de ghost slots {@code [início, fim)} que recebe o shift-clique do inventário. Por padrão, todos;
+     * menus com mais de um grupo (ex.: filtro e preferidos) devolvem só o grupo da aba aberta.
+     */
+    protected int quickMoveStart() {
+        return 0;
+    }
+
+    protected int quickMoveEnd() {
+        return ghostCount;
+    }
+
     /** Shift-clique no inventário: copia o item para a primeira linha livre. Nunca move itens. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
@@ -95,7 +110,7 @@ public abstract class AbstractGhostMenu extends AbstractContainerMenu {
         if (stack.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        for (int i = 0; i < ghostCount; i++) {
+        for (int i = quickMoveStart(); i < quickMoveEnd(); i++) {
             if (ghosts.getItem(i).isEmpty()) {
                 setGhost(i, stack, player);
                 break;

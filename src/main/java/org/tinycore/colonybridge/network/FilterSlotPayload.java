@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 
 /**
- * Pacote cliente → servidor: "coloque este item no slot N do filtro". Usado quando o jogador arrasta
+ * Pacote cliente → servidor: "coloque este item no ghost slot N" (filtro ou itens preferidos da ponte). Usado quando o jogador arrasta
  * um item do JEI (que não está no inventário, então não passa pelo clique normal de slot).
  * <p>
  * O item é só um modelo para o filtro: o servidor guarda uma cópia com quantidade 1 e nunca o
