@@ -48,6 +48,14 @@ final class RequestCrafter {
         return Config.TAG_CRAFTING.get();
     }
 
+    /**
+     * Item escolhido para um pedido por tag que está sendo craftado, para a tela mostrar; null nos
+     * demais casos (pedido exato já mostra o próprio item).
+     */
+    @Nullable AEItemKey chosenItem(OpenRequest request, RequestOutcome outcome) {
+        return request.isExact() || !outcome.isCraftActive() ? null : tracker.remembered(request.id());
+    }
+
     /** Crafta {@code shortfall} unidades do item exato do pedido. */
     RequestOutcome craftExact(BridgeCycle c, OpenRequest request, long shortfall) {
         if (!host.filterAllows(request.exactStack())) {

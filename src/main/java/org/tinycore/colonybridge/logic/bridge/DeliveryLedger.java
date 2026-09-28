@@ -93,6 +93,19 @@ public final class DeliveryLedger extends SavedData {
     }
 
     /**
+     * Solta a reserva de craft desta ponte (craft falhou ou não pôde começar), para outra ponte poder
+     * atender o pedido já. Não mexe em entregas nem em reservas de outras pontes.
+     */
+    public void releaseCrafting(String colony, String request, long bridge) {
+        String key = key(colony, request);
+        Claim claim = claims.get(key);
+        if (claim != null && !claim.delivered() && claim.bridge() == bridge) {
+            claims.remove(key);
+            setDirty();
+        }
+    }
+
+    /**
      * Remove registros mais velhos que {@code maxAge} ticks. Também descarta registros "do futuro"
      * (ex.: mundo restaurado de backup), que senão nunca expirariam.
      */

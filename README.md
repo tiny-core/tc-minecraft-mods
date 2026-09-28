@@ -19,7 +19,9 @@ A cada ciclo (`cycleTicks`, 5 s por padrão):
    sem requester: o resultado entra na rede e tudo é entregue num ciclo seguinte). Se não der para craftar,
    entrega o que houver na rede.
 5. Pedido por **tag/ferramenta/comida** sem nenhum item compatível na rede → a ponte escolhe um item craftável
-   que o pedido aceite e crafta a falta. A escolha segue a config do servidor:
+   que o pedido aceite e crafta a falta; a tela mostra o item escolhido (ex.: "Qualquer picareta → Picareta
+   de Pedra"). Se a rede tiver **vários** itens compatíveis (ex.: tábuas de carvalho e de bétula), a ponte
+   junta todos na mesma entrega. A escolha segue a config do servidor:
    - `tagCraftPreference`: `CHEAPEST` (menor custo estimado pelas receitas do AE2, padrão), `MOST_EXPENSIVE`
      (maior custo) ou `LIST` (ordem de `tagCraftPreferredItems`; os demais depois, do mais barato ao mais caro);
    - `tagCraftVanillaOnly`: só itens do Minecraft vanilla;
@@ -100,6 +102,12 @@ O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é 
 
 ## Configuração
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).
+
+- **Em tempo real:** editar e salvar o arquivo com o jogo/servidor rodando basta — o NeoForge recarrega e a
+  mudança vale no próximo ciclo. Exceções: `statsBucketTicks`/`statsBuckets` zeram as estatísticas, e o
+  tamanho máximo dos monitores só vale na próxima vez que uma tela for formada.
+- **Tela no jogo:** Mods → TC Colony Bridge → Config. Edita a config em single player ou no host de uma LAN;
+  num servidor dedicado, só pelo arquivo.
 
 ## Estrutura
 Cada camada (`block/`, `logic/`, `menu/`, `client/`) tem um subpacote por bloco (`bridge/`, `supply/`,

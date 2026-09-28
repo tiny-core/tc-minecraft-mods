@@ -40,6 +40,11 @@ public enum RequestOutcome {
         return "outcome.tccolonybridge." + name().toLowerCase();
     }
 
+    /** true se há craft desta ponte rodando (ou começando) para o pedido. */
+    boolean isCraftActive() {
+        return this == CRAFT_STARTED || this == CRAFTING;
+    }
+
     /** true se o pedido "gastou" uma vaga do limite {@code maxRequestsPerCycle}. */
     boolean countsTowardLimit() {
         return this == DELIVERED || this == CRAFT_STARTED || this == IN_WAREHOUSE;

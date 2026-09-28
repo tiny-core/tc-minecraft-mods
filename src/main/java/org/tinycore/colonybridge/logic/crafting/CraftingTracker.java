@@ -53,6 +53,11 @@ public final class CraftingTracker {
         byRequest.put(requestId, key);
     }
 
+    /** Item anotado para o pedido, sem conferir se o craft ainda roda (use {@link #activeFor} para isso). */
+    public @Nullable AEItemKey remembered(String requestId) {
+        return byRequest.get(requestId);
+    }
+
     /**
      * Item que esta ponte ainda está craftando para o pedido, ou null. Quando o craft já terminou (ou
      * falhou), a anotação é descartada.

@@ -32,6 +32,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `block/bridge/ColonyBridgeBlockEntity` | Dados da ponte (configurações, filtro, estatísticas) e ponte com a tela e os monitores. |
 | `block/bridge/BridgeSettings`, `ItemFilter`, `FilterMode` | Configuração salva no NBT: crafting on/off, redstone, filtro permitir/bloquear. |
 | `logic/bridge/BridgeLogic` | **Ciclo de pedidos:** para cada pedido decide *entregar, craftar ou esperar*, só com o que falta (pedido − armazém − rede). |
+| `logic/bridge/StockSearch` | Acha na rede os itens que servem para o pedido (pode juntar vários de uma tag). |
 | `logic/bridge/BridgeCycle` | Dados de um ciclo (grid, colônia, racks, estoque, o que já saiu neste ciclo). |
 | `logic/bridge/RequestCrafter` | *Craftar o quê e quanto:* item exato ou escolhido para pedido por tag; reserva no ledger. |
 | `logic/bridge/DeliveryLedger` | Registro salvo no mundo: pedido já entregue (cooldown) ou em craft, e por qual ponte. Coordena várias pontes. |
@@ -73,6 +74,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `Config` | Config do servidor (ciclo, limites, crafting, craft por tag, estatísticas, monitores). |
 | `registry/*` | `DeferredRegister` de blocos, itens, block entities, menus e aba do criativo. |
 | `network/*` | Pacotes cliente↔servidor; tudo que vem do cliente é validado no servidor (`ModNetwork`). |
+| `client/ColonyBridgeClient` | Entrada só do cliente: liga o botão "Config" da lista de mods à tela de config do NeoForge. |
 | `client/ClientSetup`, `ClientPayloadHandler` | Registro das telas/renderers e tratamento dos pacotes no cliente. |
 | `client/ui/*` | Design system: cores, botões, gráfico de barras, `Painter` (interface e monitor). |
 | `client/jei/*` | Arrastar itens do JEI para o filtro (JEI opcional). |

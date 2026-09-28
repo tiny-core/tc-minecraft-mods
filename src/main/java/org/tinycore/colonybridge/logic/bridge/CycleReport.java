@@ -1,5 +1,9 @@
 package org.tinycore.colonybridge.logic.bridge;
 
+import appeng.api.stacks.AEItemKey;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.OpenRequest;
 
 import java.util.ArrayList;
@@ -24,11 +28,22 @@ public final class CycleReport {
         total = 0;
     }
 
-    void add(OpenRequest request, RequestOutcome outcome) {
+    /**
+     * @param chosen item que a ponte escolheu craftar para um pedido por tag (ou null): vira o ícone e
+     *               entra na descrição, ex.: "Qualquer picareta → Picareta de Pedra"
+     */
+    void add(OpenRequest request, RequestOutcome outcome, @Nullable AEItemKey chosen) {
         total++;
-        if (lines.size() < MAX_LINES) {
-            lines.add(new RequestLine(request.icon(), request.amount(), outcome, request.label()));
+        if (lines.size() >= MAX_LINES) {
+            return;
         }
+        if (chosen == null) {
+            lines.add(new RequestLine(request.icon(), request.amount(), outcome, request.label()));
+            return;
+        }
+        ItemStack icon = chosen.toStack();
+        Component label = Component.translatable("gui.tccolonybridge.crafting_as", request.label(), icon.getHoverName());
+        lines.add(new RequestLine(icon, request.amount(), outcome, label));
     }
 
     /** Cópia imutável das linhas (seguro para guardar no snapshot). */
