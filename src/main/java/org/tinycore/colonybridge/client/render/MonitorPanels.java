@@ -8,12 +8,15 @@ import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.client.ui.UiFormat;
 import org.tinycore.colonybridge.stats.StatsSummary;
 
+import java.util.function.IntUnaryOperator;
+
 /**
  * O que a tela do monitor mostra, a partir do {@link MonitorData}. Adapta-se ao tamanho:
  * <ul>
- *   <li>1 bloco de largura: estado e pedidos em aberto;</li>
- *   <li>2 blocos: + itens da última hora e nome da colônia no topo;</li>
- *   <li>3+ blocos: + itens da janela inteira; com 2+ de altura, gráfico por hora.</li>
+ *   <li>largura 1 bloco: estado e pedidos em aberto; 2: + itens da última hora e nome da colônia;
+ *       3+: + itens da janela inteira;</li>
+ *   <li>altura 2 blocos: + lista paginada de pedidos ({@link MonitorRequestList});
+ *       3+: gráfico por hora acima da lista.</li>
  * </ul>
  * Medidas em "pixels de tela" ({@link MonitorRenderer#PIXELS_PER_BLOCK} por bloco).
  */
@@ -25,7 +28,13 @@ final class MonitorPanels {
 
     private MonitorPanels() {}
 
-    static void render(MonitorCanvas c, int width, int height, MonitorData data) {
+    /** Altura do gráfico quando divide espaço com a lista. */
+    private static final int CHART_HEIGHT = 40;
+
+    /**
+     * @param pageFor dado o número de páginas, devolve a página atual (vem do block entity mestre)
+     */
+    static void render(MonitorCanvas c, int width, int height, MonitorData data, IntUnaryOperator pageFor) {
         c.fill(0, 0, width, height, UiColors.BACKGROUND | 0xFF000000, 0);
         c.fill(0, 0, width, 2, UiColors.ACCENT, 1);
         switch (data.link()) {
@@ -33,7 +42,7 @@ final class MonitorPanels {
                     Component.translatable("monitor.tccolonybridge.unlinked_hint"), UiColors.TEXT_MUTED);
             case BRIDGE_MISSING -> message(c, width, height, Component.translatable("monitor.tccolonybridge.missing"),
                     Component.empty(), UiColors.DANGER);
-            case OK -> dashboard(c, width, height, data);
+            case OK -> dashboard(c, width, height, data, pageFor);
         }
     }
 
@@ -43,7 +52,7 @@ final class MonitorPanels {
         c.textCentered(hint, width / 2f, y, UiColors.TEXT_MUTED, 0.8f, width - MARGIN * 2, 2);
     }
 
-    private static void dashboard(MonitorCanvas c, int width, int height, MonitorData data) {
+    private static void dashboard(MonitorCanvas c, int width, int height, MonitorData data, IntUnaryOperator pageFor) {
         header(c, width, data);
         StatsSummary.Totals totals = data.stats().totals();
         int columns = Math.min(3, Math.max(1, width / BLOCK));
@@ -60,11 +69,19 @@ final class MonitorPanels {
                     Component.translatable("monitor.tccolonybridge.items_window", data.stats().windowHours()),
                     totals.itemsWindow());
         }
-        float chartTop = top + 30;
-        if (height >= BLOCK * 2 && height - chartTop - MARGIN > 20) {
-            BarChart.render(c, MARGIN, chartTop, width - MARGIN * 2, height - chartTop - MARGIN,
-                    data.stats().chart(), 1);
+        float next = top + 30;
+        if (height < BLOCK * 2) {
+            return; // 1 bloco de altura: só os números
         }
+        float inner = width - MARGIN * 2;
+        if (height >= BLOCK * 3) {
+            BarChart.render(c, MARGIN, next, inner, CHART_HEIGHT, data.stats().chart(), 1);
+            next += CHART_HEIGHT + 6;
+        }
+        float listHeight = height - next - MARGIN;
+        int pages = MonitorRequestList.pages(data.requests().size(), inner, listHeight);
+        MonitorRequestList.render(c, data.requests(), data.openRequests(), pageFor.applyAsInt(pages),
+                MARGIN, next, inner, listHeight);
     }
 
     /** Faixa do topo: nome da colônia (se couber) à esquerda, estado à direita com a cor dele. */

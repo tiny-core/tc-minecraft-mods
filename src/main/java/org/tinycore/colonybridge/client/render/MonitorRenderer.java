@@ -61,9 +61,10 @@ public class MonitorRenderer implements BlockEntityRenderer<MonitorBlockEntity> 
         float scale = 1f / PIXELS_PER_BLOCK;
         pose.scale(scale, -scale, scale); // y para baixo, como numa interface
 
-        MonitorCanvas canvas = new MonitorCanvas(pose, buffers, font);
+        MonitorCanvas canvas = new MonitorCanvas(pose, buffers, font,
+                Minecraft.getInstance().getItemRenderer(), monitor.getLevel());
         if (monitor.isValidStructure()) {
-            MonitorPanels.render(canvas, width, height, monitor.getData());
+            MonitorPanels.render(canvas, width, height, monitor.getData(), monitor::currentPage);
         } else {
             renderInvalid(canvas, width, height);
         }

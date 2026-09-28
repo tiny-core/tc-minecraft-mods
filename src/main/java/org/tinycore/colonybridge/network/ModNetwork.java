@@ -21,7 +21,7 @@ import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "3";
+    private static final String PROTOCOL_VERSION = "4";
 
     private ModNetwork() {}
 

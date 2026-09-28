@@ -53,7 +53,10 @@ Formatos que não são retângulo mostram "Estrutura inválida".
 Para mostrar dados, use o **Cartão de Ligação**: shift + clique direito na ponte grava a posição dela;
 clique direito em qualquer bloco da tela liga a tela à ponte. Precisa estar na mesma dimensão, a até
 64 blocos (`monitorLinkRange`) e com permissão na ponte. A tela mostra estado, colônia, pedidos em aberto,
-itens entregues e, com 2+ blocos de altura, o gráfico por hora. Atualiza 1×/s, só quando algo muda,
+itens entregues e, com 2+ blocos de altura, a **lista de pedidos** (ícone, descrição, quantidade e resultado),
+paginada: troca sozinha a cada 10 s; clique direito na metade direita da tela avança, na esquerda volta
+(a página é só sua; a troca automática pausa 30 s após um clique). Com 3+ blocos de altura, o gráfico
+por hora fica acima da lista; com 4+ de largura, a lista usa duas colunas. Atualiza 1×/s, só quando algo muda,
 e só lê a ponte se o chunk dela estiver carregado (senão mostra "Ponte não encontrada").
 
 ### Receita

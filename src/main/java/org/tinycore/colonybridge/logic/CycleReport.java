@@ -14,7 +14,7 @@ import java.util.List;
 public final class CycleReport {
 
     /** Teto de linhas sincronizadas com o cliente (ver regras de segurança no CLAUDE.md). */
-    public static final int MAX_LINES = 20;
+    public static final int MAX_LINES = 40;
 
     private final List<RequestLine> lines = new ArrayList<>();
     private int total;

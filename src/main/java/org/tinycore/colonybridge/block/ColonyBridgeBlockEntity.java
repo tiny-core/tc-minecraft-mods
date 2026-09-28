@@ -21,6 +21,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
+import org.tinycore.colonybridge.block.monitor.MonitorLine;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.CableRules;
 import org.tinycore.colonybridge.logic.BridgeLogic;
@@ -185,7 +186,8 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     public MonitorData monitorData() {
         StatsSummary summary = level != null ? stats.summary(level.getGameTime()) : StatsSummary.EMPTY;
         return new MonitorData(MonitorData.LinkState.OK, logic.getStatus(), logic.getColonyName(),
-                logic.getReport().total(), summary);
+                logic.getReport().total(), summary,
+                logic.getReport().lines().stream().map(MonitorLine::of).toList());
     }
 
     /** Chamado pelo bloco quando um vizinho muda; a checagem acontece no próximo tick. */

@@ -95,7 +95,11 @@ pacotes que o monitor precisa.
 >
 > **5.2 feita:** `LinkCardItem` (validação de dimensão, distância, permissão), ligação guardada no mestre e
 > preservada quando a tela muda de forma, `MonitorData` sincronizado 1×/s só quando muda, `MonitorPanels`
-> com layout por tamanho, `BarChart` desenhando via `Painter` (interface e mundo). **Próxima: 5.3.**
+> com layout por tamanho, `BarChart` desenhando via `Painter` (interface e mundo).
+>
+> **5.3 (parte 1) feita:** lista de pedidos paginada no monitor (`MonitorRequestList`, ícones de item no
+> mundo, troca automática + clique por metade da tela, página só no cliente). **Falta na 5.3:** ranking de
+> itens no monitor e animações suaves.
 1. Monitor 1×1 mostrando texto fixo via BER (valida renderização).
 2. Formação do multibloco + tela única.
 3. Pacote de snapshot + dados reais da ponte.

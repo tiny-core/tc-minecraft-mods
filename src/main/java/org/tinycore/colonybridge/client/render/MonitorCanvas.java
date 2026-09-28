@@ -3,10 +3,15 @@ package org.tinycore.colonybridge.client.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.gui.Font;
+import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import org.joml.Matrix4f;
 import org.tinycore.colonybridge.client.ui.Painter;
 
@@ -30,11 +35,31 @@ final class MonitorCanvas implements Painter {
     private final PoseStack pose;
     private final MultiBufferSource buffers;
     private final Font font;
+    private final ItemRenderer items;
+    private final Level level;
 
-    MonitorCanvas(PoseStack pose, MultiBufferSource buffers, Font font) {
+    MonitorCanvas(PoseStack pose, MultiBufferSource buffers, Font font, ItemRenderer items, Level level) {
         this.pose = pose;
         this.buffers = buffers;
         this.font = font;
+        this.items = items;
+        this.level = level;
+    }
+
+    /**
+     * Ícone de item (como no inventário) com {@code size} pixels, canto superior esquerdo em (x, y).
+     * O modelo do item é "achatado" em profundidade para ficar colado na tela; a escala y volta a ser
+     * positiva porque modelos de item são desenhados com y para cima.
+     */
+    void item(ItemStack stack, float x, float y, float size, int layer) {
+        if (stack.isEmpty()) {
+            return;
+        }
+        pose.pushPose();
+        pose.translate(x + size / 2f, y + size / 2f, layer * LAYER_STEP + 1f);
+        pose.scale(size, -size, 0.01f);
+        items.renderStatic(stack, ItemDisplayContext.GUI, LIGHT, OverlayTexture.NO_OVERLAY, pose, buffers, level, 0);
+        pose.popPose();
     }
 
     /** Retângulo preenchido (cor ARGB, {@code 0xAARRGGBB}). Mesma ordem de vértices do GuiGraphics.fill. */

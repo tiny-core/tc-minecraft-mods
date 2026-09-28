@@ -22,3 +22,4 @@
 | 2026-09-28 | Ligação monitor → ponte por cartão de ligação (5.2) | Liberdade de posição; validação simples no servidor | Pela rede ME (exige canal, ambíguo com várias pontes); por adjacência (limita demais) |
 | 2026-09-28 | Dados do monitor pela sincronização nativa do block entity (update tag), não salvos em disco | Só jogadores com o chunk carregado recebem; sem pacote próprio; dado sempre recalculado da ponte | Pacote customizado para quem está perto (mais código, mesma função) |
 | 2026-09-28 | Componentes de UI desenham via interface `Painter` | Um só `BarChart` para interface e monitor; base do design system da Fase 5.3 | Duas implementações paralelas |
+| 2026-09-28 | Página da lista do monitor só no cliente (tick do cliente + clique por metade da tela) | Cada jogador navega sem afetar os outros; nenhum pacote; nada que o cliente decida no servidor | Página no servidor (todos veem a mesma, exige pacote e validação) |

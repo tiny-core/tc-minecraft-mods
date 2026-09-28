@@ -82,5 +82,7 @@
   "monitor.tccolonybridge.missing": "Bridge not found",
   "monitor.tccolonybridge.open_requests": "Open requests",
   "monitor.tccolonybridge.items_hour": "Items (1h)",
-  "monitor.tccolonybridge.items_window": "Items (%sh)"
+  "monitor.tccolonybridge.items_window": "Items (%sh)",
+  "monitor.tccolonybridge.no_requests": "No open requests",
+  "monitor.tccolonybridge.more": "+%s more"
 }

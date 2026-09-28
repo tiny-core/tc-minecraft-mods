@@ -1,8 +1,9 @@
 package org.tinycore.colonybridge.client.ui;
 
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.RequestOutcome;
 
-/** Cor de cada estado da ponte, igual na tela da ponte e nos monitores. */
+/** Cores de estado da ponte e de resultado de pedido, iguais na tela da ponte e nos monitores. */
 public final class StatusColors {
 
     private StatusColors() {}
@@ -14,6 +15,16 @@ public final class StatusColors {
             case STARTING, PAUSED -> UiColors.WARNING;
             case OFFLINE, INVALID_CABLE -> UiColors.TEXT_MUTED;
             case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE -> UiColors.DANGER;
+        };
+    }
+
+    public static int of(RequestOutcome outcome) {
+        return switch (outcome) {
+            case DELIVERED, WAITING_COURIER -> UiColors.SUCCESS;
+            case CRAFT_STARTED, CRAFTING -> UiColors.HIGHLIGHT;
+            case QUEUED, OTHER_BRIDGE -> UiColors.TEXT_MUTED;
+            case RACKS_FULL, CRAFTING_DISABLED, FILTERED -> UiColors.WARNING;
+            case NO_STOCK, NOT_CRAFTABLE -> UiColors.DANGER;
         };
     }
 }

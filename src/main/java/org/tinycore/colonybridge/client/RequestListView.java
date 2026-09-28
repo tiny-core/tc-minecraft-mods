@@ -4,9 +4,9 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.logic.RequestLine;
-import org.tinycore.colonybridge.logic.RequestOutcome;
 
 import java.util.List;
 
@@ -60,7 +60,7 @@ final class RequestListView {
         g.drawString(font, Language.getInstance().getVisualOrder(font.substrByWidth(line.label(), labelWidth)),
                 textX, rowY + 2, UiColors.TEXT, false);
         g.drawString(font, Component.translatable(line.outcome().translationKey()),
-                textX, rowY + 11, outcomeColor(line.outcome()), false);
+                textX, rowY + 11, StatusColors.of(line.outcome()), false);
     }
 
     private void renderScrollbar(GuiGraphics g, int total, int barX) {
@@ -97,15 +97,5 @@ final class RequestListView {
 
     private static int maxScroll(int total) {
         return Math.max(0, total - VISIBLE_ROWS);
-    }
-
-    private static int outcomeColor(RequestOutcome outcome) {
-        return switch (outcome) {
-            case DELIVERED, WAITING_COURIER -> UiColors.SUCCESS;
-            case CRAFT_STARTED, CRAFTING -> UiColors.HIGHLIGHT;
-            case QUEUED, OTHER_BRIDGE -> UiColors.TEXT_MUTED;
-            case RACKS_FULL, CRAFTING_DISABLED, FILTERED -> UiColors.WARNING;
-            case NO_STOCK, NOT_CRAFTABLE -> UiColors.DANGER;
-        };
     }
 }

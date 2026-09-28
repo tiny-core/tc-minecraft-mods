@@ -45,6 +45,15 @@ public class MonitorBlockEntity extends BlockEntity {
     private MonitorData data = MonitorData.UNLINKED;
     private int refreshCounter;
 
+    /** Troca automática de página da lista (cliente): a cada 10 s. */
+    private static final int AUTO_PAGE_TICKS = 200;
+    /** Depois de um clique, a troca automática pausa por 30 s. */
+    private static final int MANUAL_PAUSE_TICKS = 600;
+    /** Só no cliente: contador de páginas (o renderer faz o módulo pelo número de páginas). */
+    private int pageCounter;
+    private int ticksSincePageChange;
+    private int manualPauseTicks;
+
     public MonitorBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLONY_MONITOR.get(), pos, state);
     }
@@ -80,6 +89,41 @@ public class MonitorBlockEntity extends BlockEntity {
             data = current;
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
+    }
+
+    /**
+     * Tick do cliente (só o mestre): avança a página automaticamente. É estado só de exibição,
+     * de cada jogador — não vai para o servidor.
+     */
+    public void clientTick() {
+        if (!isMaster()) {
+            return;
+        }
+        if (manualPauseTicks > 0) {
+            manualPauseTicks--;
+            return;
+        }
+        if (++ticksSincePageChange >= AUTO_PAGE_TICKS) {
+            ticksSincePageChange = 0;
+            pageCounter++;
+        }
+    }
+
+    /** Clique do jogador (cliente): +1 avança, -1 volta; pausa a troca automática. */
+    public void turnPage(int delta) {
+        pageCounter += delta;
+        ticksSincePageChange = 0;
+        manualPauseTicks = MANUAL_PAUSE_TICKS;
+    }
+
+    /** Página atual para {@code pages} páginas (sempre entre 0 e pages-1). */
+    public int currentPage(int pages) {
+        return pages <= 0 ? 0 : Math.floorMod(pageCounter, pages);
+    }
+
+    /** Posição horizontal deste bloco dentro da tela (0 = coluna do mestre). */
+    public int getOffsetX() {
+        return offsetX;
     }
 
     /** Lê a ponte ligada sem carregar chunks: chunk descarregado ou ponte sumida = "não encontrada". */
@@ -158,7 +202,7 @@ public class MonitorBlockEntity extends BlockEntity {
         valid = !tag.contains("valid") || tag.getBoolean("valid");
         link = tag.contains("link") ? BlockPos.of(tag.getLong("link")) : null;
         if (tag.contains("data")) { // só vem na sincronização com o cliente
-            data = MonitorData.load(tag.getCompound("data"));
+            data = MonitorData.load(tag.getCompound("data"), registries);
         }
     }
 
@@ -167,7 +211,7 @@ public class MonitorBlockEntity extends BlockEntity {
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = saveCustomOnly(registries);
         if (isMaster()) {
-            tag.put("data", data.save());
+            tag.put("data", data.save(registries));
         }
         return tag;
     }

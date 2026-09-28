@@ -5,6 +5,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -15,6 +17,8 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.multiblock.MonitorFormation;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
@@ -58,14 +62,47 @@ public class MonitorBlock extends HorizontalDirectionalBlock implements EntityBl
         return new MonitorBlockEntity(pos, state);
     }
 
-    /** Ticker só no servidor: o mestre lê a ponte ligada 1×/s ({@link MonitorBlockEntity#serverTick}). */
+    /**
+     * Servidor: o mestre lê a ponte ligada 1×/s. Cliente: o mestre avança a página da lista.
+     * Nenhum dos dois faz nada nos blocos que não são mestre.
+     */
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                             BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModBlockEntities.COLONY_MONITOR.get()) {
+        if (type != ModBlockEntities.COLONY_MONITOR.get()) {
             return null;
         }
+        if (level.isClientSide) {
+            return (lvl, pos, st, be) -> ((MonitorBlockEntity) be).clientTick();
+        }
         return (lvl, pos, st, be) -> ((MonitorBlockEntity) be).serverTick();
+    }
+
+    /**
+     * Clique direito na frente da tela: metade direita avança a página da lista, metade esquerda volta.
+     * Só muda a exibição no cliente de quem clicou (nenhum dado vai ao servidor).
+     */
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
+                                               BlockHitResult hit) {
+        Direction facing = state.getValue(FACING);
+        if (hit.getDirection() != facing) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide && level.getBlockEntity(pos) instanceof MonitorBlockEntity clicked
+                && level.getBlockEntity(clicked.getMasterPos()) instanceof MonitorBlockEntity master) {
+            float column = clicked.getOffsetX() + horizontalFraction(pos, hit.getLocation(), facing);
+            master.turnPage(column >= master.getWidth() / 2f ? 1 : -1);
+        }
+        return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    /** Onde o clique caiu na largura do bloco, de 0 (esquerda de quem olha) a 1 (direita). */
+    private static float horizontalFraction(BlockPos pos, Vec3 hit, Direction facing) {
+        Direction right = MonitorFormation.right(facing);
+        double dx = hit.x - (pos.getX() + 0.5);
+        double dz = hit.z - (pos.getZ() + 0.5);
+        return (float) (dx * right.getStepX() + dz * right.getStepZ() + 0.5);
     }
 
     @Override
