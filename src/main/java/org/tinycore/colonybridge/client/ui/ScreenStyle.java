@@ -8,41 +8,48 @@ import net.minecraft.network.chat.FormattedText;
 import net.minecraft.util.FormattedCharSequence;
 
 /**
- * Estilo das telas (interfaces) do mod, no visual dos terminais do AE2: fundo cinza-lilás claro, bordas
- * em relevo, slots e painéis "afundados" e texto escuro. Cores medidas num print do terminal do AE2 no
- * ATM10, para as telas do mod parecerem parte da mesma família.
- * <p>
- * Desenhado só com retângulos (sem as texturas do AE2): apontar para arquivos internos de outro mod
- * quebraria se eles fossem renomeados numa atualização. Os monitores no mundo continuam com
- * {@link UiColors} (tema escuro de display).
+ * Estilo das telas (interfaces) do mod: <b>estrutura</b> inspirada nos terminais do AE2 (janela com relevo,
+ * slots e painéis afundados, barra lateral de botões com ícone, seções com título) e <b>cores da marca</b>
+ * TCMine ({@link UiColors}: fundo escuro, laranja e ciano). Desenhado só com retângulos, sem texturas.
  * <p>
  * Também resolve texto que não cabe: {@link #drawFitted} corta com "…" em vez de invadir o vizinho
  * (a fonte do ATM10 é mais larga que a padrão, então nada aqui assume largura fixa de texto).
  */
 public final class ScreenStyle {
 
-    public static final int FRAME = 0xFF413F54;
-    public static final int LIGHT = 0xFFF2F2F2;
-    public static final int WINDOW = 0xFFCBCCD4;
-    public static final int SLOT = 0xFFADB0C4;
-    public static final int SHADE = 0xFF9A9FB4;
-    public static final int EDGE = 0xFF696D88;
+    /** Contorno externo da janela e dos botões. */
+    public static final int FRAME = 0xFF0E1015;
+    /** Fio claro do relevo (em cima/esquerda da janela; embaixo/direita dos afundados). */
+    public static final int LIGHT = UiColors.BORDER;
+    /** Sombra do relevo (embaixo/direita da janela). */
+    public static final int SHADE = 0xFF111318;
+    public static final int WINDOW = 0xFF1B1E26;
+    public static final int PANEL = UiColors.PANEL;
+    public static final int HOVER = UiColors.PANEL_HOVER;
+    /** Fundo dos slots: mais escuro que a janela, como no AE2. */
+    public static final int SLOT = 0xFF15171D;
+    /** Borda escura dos afundados (em cima/esquerda). */
+    public static final int EDGE = 0xFF0B0C10;
 
-    public static final int TEXT = 0xFF403E53;
-    public static final int TEXT_MUTED = 0xFF6E7189;
-    /** Texto sobre botões ({@link #SHADE}): mais escuro que {@link #TEXT} para manter contraste. */
-    public static final int TEXT_ON_BUTTON = 0xFF1E1D28;
-
-    /** Cores de destaque escurecidas para ler bem sobre o fundo claro. */
-    public static final int INFO = 0xFF1C6FA0;
-    public static final int SUCCESS = 0xFF1F7A45;
-    public static final int WARNING = 0xFFA15C07;
-    public static final int DANGER = 0xFFB42323;
+    public static final int TITLE = UiColors.ACCENT;
+    public static final int TEXT = UiColors.TEXT;
+    public static final int TEXT_MUTED = UiColors.TEXT_MUTED;
+    public static final int ACCENT = UiColors.ACCENT;
+    public static final int INFO = UiColors.HIGHLIGHT;
+    public static final int SUCCESS = UiColors.SUCCESS;
+    public static final int WARNING = UiColors.WARNING;
+    public static final int DANGER = UiColors.DANGER;
 
     private ScreenStyle() {}
 
-    /** Janela: contorno escuro, relevo claro em cima/esquerda, sombra embaixo/direita e fundo. */
+    /** Janela: contorno escuro, relevo (claro em cima/esquerda, sombra embaixo/direita), fundo e faixa laranja. */
     public static void window(GuiGraphics g, int x, int y, int width, int height) {
+        box(g, x, y, width, height);
+        g.fill(x + 2, y + 2, x + width - 2, y + 3, ACCENT);
+    }
+
+    /** Caixa com relevo sem a faixa laranja (ex.: fundo da barra lateral). */
+    public static void box(GuiGraphics g, int x, int y, int width, int height) {
         g.fill(x, y, x + width, y + height, FRAME);
         g.fill(x + 1, y + 1, x + width - 1, y + height - 1, LIGHT);
         g.fill(x + 2, y + 2, x + width - 1, y + height - 1, SHADE);
@@ -61,7 +68,25 @@ public final class ScreenStyle {
         g.fill(x + 1, y + 1, x + width - 1, y + height - 1, fill);
     }
 
-    /** Pequeno quadrado de estado com contorno, legível sobre o fundo claro. */
+    /**
+     * Barra de rolagem vertical (trilho afundado + alça).
+     *
+     * @param first   primeira linha visível
+     * @param visible linhas que cabem
+     * @param total   total de linhas
+     */
+    public static void scrollbar(GuiGraphics g, int x, int y, int height, int first, int visible, int total) {
+        inset(g, x, y, 6, height, SLOT);
+        if (total <= visible) {
+            return;
+        }
+        int track = height - 2;
+        int thumb = Math.max(8, track * visible / total);
+        int top = y + 1 + (track - thumb) * first / Math.max(1, total - visible);
+        g.fill(x + 1, top, x + 5, top + thumb, ACCENT);
+    }
+
+    /** Pequeno quadrado de estado com contorno. */
     public static void statusDot(GuiGraphics g, int x, int y, int color) {
         g.fill(x, y, x + 7, y + 7, FRAME);
         g.fill(x + 1, y + 1, x + 6, y + 6, color);

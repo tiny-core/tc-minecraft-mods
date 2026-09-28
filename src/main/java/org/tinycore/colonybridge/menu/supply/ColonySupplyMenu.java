@@ -28,11 +28,11 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
     /** Posições usadas também pela {@code ColonySupplyScreen} para desenhar o fundo dos slots. */
-    public static final int LIST_X = 37;
-    public static final int KEEP_Y = 66;
-    public static final int SURPLUS_Y = 100;
-    public static final int INVENTORY_Y = 134;
-    public static final int HOTBAR_Y = 192;
+    public static final int LIST_X = 10;
+    public static final int KEEP_Y = 44;
+    public static final int SURPLUS_Y = 77;
+    public static final int INVENTORY_Y = 110;
+    public static final int HOTBAR_Y = 168;
 
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */

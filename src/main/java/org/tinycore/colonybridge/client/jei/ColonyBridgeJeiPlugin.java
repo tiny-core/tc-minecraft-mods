@@ -2,10 +2,15 @@ package org.tinycore.colonybridge.client.jei;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
+import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
+
+import java.util.List;
 
 /**
  * Integração com o JEI: permite arrastar itens da lista do JEI para os ghost slots do filtro.
@@ -24,8 +29,24 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
         return UID;
     }
 
+    /**
+     * Arrastar itens para os ghost slots da ponte, e as barras laterais (fora da janela) das duas telas
+     * como "áreas extras", para o JEI não desenhar a lista de itens por cima delas.
+     */
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
         registration.addGhostIngredientHandler(ColonyBridgeScreen.class, new FilterGhostHandler());
+        registration.addGuiContainerHandler(ColonyBridgeScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(ColonyBridgeScreen screen) {
+                return screen.extraAreas();
+            }
+        });
+        registration.addGuiContainerHandler(ColonySupplyScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(ColonySupplyScreen screen) {
+                return screen.extraAreas();
+            }
+        });
     }
 }

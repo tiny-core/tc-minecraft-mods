@@ -46,7 +46,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/crafting/CraftableMods` | Mods com item craftável na rede, para a aba "Mods". |
 | `logic/bridge/RequestCounts` | Resumo do ciclo (abertos, atendidos, craftando) para a aba "Geral". |
 | `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots do filtro e dos preferidos), a "foto" enviada ao cliente e as abas. |
-| `client/bridge/ColonyBridgeScreen`, `ModListView` | Tela: abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
+| `client/bridge/ColonyBridgeScreen`, `ModListView`, `BridgeIcons` | Tela: barra lateral de ajustes, abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
 | `stats/*` | Estatísticas da ponte em ring buffer (entregas, crafts, ranking de itens). |
 
 ## Abastecedor da Colônia (`supply/`) — mantém o armazém abastecido
@@ -80,5 +80,5 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `network/*` | Pacotes cliente↔servidor; tudo que vem do cliente é validado no servidor (`ModNetwork`). |
 | `client/ColonyBridgeClient` | Entrada só do cliente: liga o botão "Config" da lista de mods à tela de config do NeoForge. |
 | `client/ClientSetup`, `ClientPayloadHandler` | Registro das telas/renderers e tratamento dos pacotes no cliente. |
-| `client/ui/*` | Design system: `ScreenStyle` (telas no visual do AE2), `UiColors` (monitores, tema escuro), botões, gráfico de barras, `Painter`. |
+| `client/ui/*` | Design system: `UiColors` (cores da marca), `ScreenStyle` (estrutura das telas no estilo AE2), `IconButton` + `SideToolbar` (barra lateral com ícones), `RedstoneIcons`, gráfico de barras, `Painter`. |
 | `client/jei/*` | Arrastar itens do JEI para o filtro (JEI opcional). |

@@ -35,7 +35,8 @@ o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem co
 registro salvo no mundo e nunca atendem o mesmo pedido.
 
 ### Tela da ponte
-Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono). Quatro abas:
+Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono). À esquerda fica
+uma barra de botões com ícone (passe o mouse para ver o valor; "?" explica a aba aberta). Quatro abas:
 
 - **Geral:** estado da ponte, nome da colônia, **crafting ligado/desligado**, **modo de redstone** (ignorar /
   só com sinal / só sem sinal), **preferência de craft por tag** (padrão do servidor / mais barato / mais caro /

@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.client.bridge;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
@@ -9,8 +10,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.block.bridge.CraftSettings;
-import org.tinycore.colonybridge.client.ui.FlatButton;
+import org.tinycore.colonybridge.client.ui.IconButton;
+import org.tinycore.colonybridge.client.ui.RedstoneIcons;
 import org.tinycore.colonybridge.client.ui.ScreenStyle;
+import org.tinycore.colonybridge.client.ui.SideToolbar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.bridge.RequestCounts;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
@@ -26,38 +29,38 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Tela da ponte (só cliente), com quatro abas ({@link BridgeTab}):
+ * Tela da ponte (só cliente), com a estrutura dos terminais do AE2 e as cores da marca ({@link ScreenStyle}):
  * <ul>
- *   <li><b>Geral:</b> resumo dos pedidos, crafting on/off, redstone e preferência de craft por tag;</li>
- *   <li><b>Filtro:</b> modo do filtro, tipo de comparação, 18 ghost slots e o inventário;</li>
- *   <li><b>Preferidos:</b> 18 ghost slots com a ordem de preferência do modo "Lista";</li>
- *   <li><b>Mods:</b> modo de mods e a lista de mods craftáveis da rede ({@link ModListView}).</li>
+ *   <li><b>barra lateral</b> ({@link SideToolbar}) com botões de ícone: ajuda "?", crafting, redstone e os
+ *       ajustes da aba aberta; o valor atual aparece no tooltip;</li>
+ *   <li><b>abas com ícone</b> ({@link BridgeTab}): Geral (resumo), Filtro, Preferidos e Mods;</li>
+ *   <li>cada aba tem uma <b>seção com título</b>; Filtro e Preferidos mostram o inventário embaixo.</li>
  * </ul>
- * A lista de pedidos e as estatísticas ficam nos monitores; aqui só o resumo.
- * Visual dos terminais do AE2, desenhado por código ({@link ScreenStyle}). Os dados vêm do
- * {@link BridgeSnapshot} guardado no menu; os botões mandam pacotes e o servidor decide se aplica.
+ * A lista de pedidos e as estatísticas ficam nos monitores. Os dados vêm do {@link BridgeSnapshot} guardado
+ * no menu; os botões mandam pacotes e o servidor decide se aplica.
  */
 public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu> {
 
-    private static final int WIDTH = 236;
-    private static final int HEIGHT = 230;
+    private static final int WIDTH = 182;
+    private static final int HEIGHT = 200;
     private static final int PADDING = 8;
-    private static final int TAB_Y = 34;
-    private static final int ROW1_Y = 54;
-    private static final int ROW2_Y = 74;
-    private static final int MOD_LIST_Y = 76;
+    private static final int TABS_Y = 31;
+    private static final int SECTION_Y = 53;
+    private static final int CONTENT_Y = 64;
     private static final int MOD_LIST_HEIGHT = 120;
 
     /** Criada no init(): a fonte da tela só existe depois dele. */
     private ModListView modList;
     private BridgeTab tab = BridgeTab.GENERAL;
-    private final FlatButton[] tabButtons = new FlatButton[BridgeTab.values().length];
-    private FlatButton craftingButton;
-    private FlatButton redstoneButton;
-    private FlatButton preferenceButton;
-    private FlatButton filterModeButton;
-    private FlatButton exactMatchButton;
-    private FlatButton modModeButton;
+    private final IconButton[] tabButtons = new IconButton[BridgeTab.values().length];
+    private SideToolbar toolbar;
+    private IconButton helpButton;
+    private IconButton craftingButton;
+    private IconButton redstoneButton;
+    private IconButton preferenceButton;
+    private IconButton filterModeButton;
+    private IconButton exactMatchButton;
+    private IconButton modModeButton;
 
     /** Ajustes locais: mudam na hora do clique e são corrigidos pelo próximo snapshot. */
     private BridgeSettings settings = BridgeSettings.DEFAULT;
@@ -77,32 +80,29 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         if (modList == null) {
             modList = new ModListView(font);
         }
-        int inner = WIDTH - PADDING * 2;
-        int half = (inner - PADDING) / 2;
-        int left = leftPos + PADDING;
-        int right = left + half + PADDING;
-        int tabWidth = (inner - 4 * (tabButtons.length - 1)) / tabButtons.length;
         for (BridgeTab t : BridgeTab.values()) {
-            tabButtons[t.ordinal()] = addRenderableWidget(new FlatButton(left + t.ordinal() * (tabWidth + 4),
-                    topPos + TAB_Y, tabWidth, 14,
-                    Component.translatable("gui.tccolonybridge.tab." + t.name().toLowerCase()), () -> selectTab(t)));
+            IconButton button = new IconButton(leftPos + PADDING + t.ordinal() * (IconButton.SIZE + 2),
+                    topPos + TABS_Y, () -> selectTab(t)).icon(BridgeIcons.tab(t));
+            button.setTooltipText(Component.translatable("gui.tccolonybridge.tab." + t.name().toLowerCase()));
+            tabButtons[t.ordinal()] = addRenderableWidget(button);
         }
 
-        craftingButton = addRenderableWidget(new FlatButton(left, topPos + ROW1_Y, half, 16, Component.empty(),
-                () -> send(settings.withCrafting(!settings.craftingEnabled()))));
-        redstoneButton = addRenderableWidget(new FlatButton(right, topPos + ROW1_Y, half, 16, Component.empty(),
-                () -> send(settings.withRedstone(settings.redstoneMode().next()))));
-        preferenceButton = addRenderableWidget(new FlatButton(left, topPos + ROW2_Y, inner, 16, Component.empty(),
-                () -> send(craft.withPreference(craft.nextPreference()))));
-        filterModeButton = addRenderableWidget(new FlatButton(left, topPos + ROW1_Y, half, 16, Component.empty(),
+        toolbar = new SideToolbar();
+        helpButton = tool(new IconButton(0, 0, () -> {}).glyph("?"));
+        craftingButton = tool(new IconButton(0, 0, () -> send(settings.withCrafting(!settings.craftingEnabled()))));
+        redstoneButton = tool(new IconButton(0, 0, () -> send(settings.withRedstone(settings.redstoneMode().next()))));
+        preferenceButton = tool(new IconButton(0, 0, () -> send(craft.withPreference(craft.nextPreference()))));
+        filterModeButton = tool(new IconButton(0, 0,
                 () -> send(settings.withFilterMode(settings.filterMode().next()))));
-        exactMatchButton = addRenderableWidget(new FlatButton(right, topPos + ROW1_Y, half, 16, Component.empty(),
-                () -> send(settings.withExactMatch(!settings.exactMatch()))));
-        modModeButton = addRenderableWidget(new FlatButton(left, topPos + ROW1_Y, inner, 16, Component.empty(),
-                () -> send(craft.withModMode(craft.modMode().next()))));
+        exactMatchButton = tool(new IconButton(0, 0, () -> send(settings.withExactMatch(!settings.exactMatch()))));
+        modModeButton = tool(new IconButton(0, 0, () -> send(craft.withModMode(craft.modMode().next()))));
 
         lastSeen = null; // força copiar o snapshot atual para os botões
         selectTab(tab); // init() roda de novo ao redimensionar a janela: mantém a aba atual
+    }
+
+    private IconButton tool(IconButton button) {
+        return addRenderableWidget(toolbar.add(button));
     }
 
     private void selectTab(BridgeTab selected) {
@@ -112,15 +112,15 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         for (BridgeTab t : BridgeTab.values()) {
             tabButtons[t.ordinal()].setSelected(t == selected);
         }
-        craftingButton.visible = selected == BridgeTab.GENERAL;
-        redstoneButton.visible = selected == BridgeTab.GENERAL;
-        preferenceButton.visible = selected == BridgeTab.GENERAL;
+        preferenceButton.visible = selected == BridgeTab.GENERAL || selected == BridgeTab.PREFERRED;
         filterModeButton.visible = selected == BridgeTab.FILTER;
         exactMatchButton.visible = selected == BridgeTab.FILTER;
         modModeButton.visible = selected == BridgeTab.MODS;
+        toolbar.layout(leftPos, topPos);
+        helpButton.setTooltipText(Component.translatable("gui.tccolonybridge.help." + selected.name().toLowerCase()));
     }
 
-    /** Chamado a cada tick do cliente: aplica um snapshot novo e atualiza os textos dos botões. */
+    /** Chamado a cada tick do cliente: aplica um snapshot novo e atualiza ícones e tooltips. */
     @Override
     protected void containerTick() {
         super.containerTick();
@@ -130,16 +130,24 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
             settings = snapshot.settings();
             setCraft(snapshot.craftSettings());
         }
-        craftingButton.setMessage(Component.translatable("gui.tccolonybridge.crafting", onOff(settings.craftingEnabled())));
-        redstoneButton.setMessage(Component.translatable("gui.tccolonybridge.redstone",
+        craftingButton.icon(BridgeIcons.crafting());
+        craftingButton.setBadge(settings.craftingEnabled() ? ScreenStyle.SUCCESS : ScreenStyle.DANGER);
+        craftingButton.setTooltipText(Component.translatable("gui.tccolonybridge.crafting",
+                onOff(settings.craftingEnabled())));
+        redstoneButton.icon(RedstoneIcons.of(settings.redstoneMode()));
+        redstoneButton.setTooltipText(Component.translatable("gui.tccolonybridge.redstone",
                 Component.translatable(settings.redstoneMode().translationKey())));
-        preferenceButton.setMessage(Component.translatable("gui.tccolonybridge.preference",
+        preferenceButton.icon(BridgeIcons.preference(craft.preference()));
+        preferenceButton.setTooltipText(Component.translatable("gui.tccolonybridge.preference",
                 preferenceName(craft.preference())));
-        filterModeButton.setMessage(Component.translatable("gui.tccolonybridge.filter_mode",
+        filterModeButton.icon(BridgeIcons.filterMode(settings.filterMode()));
+        filterModeButton.setTooltipText(Component.translatable("gui.tccolonybridge.filter_mode",
                 Component.translatable(settings.filterMode().translationKey())));
-        exactMatchButton.setMessage(Component.translatable(settings.exactMatch()
+        exactMatchButton.icon(BridgeIcons.exactMatch(settings.exactMatch()));
+        exactMatchButton.setTooltipText(Component.translatable(settings.exactMatch()
                 ? "gui.tccolonybridge.match.exact" : "gui.tccolonybridge.match.item"));
-        modModeButton.setMessage(Component.translatable("gui.tccolonybridge.mod_mode",
+        modModeButton.icon(BridgeIcons.modMode(craft.modMode()));
+        modModeButton.setTooltipText(Component.translatable("gui.tccolonybridge.mod_mode",
                 Component.translatable(craft.modMode().translationKey())));
     }
 
@@ -178,73 +186,66 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         int x = leftPos;
         int y = topPos;
         int inner = WIDTH - PADDING * 2;
+        toolbar.render(g);
         ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
 
         // Estado à direita primeiro: o título usa o espaço que sobrar (corta com "…" se preciso).
         Component status = Component.translatable(snap.status().guiKey());
-        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 8, inner / 2,
+        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 7, inner / 2,
                 ScreenStyle.TEXT);
-        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 8, StatusColors.of(snap.status()));
-        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 8, inner - statusWidth - 16, ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 7, StatusColors.of(snap.status()));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
         Component colony = snap.colonyName().isEmpty()
                 ? Component.translatable("gui.tccolonybridge.no_colony")
                 : Component.literal(snap.colonyName());
-        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 20, inner, ScreenStyle.INFO);
+        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 19, inner, ScreenStyle.INFO);
 
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.section." + tab.name().toLowerCase()),
+                x + PADDING, y + SECTION_Y, inner, ScreenStyle.TEXT);
         switch (tab) {
-            case GENERAL -> renderGeneral(g, snap.counts(), x + PADDING, y + ROW2_Y + 26);
-            case FILTER -> renderSlots(g, x, y, "gui.tccolonybridge.filter_hint");
-            case PREFERRED -> {
-                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.preferred.info"),
-                        x + PADDING, y + ROW1_Y + 2, inner, ScreenStyle.TEXT);
-                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.preferred.fallback"),
-                        x + PADDING, y + ROW1_Y + 13, inner, ScreenStyle.TEXT_MUTED);
-                renderSlots(g, x, y, "gui.tccolonybridge.filter_hint");
-            }
+            case GENERAL -> renderGeneral(g, snap.counts(), x + PADDING, y + CONTENT_Y);
+            case FILTER, PREFERRED -> renderSlots(g, x, y);
             case MODS -> {
-                ScreenStyle.inset(g, x + PADDING, y + MOD_LIST_Y - 2, inner, MOD_LIST_HEIGHT + 4, ScreenStyle.SLOT);
-                modList.render(g, markedMods, x + PADDING + 2, y + MOD_LIST_Y, inner - 4, MOD_LIST_HEIGHT,
+                int listWidth = inner - 8;
+                ScreenStyle.inset(g, x + PADDING, y + CONTENT_Y - 2, listWidth, MOD_LIST_HEIGHT + 4, ScreenStyle.SLOT);
+                modList.render(g, markedMods, x + PADDING + 2, y + CONTENT_Y, listWidth - 4, MOD_LIST_HEIGHT,
                         mouseX, mouseY);
-                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.mods.hint"),
-                        x + PADDING, y + HEIGHT - 13, inner, ScreenStyle.TEXT_MUTED);
+                ScreenStyle.scrollbar(g, x + WIDTH - PADDING - 6, y + CONTENT_Y - 2, MOD_LIST_HEIGHT + 4,
+                        modList.firstRow(), modList.visibleRows(MOD_LIST_HEIGHT), modList.size());
             }
         }
     }
 
-    /** Resumo do último ciclo: cartões com total, atendidos, craftando e pendentes. */
+    /** Resumo do último ciclo: quatro cartões (2×2) e o aviso de que os detalhes estão no monitor. */
     private void renderGeneral(GuiGraphics g, RequestCounts counts, int x, int y) {
         int inner = WIDTH - PADDING * 2;
-        int cardWidth = (inner - 3 * 4) / 4;
+        int cardWidth = (inner - 4) / 2;
         card(g, x, y, cardWidth, "gui.tccolonybridge.count.total", counts.total(), ScreenStyle.TEXT);
-        card(g, x + (cardWidth + 4), y, cardWidth, "gui.tccolonybridge.count.served", counts.served(),
+        card(g, x + cardWidth + 4, y, cardWidth, "gui.tccolonybridge.count.served", counts.served(),
                 ScreenStyle.SUCCESS);
-        card(g, x + (cardWidth + 4) * 2, y, cardWidth, "gui.tccolonybridge.count.crafting", counts.crafting(),
-                ScreenStyle.INFO);
-        card(g, x + (cardWidth + 4) * 3, y, cardWidth, "gui.tccolonybridge.count.pending", counts.pending(),
+        card(g, x, y + 32, cardWidth, "gui.tccolonybridge.count.crafting", counts.crafting(), ScreenStyle.INFO);
+        card(g, x + cardWidth + 4, y + 32, cardWidth, "gui.tccolonybridge.count.pending", counts.pending(),
                 counts.pending() > 0 ? ScreenStyle.WARNING : ScreenStyle.TEXT_MUTED);
-        g.drawWordWrap(font, Component.translatable("gui.tccolonybridge.monitor_hint"), x, y + 44, inner,
+        g.drawWordWrap(font, Component.translatable("gui.tccolonybridge.monitor_hint"), x, y + 70, inner,
                 ScreenStyle.TEXT_MUTED);
     }
 
     private void card(GuiGraphics g, int x, int y, int width, String labelKey, int value, int color) {
-        ScreenStyle.inset(g, x, y, width, 36, ScreenStyle.SLOT);
+        ScreenStyle.inset(g, x, y, width, 28, ScreenStyle.PANEL);
         ScreenStyle.drawFitted(g, font, Component.translatable(labelKey), x + 4, y + 4, width - 8,
                 ScreenStyle.TEXT_MUTED);
-        ScreenStyle.drawFitted(g, font, Component.literal(String.valueOf(value)), x + 4, y + 20, width - 8, color);
+        ScreenStyle.drawFitted(g, font, Component.literal(String.valueOf(value)), x + 4, y + 16, width - 8, color);
     }
 
-    /** Fundo dos slots visíveis, título "Inventário" e a dica da aba. */
-    private void renderSlots(GuiGraphics g, int x, int y, String hintKey) {
+    /** Fundo dos slots visíveis e o título "Inventário" (os itens são desenhados pelo próprio Minecraft). */
+    private void renderSlots(GuiGraphics g, int x, int y) {
         for (Slot slot : menu.slots) {
             if (slot.isActive()) {
                 ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
             }
         }
-        int inner = WIDTH - PADDING * 2;
         ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"),
-                x + ColonyBridgeMenu.FILTER_X, y + ColonyBridgeMenu.INVENTORY_Y - 11, inner, ScreenStyle.TEXT);
-        ScreenStyle.drawFitted(g, font, Component.translatable(hintKey), x + PADDING, y + HEIGHT - 13, inner,
-                ScreenStyle.TEXT_MUTED);
+                x + PADDING, y + ColonyBridgeMenu.INVENTORY_Y - 11, WIDTH - PADDING * 2, ScreenStyle.TEXT);
     }
 
     /** Título e inventário já são desenhados em renderBg; aqui não desenha nada. */
@@ -261,8 +262,8 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (tab == BridgeTab.MODS && button == 0) {
-            String mod = modList.modAt(mouseX, mouseY, leftPos + PADDING, topPos + MOD_LIST_Y,
-                    WIDTH - PADDING * 2, MOD_LIST_HEIGHT);
+            String mod = modList.modAt(mouseX, mouseY, leftPos + PADDING + 2, topPos + CONTENT_Y,
+                    WIDTH - PADDING * 2 - 12, MOD_LIST_HEIGHT);
             if (mod != null) {
                 send(craft.toggleMod(mod));
                 return true;
@@ -282,5 +283,10 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     /** Ghost slots visíveis agora (usado pela integração com JEI para saber onde soltar itens). */
     public List<Slot> visibleGhostSlots() {
         return menu.slots.subList(0, ColonyBridgeMenu.GHOST_COUNT).stream().filter(Slot::isActive).toList();
+    }
+
+    /** Áreas fora da janela ocupadas pela tela (a barra lateral), para o JEI não desenhar por cima. */
+    public List<Rect2i> extraAreas() {
+        return List.of(toolbar.area());
     }
 }

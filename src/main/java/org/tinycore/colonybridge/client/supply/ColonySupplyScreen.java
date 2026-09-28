@@ -2,13 +2,16 @@ package org.tinycore.colonybridge.client.supply;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.block.supply.StockList;
-import org.tinycore.colonybridge.client.ui.FlatButton;
+import org.tinycore.colonybridge.client.ui.IconButton;
+import org.tinycore.colonybridge.client.ui.RedstoneIcons;
 import org.tinycore.colonybridge.client.ui.ScreenStyle;
+import org.tinycore.colonybridge.client.ui.SideToolbar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiFormat;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
@@ -18,8 +21,9 @@ import org.tinycore.colonybridge.network.SupplyConfigPayload;
 import java.util.List;
 
 /**
- * Tela do bloco de abastecimento (só cliente): duas listas de itens com quantidade alvo e um botão de
- * redstone.
+ * Tela do bloco de abastecimento (só cliente), com a estrutura dos terminais do AE2 e as cores da marca
+ * ({@link ScreenStyle}): barra lateral com ajuda "?" e redstone, duas seções de slots (manter / excedente)
+ * com quantidade alvo e o inventário embaixo.
  * <p>
  * O item de cada linha é escolhido clicando no slot (o menu cuida disso). A <b>quantidade</b> muda com a
  * roda do mouse sobre o slot — Shift multiplica por 10, Ctrl por 64. Cada mudança manda a configuração
@@ -27,11 +31,12 @@ import java.util.List;
  */
 public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu> {
 
-    private static final int WIDTH = 236;
-    private static final int HEIGHT = 226;
+    private static final int WIDTH = 182;
+    private static final int HEIGHT = 194;
     private static final int PADDING = 8;
 
-    private FlatButton redstoneButton;
+    private SideToolbar toolbar;
+    private IconButton redstoneButton;
     /** Estado local: muda na hora do clique e é corrigido pelo próximo snapshot do servidor. */
     private SupplySnapshot settings = SupplySnapshot.EMPTY;
     private SupplySnapshot lastSeen;
@@ -45,9 +50,11 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     @Override
     protected void init() {
         super.init();
-        // Linha própria, largura toda: não disputa espaço com o nome da colônia (que pode ser longo).
-        redstoneButton = addRenderableWidget(new FlatButton(leftPos + PADDING, topPos + 34, WIDTH - PADDING * 2, 14,
-                Component.empty(), this::cycleRedstone));
+        toolbar = new SideToolbar();
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));
+        redstoneButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleRedstone)));
+        toolbar.layout(leftPos, topPos);
         lastSeen = null; // força copiar o snapshot atual
     }
 
@@ -59,7 +66,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
             lastSeen = snapshot;
             settings = snapshot;
         }
-        redstoneButton.setMessage(Component.translatable("gui.tccolonybridge.redstone",
+        redstoneButton.icon(RedstoneIcons.of(settings.redstoneMode()));
+        redstoneButton.setTooltipText(Component.translatable("gui.tccolonybridge.redstone",
                 Component.translatable(settings.redstoneMode().translationKey())));
     }
 
@@ -81,38 +89,40 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         int x = leftPos;
         int y = topPos;
         int inner = WIDTH - PADDING * 2;
+        toolbar.render(g);
         ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
 
         // Estado à direita primeiro: o título usa o espaço que sobrar (corta com "…" se preciso).
         Component status = Component.translatable(snap.status().guiKey());
-        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 8, inner / 2,
+        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 7, inner / 2,
                 ScreenStyle.TEXT);
-        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 8, StatusColors.of(snap.status()));
-        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 8, inner - statusWidth - 16, ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 7, StatusColors.of(snap.status()));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
         Component colony = snap.colonyName().isEmpty()
                 ? Component.translatable("gui.tccolonybridge.no_colony")
                 : Component.literal(snap.colonyName());
-        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 20, inner, ScreenStyle.INFO);
+        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 19, inner, ScreenStyle.INFO);
 
         section(g, x, y + ColonySupplyMenu.KEEP_Y - 11, Component.translatable("gui.tccolonybridge.supply.keep"));
         section(g, x, y + ColonySupplyMenu.SURPLUS_Y - 11, Component.translatable("gui.tccolonybridge.supply.surplus"));
         section(g, x, y + ColonySupplyMenu.INVENTORY_Y - 11, Component.translatable("gui.tccolonybridge.inventory"));
-        renderSlots(g, x, y);
-        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.supply.hint"),
-                x + PADDING, y + HEIGHT - 13, inner, ScreenStyle.TEXT_MUTED);
-    }
-
-    /** Título de seção alinhado com os slots, como no terminal do AE2. */
-    private void section(GuiGraphics g, int x, int y, Component label) {
-        ScreenStyle.drawFitted(g, font, label, x + ColonySupplyMenu.LIST_X, y,
-                WIDTH - ColonySupplyMenu.LIST_X - PADDING, ScreenStyle.TEXT);
-    }
-
-    /** Fundo dos slots e, sobre cada linha configurada, a quantidade alvo. */
-    private void renderSlots(GuiGraphics g, int x, int y) {
         for (Slot slot : menu.slots) {
             ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
         }
+    }
+
+    /** Título de seção, como no terminal do AE2. */
+    private void section(GuiGraphics g, int x, int y, Component label) {
+        ScreenStyle.drawFitted(g, font, label, x + PADDING, y, WIDTH - PADDING * 2, ScreenStyle.TEXT);
+    }
+
+    /**
+     * Quantidade alvo sobre cada linha configurada. Fica aqui, e não no {@code renderBg}, porque este método
+     * roda <b>depois</b> que os itens são desenhados (senão o número fica escondido atrás do ícone).
+     * As coordenadas já são relativas ao canto da janela.
+     */
+    @Override
+    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         for (int i = 0; i < StockList.SIZE && i < menu.slots.size(); i++) {
             Slot slot = menu.slots.get(i);
             if (slot.getItem().isEmpty()) {
@@ -120,7 +130,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
             }
             String amount = UiFormat.compact(settings.amount(i));
             g.pose().pushPose();
-            g.pose().translate(x + slot.x + 17f - font.width(amount) * 0.6f, y + slot.y + 10f, 200);
+            // z 300: acima do item e da contagem padrão de itens (z 200)
+            g.pose().translate(slot.x + 17f - font.width(amount) * 0.6f, slot.y + 11f, 300);
             g.pose().scale(0.6f, 0.6f, 1f);
             g.drawString(font, amount, 0, 0, 0xFFFFFFFF, true); // branco com sombra, como a contagem de itens
             g.pose().popPose();
@@ -128,14 +139,15 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     }
 
     @Override
-    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-    }
-
-    @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         renderTooltip(g, mouseX, mouseY);
         renderAmountTooltip(g, mouseX, mouseY);
+    }
+
+    /** Áreas fora da janela ocupadas pela tela (a barra lateral), para o JEI não desenhar por cima. */
+    public List<Rect2i> extraAreas() {
+        return List.of(toolbar.area());
     }
 
     /** Sobre uma linha configurada: quantidade alvo, quanto existe hoje e como mudar. */

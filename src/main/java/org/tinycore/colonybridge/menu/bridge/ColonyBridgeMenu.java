@@ -36,10 +36,10 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
     /** Posições (relativas à tela) usadas também pela {@code ColonyBridgeScreen} para desenhar o fundo. */
-    public static final int FILTER_X = 37;
-    public static final int FILTER_Y = 80;
-    public static final int INVENTORY_Y = 128;
-    public static final int HOTBAR_Y = 186;
+    public static final int FILTER_X = 10;
+    public static final int FILTER_Y = 64;
+    public static final int INVENTORY_Y = 116;
+    public static final int HOTBAR_Y = 174;
 
     /** Primeiro índice dos ghost slots de itens preferidos (logo depois dos do filtro). */
     public static final int PREFERRED_START = ItemFilter.SIZE;

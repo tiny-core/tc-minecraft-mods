@@ -53,20 +53,15 @@ final class ModListView {
             String mod = mods.get(scroll + i);
             int rowY = y + i * ROW_HEIGHT;
             if (mouseX >= x && mouseX < x + width && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT) {
-                g.fill(x, rowY, x + width, rowY + ROW_HEIGHT, ScreenStyle.WINDOW);
+                g.fill(x, rowY, x + width, rowY + ROW_HEIGHT, ScreenStyle.HOVER);
             }
             int boxY = rowY + (ROW_HEIGHT - BOX) / 2;
-            ScreenStyle.inset(g, x + 2, boxY, BOX, BOX, marked.contains(mod) ? ScreenStyle.INFO : ScreenStyle.LIGHT);
+            ScreenStyle.inset(g, x + 2, boxY, BOX, BOX, marked.contains(mod) ? ScreenStyle.ACCENT : ScreenStyle.PANEL);
             // id à direita (até 40% da linha) e nome no espaço que sobrar, ambos cortados com "…"
             int idWidth = ScreenStyle.drawFittedRight(g, font, Component.literal(mod), x + width - 2, rowY + 2,
                     width * 2 / 5, ScreenStyle.TEXT_MUTED);
             ScreenStyle.drawFitted(g, font, Component.literal(displayName(mod)), x + BOX + 6, rowY + 2,
                     width - BOX - idWidth - 14, ScreenStyle.TEXT);
-        }
-        if (mods.size() > rows) {
-            Component more = Component.literal((scroll + 1) + "–" + Math.min(scroll + rows, mods.size())
-                    + " / " + mods.size());
-            ScreenStyle.drawFittedRight(g, font, more, x + width, y + height + 4, width, ScreenStyle.TEXT_MUTED);
         }
     }
 
@@ -88,8 +83,18 @@ final class ModListView {
         return Math.max(0, mods.size() - visibleRows(height));
     }
 
-    private static int visibleRows(int height) {
+    /** Quantas linhas cabem na altura dada. */
+    int visibleRows(int height) {
         return Math.max(1, height / ROW_HEIGHT);
+    }
+
+    /** Primeira linha visível (para a barra de rolagem). */
+    int firstRow() {
+        return scroll;
+    }
+
+    int size() {
+        return mods.size();
     }
 
     /** Nome bonito do mod (ex.: "Applied Energistics 2"); se o mod não estiver instalado no cliente, o id. */
