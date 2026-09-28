@@ -115,5 +115,5 @@ pacotes que o monitor precisa.
 5. ~~Simulação de inserção mais precisa~~ — **feito** em `RackDelivery.capacity()` (soma por slot).
 6. **GameTests** para a lógica de entrega (NeoForge suporta `@GameTest`) e **GitHub Actions** para
    compilar a cada push.
-7. Separar `ModRegistries` em arquivos por tipo quando passar de ~5 registros.
+7. ~~Separar `ModRegistries` em arquivos por tipo~~ — **feito** (`ModBlocks`, `ModItems`, `ModBlockEntities`).
 8. Publicação futura (CurseForge/Modrinth): definir licença final, página em PT/EN e ícone.

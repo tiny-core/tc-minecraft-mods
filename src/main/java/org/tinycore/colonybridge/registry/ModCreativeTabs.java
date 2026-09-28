@@ -24,8 +24,8 @@ public final class ModCreativeTabs {
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> MAIN = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup.tccolonybridge"))
-                    .icon(() -> new ItemStack(ModRegistries.COLONY_BRIDGE_ITEM.get()))
-                    .displayItems((params, output) -> output.accept(ModRegistries.COLONY_BRIDGE_ITEM.get()))
+                    .icon(() -> new ItemStack(ModItems.COLONY_BRIDGE.get()))
+                    .displayItems((params, output) -> output.accept(ModItems.COLONY_BRIDGE.get()))
                     .build());
 
     private ModCreativeTabs() {}

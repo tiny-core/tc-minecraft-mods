@@ -11,7 +11,9 @@ import org.slf4j.Logger;
 import org.tinycore.colonybridge.network.ModNetwork;
 import org.tinycore.colonybridge.registry.ModCreativeTabs;
 import org.tinycore.colonybridge.registry.ModMenus;
-import org.tinycore.colonybridge.registry.ModRegistries;
+import org.tinycore.colonybridge.registry.ModBlocks;
+import org.tinycore.colonybridge.registry.ModItems;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 /**
  * Ponto de entrada do mod: o NeoForge instancia esta classe (anotação {@code @Mod}) ao carregar.
@@ -23,7 +25,9 @@ public final class ColonyBridgeMod {
     public static final Logger LOG = LogUtils.getLogger();
 
     public ColonyBridgeMod(IEventBus modBus, ModContainer container) {
-        ModRegistries.register(modBus);
+        ModBlocks.register(modBus);
+        ModItems.register(modBus);
+        ModBlockEntities.register(modBus);
         ModCreativeTabs.register(modBus);
         ModMenus.register(modBus);
         container.registerConfig(ModConfig.Type.SERVER, Config.SPEC);
@@ -36,7 +40,7 @@ public final class ColonyBridgeMod {
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
-                ModRegistries.COLONY_BRIDGE_BE.get(),
+                ModBlockEntities.COLONY_BRIDGE.get(),
                 (be, ctx) -> be);
     }
 }

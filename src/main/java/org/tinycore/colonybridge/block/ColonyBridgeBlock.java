@@ -24,7 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.menu.ColonyBridgeMenu;
-import org.tinycore.colonybridge.registry.ModRegistries;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 import java.util.List;
 
@@ -68,7 +68,7 @@ public class ColonyBridgeBlock extends Block implements EntityBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state,
                                                                             BlockEntityType<T> type) {
-        if (level.isClientSide || type != ModRegistries.COLONY_BRIDGE_BE.get()) {
+        if (level.isClientSide || type != ModBlockEntities.COLONY_BRIDGE.get()) {
             return null;
         }
         return (lvl, pos, st, be) -> ((ColonyBridgeBlockEntity) be).serverTick();

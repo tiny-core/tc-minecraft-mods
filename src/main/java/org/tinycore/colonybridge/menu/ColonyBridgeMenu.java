@@ -17,7 +17,7 @@ import org.tinycore.colonybridge.block.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.ItemFilter;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModMenus;
-import org.tinycore.colonybridge.registry.ModRegistries;
+import org.tinycore.colonybridge.registry.ModBlocks;
 
 /**
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:
@@ -214,6 +214,6 @@ public class ColonyBridgeMenu extends AbstractContainerMenu {
     /** Fecha a tela se o bloco sumiu ou o jogador se afastou mais de 8 blocos (validado no servidor). */
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ModRegistries.COLONY_BRIDGE.get());
+        return stillValid(access, player, ModBlocks.COLONY_BRIDGE.get());
     }
 }

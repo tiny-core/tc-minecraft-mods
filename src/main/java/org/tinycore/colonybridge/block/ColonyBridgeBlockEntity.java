@@ -27,7 +27,8 @@ import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.menu.BridgeSnapshot;
 import org.tinycore.colonybridge.stats.BridgeStats;
 import org.tinycore.colonybridge.stats.StatsSummary;
-import org.tinycore.colonybridge.registry.ModRegistries;
+import org.tinycore.colonybridge.registry.ModItems;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 import java.util.EnumSet;
 import java.util.UUID;
@@ -59,14 +60,14 @@ public class ColonyBridgeBlockEntity extends BlockEntity implements IInWorldGrid
     private boolean cableCheckPending = true;
 
     public ColonyBridgeBlockEntity(BlockPos pos, BlockState state) {
-        super(ModRegistries.COLONY_BRIDGE_BE.get(), pos, state);
+        super(ModBlockEntities.COLONY_BRIDGE.get(), pos, state);
         this.mainNode = GridHelper.createManagedNode(this, NodeListener.INSTANCE)
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
                 .setIdlePowerUsage(4.0)
                 .setInWorldNode(true)
                 .setExposedOnSides(EnumSet.noneOf(Direction.class)) // aberto só com cabo válido
                 .setTagName("node")
-                .setVisualRepresentation(ModRegistries.COLONY_BRIDGE_ITEM.get());
+                .setVisualRepresentation(ModItems.COLONY_BRIDGE.get());
         this.actionSource = IActionSource.ofMachine(this);
         this.logic = new BridgeLogic(this);
     }
