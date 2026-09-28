@@ -36,11 +36,18 @@ public final class ColonyBridgeMod {
         modBus.addListener(ModNetwork::register);
     }
 
-    /** Expõe o nó da grid para que os cabos AE2 se liguem ao bloco. */
+    /**
+     * Expõe o nó da grid para que os cabos AE2 se liguem aos blocos. O AE2 acha vizinhos só por esta
+     * capability ({@code GridHelper.getNodeHost}), então todo bloco com nó ME precisa estar aqui.
+     */
     private void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.COLONY_BRIDGE.get(),
+                (be, ctx) -> be);
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                ModBlockEntities.COLONY_SUPPLY.get(),
                 (be, ctx) -> be);
     }
 }
