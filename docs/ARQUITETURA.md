@@ -20,6 +20,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/BridgeStatus` | Estado mostrado ao jogador (sem colônia, sem permissão, trabalhando...). |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
+| `logic/warehouse/WarehouseSnapshot` | Conteúdo dos racks lido uma vez por ciclo da ponte (+ entregas do ciclo). |
 | `menu/AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot`, `JoinedList` | Ghost slots: mostram um item-modelo, nunca guardam nem entregam itens. |
 | `integration/ColonyAccess`, `OpenRequest` | **Único** ponto que fala com o MineColonies: colônia, permissões, pedidos em aberto, racks, reatribuir. |
 | `integration/ae2/CableRules` | Só conecta por baixo e só com cabo comum. |
@@ -38,7 +39,9 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/bridge/RequestCrafter` | *Craftar o quê e quanto:* item exato ou escolhido para pedido por tag; reserva no ledger. |
 | `logic/bridge/DeliveryLedger` | Registro salvo no mundo: pedido já entregue (cooldown) ou em craft, e por qual ponte. Coordena várias pontes. |
 | `logic/bridge/CycleReport`, `RequestLine`, `RequestOutcome` | Resultado de cada pedido no último ciclo (vai para a tela e os monitores). |
-| `logic/crafting/CraftingTracker` | Cálculos/jobs no AE2, espera após falha, blacklist, item em craft por pedido. |
+| `logic/crafting/CraftingTracker` | Cálculo do plano no AE2 e envio do job com a ponte como dona; espera após falha, blacklist. |
+| `logic/crafting/CraftLinks` | `ICraftingRequester` da ponte: vínculos dos crafts com os pedidos (salvos no NBT) e recebimento do resultado. |
+| `logic/bridge/CraftDelivery` | Coloca o resultado do craft nos racks (sobra → rede ME), registra "craft concluído" e libera pedido cancelado. |
 | `logic/crafting/CraftCandidates` | Escolhe o item a craftar para pedidos por tag (preferência, só vanilla, limite de candidatos). |
 | `logic/crafting/CraftCost` | Custo estimado de um item pelas receitas do AE2 (cache por ciclo). |
 | `logic/crafting/CraftPreference` | `CHEAPEST` / `MOST_EXPENSIVE` / `LIST`. |

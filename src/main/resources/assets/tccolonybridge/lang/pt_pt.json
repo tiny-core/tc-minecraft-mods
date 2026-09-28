@@ -148,5 +148,6 @@
   "gui.tccolonybridge.help.filter": "Clique num slot com um item na mão para o copiar (o item continua consigo); mão vazia ou shift-clique limpa. Shift-clique no inventário copia para o primeiro slot livre. Também pode arrastar itens do JEI. Barra lateral: modo do filtro e tipo de comparação.",
   "gui.tccolonybridge.help.preferred": "Ordem usada pela preferência \"Lista de preferidos\": 1.º slot primeiro. Vazio = usa a lista da configuração do servidor. Mesmos controlos do filtro.",
   "gui.tccolonybridge.help.mods": "Clique num mod para o marcar. O botão da barra lateral escolhe como os marcados são usados: todos, só os marcados, todos menos os marcados ou preferir os marcados. Só aparecem mods com itens craftáveis na sua rede ME.",
-  "gui.tccolonybridge.help.supply": "Clique num slot com um item para o escolher; a roda do rato sobre ele muda a quantidade (Shift ×10, Ctrl ×64). Linha de cima: manter pelo menos essa quantidade no armazém. Linha de baixo: o que passar dessa quantidade volta para a rede ME."
+  "gui.tccolonybridge.help.supply": "Clique num slot com um item para o escolher; a roda do rato sobre ele muda a quantidade (Shift ×10, Ctrl ×64). Linha de cima: manter pelo menos essa quantidade no armazém. Linha de baixo: o que passar dessa quantidade volta para a rede ME.",
+  "monitor.tccolonybridge.crafts_done": "Crafts concluídos (%sh)"
 }

@@ -13,7 +13,7 @@ import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.OpenRequest;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
-import org.tinycore.colonybridge.logic.warehouse.WarehouseStock;
+import org.tinycore.colonybridge.logic.warehouse.WarehouseSnapshot;
 
 import java.util.List;
 
@@ -23,11 +23,13 @@ import java.util.List;
  * 2. confere se o dono da ponte tem permissão na colônia;
  * 3. lê os pedidos em aberto da colônia, pulando os que o {@link DeliveryLedger} marca como
  *    já entregues ou sendo craftados por outra ponte;
- * 4. desconta o que o armazém já tem ({@link WarehouseStock}); se já basta, só reatribui o pedido;
+ * 4. desconta o que o armazém já tem ({@link WarehouseSnapshot}, lido uma vez por ciclo); se já basta,
+ *    só reatribui o pedido;
  * 5. se a rede ME cobre a falta ({@link StockSearch}, podendo juntar vários itens de uma tag) → move só a
  *    falta para os racks ({@link RackDelivery}) e reatribui;
  * 6. se não cobre → o {@link RequestCrafter} agenda autocrafting só da diferença (item exato, ou um
- *    item escolhido para pedidos por tag) e a ponte entrega tudo quando o craft terminar.
+ *    item escolhido para pedidos por tag); o resultado vai direto para o armazém ({@link CraftDelivery}) e,
+ *    quando o job termina, um novo ciclo entrega o resto (se havia parte na rede) e reatribui.
  * O resultado de cada pedido vai para o {@link CycleReport}, que a tela da ponte mostra.
  */
 public final class BridgeLogic {
@@ -68,7 +70,7 @@ public final class BridgeLogic {
         long now = level.getGameTime();
         DeliveryLedger ledger = DeliveryLedger.get(level);
         ledger.expire(now, Config.REDELIVERY_COOLDOWN_TICKS.get());
-        BridgeCycle cycle = new BridgeCycle(level, grid, source, colony, racks,
+        BridgeCycle cycle = new BridgeCycle(level, grid, source, colony, racks, WarehouseSnapshot.of(racks),
                 grid.getStorageService().getCachedInventory(), new KeyCounter(), ledger,
                 ColonyAccess.colonyKey(colony), host.getBlockPos().asLong(), now, host.getSettings().craftingEnabled());
 
@@ -103,7 +105,7 @@ public final class BridgeLogic {
             return RequestOutcome.OTHER_BRIDGE;
         }
 
-        long missing = request.amount() - WarehouseStock.count(c.racks(), request.deliverable()::matches);
+        long missing = request.amount() - c.warehouse().count(request.deliverable()::matches);
         if (missing <= 0) {
             // O armazém já cobre o pedido (ex.: entrega anterior que o courier ainda não levou, ou pedido
             // em "nova tentativa"). Não tira nada da rede: só pede ao MineColonies para reatribuir.
@@ -147,6 +149,7 @@ public final class BridgeLogic {
             long delivered = RackDelivery.deliver(c.grid(), c.source(), key, wanted, c.racks());
             if (delivered > 0) {
                 c.taken().add(key, delivered);
+                c.warehouse().add(key, delivered);
                 host.getStats().recordDelivery(c.now(), key.getItem(), delivered);
                 remaining -= delivered;
             }

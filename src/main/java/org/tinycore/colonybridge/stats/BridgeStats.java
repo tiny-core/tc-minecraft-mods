@@ -47,6 +47,24 @@ public final class BridgeStats {
         dirty = true;
     }
 
+    /**
+     * Itens de um craft colocados direto no armazém. Conta itens e ranking, mas não "pedido atendido":
+     * um craft chega em várias partes e o pedido é contado quando a ponte o reatribui.
+     */
+    public void recordCraftDelivery(long now, Item item, long amount) {
+        ensureReady();
+        ring.add(StatMetric.ITEMS_DELIVERED, now / bucketTicks, amount);
+        top.add(topGroup(now), item, amount);
+        dirty = true;
+    }
+
+    /** Um job de craft desta ponte terminou no AE2. */
+    public void recordCraftDone(long now) {
+        ensureReady();
+        ring.add(StatMetric.CRAFTS_DONE, now / bucketTicks, 1);
+        dirty = true;
+    }
+
     public void recordCraftFailed(long now) {
         ensureReady();
         ring.add(StatMetric.CRAFTS_FAILED, now / bucketTicks, 1);
@@ -71,7 +89,8 @@ public final class BridgeStats {
                 ring.sumLast(StatMetric.ITEMS_DELIVERED, all, bucket),
                 ring.sumLast(StatMetric.REQUESTS_DELIVERED, all, bucket),
                 ring.sumLast(StatMetric.CRAFTS_STARTED, all, bucket),
-                ring.sumLast(StatMetric.CRAFTS_FAILED, all, bucket));
+                ring.sumLast(StatMetric.CRAFTS_FAILED, all, bucket),
+                ring.sumLast(StatMetric.CRAFTS_DONE, all, bucket));
         List<Integer> chart = Arrays.stream(ring.grouped(StatMetric.ITEMS_DELIVERED, CHART_BARS, bucket)).boxed().toList();
         List<StatsSummary.Top> ranking = top.top(StatsSummary.MAX_TOP, topGroup(now)).stream()
                 .map(e -> new StatsSummary.Top(e.item(), e.count()))

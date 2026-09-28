@@ -62,7 +62,7 @@ public final class RackDelivery {
      * um stack cheio e soma. Como cada slot é consultado uma única vez, a soma não conta o mesmo espaço
      * duas vezes (a versão antiga simulava stack por stack e superestimava).
      */
-    private static long capacity(List<IItemHandler> racks, AEItemKey key, long amount) {
+    public static long capacity(List<IItemHandler> racks, AEItemKey key, long amount) {
         ItemStack probe = key.toStack(key.getMaxStackSize()); // insertItem não altera o stack passado
         long total = 0;
         for (IItemHandler rack : racks) {
@@ -76,8 +76,13 @@ public final class RackDelivery {
         return total;
     }
 
-    /** Insere de verdade, preferindo completar stacks existentes. @return quantidade que NÃO coube */
-    private static long insert(List<IItemHandler> racks, AEItemKey key, long amount) {
+    /**
+     * Insere de verdade, preferindo completar stacks existentes. Público para o requester de craft
+     * ({@code CraftLinks}) colocar itens craftados direto nos racks, sem passar pela rede.
+     *
+     * @return quantidade que NÃO coube
+     */
+    public static long insert(List<IItemHandler> racks, AEItemKey key, long amount) {
         long remaining = amount;
         int maxStack = key.getMaxStackSize();
         while (remaining > 0) {

@@ -148,5 +148,6 @@
   "gui.tccolonybridge.help.filter": "Click a slot with an item to copy it (the item stays with you); empty hand or shift-click clears. Shift-click in the inventory copies to the first free slot. You can also drag items from JEI. Left bar: filter mode and comparison.",
   "gui.tccolonybridge.help.preferred": "Order used by the \"Preferred list\" preference: 1st slot first. Empty = the server config list is used. Same controls as the filter.",
   "gui.tccolonybridge.help.mods": "Click a mod to mark it. The left bar button chooses how marked mods are used: all, only marked, all except marked or prefer marked. Only mods with craftable items in your ME network are listed.",
-  "gui.tccolonybridge.help.supply": "Click a slot with an item to choose it; mouse wheel over it changes the amount (Shift ×10, Ctrl ×64). Top row: keep at least this many in the warehouse. Bottom row: anything above this amount goes back to the ME network."
+  "gui.tccolonybridge.help.supply": "Click a slot with an item to choose it; mouse wheel over it changes the amount (Shift ×10, Ctrl ×64). Top row: keep at least this many in the warehouse. Bottom row: anything above this amount goes back to the ME network.",
+  "monitor.tccolonybridge.crafts_done": "Crafts done (%sh)"
 }

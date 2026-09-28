@@ -67,7 +67,7 @@ final class MonitorPanels {
                                   IntUnaryOperator pageFor, MonitorAnimator anim) {
         header(c, width, data);
         StatsSummary.Totals totals = data.stats().totals();
-        int columns = Math.min(3, Math.max(1, width / BLOCK));
+        int columns = Math.min(4, Math.max(1, width / BLOCK));
         float columnWidth = (width - MARGIN * (columns + 1)) / (float) columns;
         float top = HEADER + MARGIN + 2;
         metric(c, MARGIN, top, columnWidth, Component.translatable("monitor.tccolonybridge.open_requests"),
@@ -81,6 +81,11 @@ final class MonitorPanels {
             metric(c, MARGIN * 3 + columnWidth * 2, top, columnWidth,
                     Component.translatable("monitor.tccolonybridge.items_window", data.stats().windowHours()),
                     anim.value(SERIES_METRICS + 2, totals.itemsWindow()));
+        }
+        if (columns >= 4) {
+            metric(c, MARGIN * 4 + columnWidth * 3, top, columnWidth,
+                    Component.translatable("monitor.tccolonybridge.crafts_done", data.stats().windowHours()),
+                    anim.value(SERIES_METRICS + 3, totals.craftsDone()));
         }
         float next = top + 30;
         if (height < BLOCK * 2) {

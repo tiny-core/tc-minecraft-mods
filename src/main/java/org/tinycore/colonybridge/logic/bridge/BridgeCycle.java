@@ -7,6 +7,7 @@ import appeng.api.stacks.KeyCounter;
 import com.minecolonies.api.colony.IColony;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.IItemHandler;
+import org.tinycore.colonybridge.logic.warehouse.WarehouseSnapshot;
 
 import java.util.List;
 
@@ -15,12 +16,14 @@ import java.util.List;
  * Criado pelo {@link BridgeLogic} a cada ciclo e repassado ao {@link RequestCrafter}.
  * {@code record} em Java ≈ {@code record} em C#: classe imutável só de dados.
  *
+ * @param warehouse conteúdo dos racks lido uma vez no começo do ciclo (+ entregas do próprio ciclo)
  * @param stock  inventário da rede em cache (o AE2 só o atualiza no fim do tick)
  * @param taken  o que já saiu da rede neste ciclo, para descontar do {@code stock}
  * @param bridge posição da ponte ({@code BlockPos.asLong()}), usada como id no {@link DeliveryLedger}
  */
 record BridgeCycle(ServerLevel level, IGrid grid, IActionSource source, IColony colony,
-                   List<IItemHandler> racks, KeyCounter stock, KeyCounter taken, DeliveryLedger ledger,
+                   List<IItemHandler> racks, WarehouseSnapshot warehouse, KeyCounter stock, KeyCounter taken,
+                   DeliveryLedger ledger,
                    String colonyKey, long bridge, long now, boolean craftingEnabled) {
 
     /** Quanto do item a rede ainda tem neste ciclo. */

@@ -17,8 +17,8 @@ import java.util.function.Predicate;
 
 /**
  * Leitura e retirada de itens dos racks do armazém — o caminho oposto ao {@link RackDelivery}.
- * Usado pelo {@code SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME,
- * e pelo {@code BridgeLogic} para descontar do pedido o que o armazém já tem.
+ * Usado pelo {@code SupplyLogic} para contar o estoque da colônia e mandar o excedente para a rede ME.
+ * (A ponte usa o {@link WarehouseSnapshot}, que lê os racks uma vez por ciclo.)
  * <p>
  * Garantia contra perda e duplicação: cada retirada é simulada nos dois lados (rack e rede) antes de
  * valer; o que a rede não aceitar volta imediatamente para os racks.
@@ -33,11 +33,10 @@ public final class WarehouseStock {
     }
 
     /**
-     * Quanto existe nos racks de itens aceitos pelo filtro. Usado pela ponte para saber quanto de um
-     * pedido o armazém já tem. {@code Predicate<ItemStack>} ≈ {@code Func<ItemStack, bool>} em C#.
-     * O stack passado ao filtro é o do próprio rack: só pode ser lido, nunca modificado.
+     * Quanto existe nos racks de itens aceitos pelo filtro. {@code Predicate<ItemStack>} ≈
+     * {@code Func<ItemStack, bool>} em C#. O stack passado ao filtro é o do próprio rack: só leitura.
      */
-    public static long count(List<IItemHandler> racks, Predicate<ItemStack> filter) {
+    private static long count(List<IItemHandler> racks, Predicate<ItemStack> filter) {
         long total = 0;
         for (IItemHandler rack : racks) {
             for (int slot = 0; slot < rack.getSlots(); slot++) {

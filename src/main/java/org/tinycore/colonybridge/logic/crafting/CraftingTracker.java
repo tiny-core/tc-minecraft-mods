@@ -19,24 +19,34 @@ import java.util.Map;
 import java.util.concurrent.Future;
 
 /**
- * Agenda crafts no AE2 sem requester: o resultado entra na rede ME e o ciclo seguinte da ponte
- * ({@code BridgeLogic}) o entrega ao armazém. A quantidade pedida é só a que falta (a ponte já
- * desconta armazém e rede). Mais simples que um ICraftingRequester (não há links para persistir).
+ * Agenda crafts no AE2 para os pedidos da colônia, em duas etapas:
+ * <ol>
+ *   <li>{@link #tryStart}: pede ao AE2 o <b>cálculo</b> do plano (assíncrono, roda fora da thread do jogo);</li>
+ *   <li>{@link #poll} (a cada ciclo): quando o cálculo termina, <b>envia o job</b> com a ponte como dona
+ *       ({@link CraftLinks}), para o resultado ir direto ao armazém.</li>
+ * </ol>
+ * A quantidade pedida é só a que falta (a ponte já desconta armazém e rede). Também guarda a espera após
+ * falha (falta de material, sem CPU) e a blacklist da config.
  * <p>
- * Também lembra <b>qual item está sendo craftado para cada pedido</b> ({@link #remember}): num pedido por
- * tag a ponte escolhe o item, e nos ciclos seguintes precisa saber qual acompanhar. Essa memória não é
- * salva: depois de um reinício o craft continua no AE2 e a reserva no {@code DeliveryLedger} expira sozinha.
+ * "Qual craft está rodando para qual pedido" vem dos cálculos pendentes (em memória, duram segundos) e dos
+ * vínculos do {@link CraftLinks} (salvos no NBT), então sobrevive a reinícios.
  */
 public final class CraftingTracker {
 
-    private final Map<AEItemKey, Future<ICraftingPlan>> calculating = new HashMap<>();
-    private final Map<AEItemKey, Long> failedUntil = new HashMap<>();
-    /** Id do pedido → item que esta ponte está craftando para ele. */
-    private final Map<String, AEItemKey> byRequest = new HashMap<>();
+    /** Cálculo em andamento: o plano ainda não voltou do AE2. */
+    private record Pending(String colonyKey, String requestId, Future<ICraftingPlan> plan) {}
 
-    /** true se já existe um craft em cálculo ou a correr para este item. */
+    private final CraftLinks links;
+    private final Map<AEItemKey, Pending> calculating = new HashMap<>();
+    private final Map<AEItemKey, Long> failedUntil = new HashMap<>();
+
+    public CraftingTracker(CraftLinks links) {
+        this.links = links;
+    }
+
+    /** true se já existe um craft em cálculo ou a correr para este item (desta ponte ou de qualquer um). */
     public boolean isBusy(ICraftingService crafting, AEItemKey key) {
-        return calculating.containsKey(key) || crafting.isRequesting(key);
+        return calculating.containsKey(key) || links.isCrafting(key) || crafting.isRequesting(key);
     }
 
     /**
@@ -48,79 +58,73 @@ public final class CraftingTracker {
         return (until == null || until <= level.getGameTime()) && !isBlacklisted(key) && !isBusy(crafting, key);
     }
 
-    /** Anota que o craft de {@code key} foi iniciado para o pedido {@code requestId}. */
-    public void remember(String requestId, AEItemKey key) {
-        byRequest.put(requestId, key);
-    }
-
-    /** Item anotado para o pedido, sem conferir se o craft ainda roda (use {@link #activeFor} para isso). */
-    public @Nullable AEItemKey remembered(String requestId) {
-        return byRequest.get(requestId);
-    }
-
-    /**
-     * Item que esta ponte ainda está craftando para o pedido, ou null. Quando o craft já terminou (ou
-     * falhou), a anotação é descartada.
-     */
-    public @Nullable AEItemKey activeFor(String requestId, ICraftingService crafting) {
-        AEItemKey key = byRequest.get(requestId);
-        if (key != null && !isBusy(crafting, key)) {
-            byRequest.remove(requestId);
-            return null;
+    /** Item que esta ponte está calculando ou craftando para o pedido, ou null. */
+    public @Nullable AEItemKey activeFor(String requestId) {
+        for (Map.Entry<AEItemKey, Pending> entry : calculating.entrySet()) {
+            if (entry.getValue().requestId().equals(requestId)) {
+                return entry.getKey();
+            }
         }
-        return key;
+        CraftLinks.Job job = links.activeFor(requestId);
+        return job == null ? null : job.item();
     }
 
-    public boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount) {
+    public boolean tryStart(ServerLevel level, IGrid grid, IActionSource source, AEItemKey key, long amount,
+                            String colonyKey, String requestId) {
         ICraftingService crafting = grid.getCraftingService();
         if (!canTry(level, crafting, key) || !crafting.isCraftable(key)) {
             return false;
         }
         long capped = Math.min(amount, Config.MAX_CRAFT_PER_REQUEST.get());
-        calculating.put(key, crafting.beginCraftingCalculation(level, () -> source, key, capped,
-                CalculationStrategy.REPORT_MISSING_ITEMS));
+        calculating.put(key, new Pending(colonyKey, requestId, crafting.beginCraftingCalculation(level,
+                () -> source, key, capped, CalculationStrategy.REPORT_MISSING_ITEMS)));
         return true;
     }
 
-    /** Submete os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
+    /** Envia os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
     public void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
         long now = level.getGameTime();
         // Esperas vencidas não servem mais: sem isto o mapa só cresceria enquanto a ponte existir.
         failedUntil.values().removeIf(until -> until <= now);
-        // Pedidos que sumiram antes de o craft terminar deixariam anotações para sempre.
-        ICraftingService craftingService = grid.getCraftingService();
-        byRequest.values().removeIf(key -> !isBusy(craftingService, key));
-        Iterator<Map.Entry<AEItemKey, Future<ICraftingPlan>>> it = calculating.entrySet().iterator();
+        Iterator<Map.Entry<AEItemKey, Pending>> it = calculating.entrySet().iterator();
         while (it.hasNext()) {
             var entry = it.next();
-            if (!entry.getValue().isDone()) {
+            Pending pending = entry.getValue();
+            if (!pending.plan().isDone()) {
                 continue;
             }
             it.remove();
             AEItemKey key = entry.getKey();
             try {
-                ICraftingPlan plan = entry.getValue().get();
+                ICraftingPlan plan = pending.plan().get();
                 if (plan.simulation()) {
                     // faltam materiais: não submete, espera antes de tentar de novo
                     fail(key, now, "faltam materiais", stats);
                     continue;
                 }
-                var result = grid.getCraftingService().submitJob(plan, null, null, false, source);
-                if (result.successful()) {
-                    stats.recordCraftStarted(now);
-                } else {
+                // A ponte como requester: o resultado volta por CraftLinks.insertCraftedItems.
+                var result = grid.getCraftingService().submitJob(plan, links, null, false, source);
+                if (!result.successful()) {
                     fail(key, now, String.valueOf(result.errorCode()), stats);
+                    continue;
                 }
+                if (result.link() != null) {
+                    links.add(result.link(), new CraftLinks.Job(pending.colonyKey(), pending.requestId(), key));
+                }
+                stats.recordCraftStarted(now);
             } catch (Exception e) {
                 fail(key, now, e.getMessage(), stats);
             }
         }
     }
 
+    /**
+     * Rede caiu: descarta os cálculos em andamento. Os jobs já enviados continuam no AE2 e os vínculos
+     * ficam no {@link CraftLinks}.
+     */
     public void clear() {
-        calculating.values().forEach(f -> f.cancel(true));
+        calculating.values().forEach(p -> p.plan().cancel(true));
         calculating.clear();
-        byRequest.clear();
     }
 
     private void fail(AEItemKey key, long now, String reason, BridgeStats stats) {

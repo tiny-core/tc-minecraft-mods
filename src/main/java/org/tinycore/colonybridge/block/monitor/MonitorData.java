@@ -52,7 +52,7 @@ public record MonitorData(LinkState link, BridgeStatus status, String colonyName
         tag.putInt("open", openRequests);
         StatsSummary.Totals t = stats.totals();
         tag.putLongArray("totals", new long[]{t.itemsLastHour(), t.requestsLastHour(), t.itemsWindow(),
-                t.requestsWindow(), t.craftsStarted(), t.craftsFailed()});
+                t.requestsWindow(), t.craftsStarted(), t.craftsFailed(), t.craftsDone()});
         tag.putInt("hours", stats.windowHours());
         tag.putIntArray("chart", stats.chart().stream().mapToInt(Integer::intValue).toArray());
         ListTag top = new ListTag();
@@ -73,8 +73,8 @@ public record MonitorData(LinkState link, BridgeStatus status, String colonyName
 
     /** Lê com limites (índices de enum, tamanho de listas): o dado vem da rede. */
     public static MonitorData load(CompoundTag tag, HolderLookup.Provider registries) {
-        long[] t = Arrays.copyOf(tag.getLongArray("totals"), 6);
-        StatsSummary.Totals totals = new StatsSummary.Totals(t[0], t[1], t[2], t[3], t[4], t[5]);
+        long[] t = Arrays.copyOf(tag.getLongArray("totals"), 7); // dados antigos (6 valores): o 7º fica 0
+        StatsSummary.Totals totals = new StatsSummary.Totals(t[0], t[1], t[2], t[3], t[4], t[5], t[6]);
         int[] chartRaw = tag.getIntArray("chart");
         List<Integer> chart = Arrays.stream(chartRaw, 0, Math.min(chartRaw.length, StatsSummary.MAX_CHART))
                 .boxed().toList();

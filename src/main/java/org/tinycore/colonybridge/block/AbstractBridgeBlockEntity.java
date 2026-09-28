@@ -67,6 +67,14 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
         this.actionSource = IActionSource.ofMachine(this);
     }
 
+    /**
+     * Nó ME gerenciado, para a subclasse registrar serviços no construtor (ex.: o requester de crafts).
+     * O AE2 só lê os serviços quando o nó é criado ({@link #onLoad}), então registrar depois não vale.
+     */
+    protected IManagedGridNode managedNode() {
+        return mainNode;
+    }
+
     // ---------------------------------------------------------------- o que cada bloco define
 
     /** Trabalho do bloco, com a rede ME ativa e sem pausa por redstone. */

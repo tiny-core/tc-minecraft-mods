@@ -9,5 +9,7 @@ enum StatMetric {
     /** Jobs de craft enviados com sucesso ao AE2. */
     CRAFTS_STARTED,
     /** Tentativas de craft que falharam (falta de material, sem CPU...). */
-    CRAFTS_FAILED
+    CRAFTS_FAILED,
+    /** Jobs de craft terminados pelo AE2 (resultado entregue ao armazém pela ponte). Novo: fica no fim. */
+    CRAFTS_DONE
 }

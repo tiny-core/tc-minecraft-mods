@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.block.bridge;
 
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IGridNode;
+import appeng.api.networking.crafting.ICraftingRequester;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -16,6 +17,8 @@ import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
+import org.tinycore.colonybridge.logic.bridge.CraftDelivery;
+import org.tinycore.colonybridge.logic.crafting.CraftLinks;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
 import org.tinycore.colonybridge.logic.crafting.CraftRules;
 import org.tinycore.colonybridge.logic.crafting.CraftableMods;
@@ -38,6 +41,12 @@ import java.util.Set;
  */
 public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
 
+    /**
+     * Requester dos crafts (resultado direto no armazém). Declarado <b>antes</b> do {@code logic}: campos
+     * são inicializados na ordem em que aparecem, e o {@code BridgeLogic} já usa este objeto ao ser criado.
+     */
+    private final CraftLinks craftLinks = new CraftLinks(this::getActionableNode, new CraftDelivery(this),
+            this::setChanged);
     private final BridgeLogic logic = new BridgeLogic(this);
     private final ItemFilter filter = new ItemFilter();
     private final PreferredItems preferred = new PreferredItems();
@@ -50,6 +59,8 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
 
     public ColonyBridgeBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLONY_BRIDGE.get(), pos, state, ModItems.COLONY_BRIDGE.get(), 4.0);
+        // O AE2 procura o requester pelos serviços do nó ME; precisa ser registrado antes de o nó ser criado.
+        managedNode().addService(ICraftingRequester.class, craftLinks);
     }
 
     // ---------------------------------------------------------------- ciclo
@@ -94,6 +105,15 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
 
     public ItemFilter getFilter() {
         return filter;
+    }
+
+    public CraftLinks craftLinks() {
+        return craftLinks;
+    }
+
+    /** Roda um ciclo no próximo tick (ex.: um craft acabou de terminar). */
+    public void requestCycle() {
+        forceCycleNextTick();
     }
 
     public PreferredItems getPreferred() {
@@ -179,6 +199,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
         tag.put("craft", craftSettings.save());
         tag.put("filter", filter.save(registries));
         tag.put("preferred", preferred.save(registries));
+        tag.put("craftLinks", craftLinks.save(registries));
         tag.put("stats", stats.save());
     }
 
@@ -189,6 +210,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
         craftSettings = CraftSettings.load(tag.getCompound("craft"));
         filter.load(tag.getCompound("filter"), registries);
         preferred.load(tag.getCompound("preferred"), registries);
+        craftLinks.load(CraftLinks.listFrom(tag, "craftLinks"), registries);
         stats.load(tag.getCompound("stats"));
     }
 }

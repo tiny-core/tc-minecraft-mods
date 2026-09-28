@@ -22,16 +22,18 @@ import org.tinycore.colonybridge.logic.crafting.CraftingTracker;
  *       preferência, itens preferidos e mods), completadas pela config do servidor.</li>
  * </ul>
  * Em ambos, enquanto o craft roda o pedido fica reservado para esta ponte no {@link DeliveryLedger}
- * (renovado a cada ciclo), e o {@link CraftingTracker} guarda qual item acompanhar.
+ * (renovado a cada ciclo). O resultado vai direto para o armazém ({@code CraftLinks}/{@link CraftDelivery});
+ * quando o job termina, a ponte roda um ciclo e reatribui o pedido.
  */
 final class RequestCrafter {
 
     private final ColonyBridgeBlockEntity host;
-    private final CraftingTracker tracker = new CraftingTracker();
+    private final CraftingTracker tracker;
     private final CraftCandidates candidates = new CraftCandidates();
 
     RequestCrafter(ColonyBridgeBlockEntity host) {
         this.host = host;
+        this.tracker = new CraftingTracker(host.craftLinks());
     }
 
     CraftingTracker tracker() {
@@ -54,7 +56,7 @@ final class RequestCrafter {
      * demais casos (pedido exato já mostra o próprio item).
      */
     @Nullable AEItemKey chosenItem(OpenRequest request, RequestOutcome outcome) {
-        return request.isExact() || !outcome.isCraftActive() ? null : tracker.remembered(request.id());
+        return request.isExact() || !outcome.isCraftActive() ? null : tracker.activeFor(request.id());
     }
 
     /** Crafta {@code shortfall} unidades do item exato do pedido. */
@@ -80,7 +82,7 @@ final class RequestCrafter {
      */
     RequestOutcome craftMatching(BridgeCycle c, OpenRequest request, long shortfall, boolean mayStart) {
         ICraftingService crafting = c.grid().getCraftingService();
-        if (tracker.activeFor(request.id(), crafting) != null) {
+        if (tracker.activeFor(request.id()) != null) {
             return stillCrafting(c, request);
         }
         if (!mayStart || !tagCraftingEnabled()) {
@@ -108,10 +110,9 @@ final class RequestCrafter {
         if (!c.craftingEnabled()) {
             return RequestOutcome.CRAFTING_DISABLED;
         }
-        if (!tracker.tryStart(c.level(), c.grid(), c.source(), key, shortfall)) {
+        if (!tracker.tryStart(c.level(), c.grid(), c.source(), key, shortfall, c.colonyKey(), request.id())) {
             return RequestOutcome.NOT_CRAFTABLE;
         }
-        tracker.remember(request.id(), key);
         // Reserva o pedido: outras pontes não craftam para ele; esta entrega quando ficar pronto.
         c.ledger().markCrafting(c.colonyKey(), request.id(), c.bridge(), c.now());
         return RequestOutcome.CRAFT_STARTED;

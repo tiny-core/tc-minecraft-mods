@@ -39,7 +39,7 @@ Ordem pensada para cada fase entregar algo jogável e reduzir risco antes da par
 
 > **Feita:** por ponte, em `stats/` — contadores em ring buffer (288 × 5 min), ranking aproximado
 > (24 grupos × 16 itens), NBT do block entity, aba "Estatísticas" e `BarChart` em `client/ui/`.
-> Não mede "craft concluído" (depende de `ICraftingRequester`, Fase 6).
+> "Crafts concluídos" medido desde a Fase 6b (com `ICraftingRequester`); aparece no monitor com 4+ blocos de largura.
 
 **Objetivo:** dados que depois alimentam os monitores.
 
@@ -113,8 +113,8 @@ pacotes que o monitor precisa.
 > custo invertido ou lista da config; opção "só vanilla". Falha de material → tenta o próximo candidato.
 > **Feito:** preferência por ponte na tela (abas Geral, Preferidos e Mods), com a config do servidor como padrão.
 
-- Trocar "craft sem requester" por `ICraftingRequester`: o resultado vai direto para o armazém, sem
-  passar pela rede. Exige persistir os `ICraftingLink` em NBT.
+- ~~Trocar "craft sem requester" por `ICraftingRequester`~~ — **feito (6b):** `CraftLinks` + `CraftDelivery`,
+  vínculos salvos no NBT, métrica "crafts concluídos" no monitor.
 
 ---
 

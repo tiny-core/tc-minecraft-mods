@@ -15,9 +15,11 @@ A cada ciclo (`cycleTicks`, 5 s por padrão):
 1. Lê os pedidos em aberto (resolver do jogador + resolver de novas tentativas).
 2. Desconta o que o armazém já tem. Se já basta, nada sai da rede: a ponte só reatribui o pedido.
 3. Se a rede cobre a falta → move **só a falta** para os racks do armazém e reatribui o pedido; um courier entrega.
-4. Se não cobre e é um pedido de item exato → agenda autocrafting **só da diferença** (falta − estoque da rede;
-   sem requester: o resultado entra na rede e tudo é entregue num ciclo seguinte). Se não der para craftar,
-   entrega o que houver na rede.
+4. Se não cobre e é um pedido de item exato → agenda autocrafting **só da diferença** (falta − estoque da rede).
+   A ponte é a dona do craft no AE2: o resultado vai **direto para os racks do armazém**, sem passar pela rede
+   (o que não couber vai para a rede e é entregue no ciclo seguinte). Quando o job termina, a ponte entrega o
+   resto que já estava na rede e reatribui o pedido. Crafts em andamento sobrevivem a reinícios; cancelar o
+   job no terminal do AE2 libera o pedido. Se não der para craftar, entrega o que houver na rede.
 5. Pedido por **tag/ferramenta/comida** sem nenhum item compatível na rede → a ponte escolhe um item craftável
    que o pedido aceite e crafta a falta; a tela mostra o item escolhido (ex.: "Qualquer picareta → Picareta
    de Pedra"). Se a rede tiver **vários** itens compatíveis (ex.: tábuas de carvalho e de bétula), a ponte
