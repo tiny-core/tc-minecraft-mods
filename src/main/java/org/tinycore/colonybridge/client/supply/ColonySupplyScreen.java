@@ -8,8 +8,8 @@ import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ui.FlatButton;
+import org.tinycore.colonybridge.client.ui.ScreenStyle;
 import org.tinycore.colonybridge.client.ui.StatusColors;
-import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.client.ui.UiFormat;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
@@ -28,7 +28,7 @@ import java.util.List;
 public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu> {
 
     private static final int WIDTH = 236;
-    private static final int HEIGHT = 204;
+    private static final int HEIGHT = 226;
     private static final int PADDING = 8;
 
     private FlatButton redstoneButton;
@@ -45,7 +45,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     @Override
     protected void init() {
         super.init();
-        redstoneButton = addRenderableWidget(new FlatButton(leftPos + WIDTH - PADDING - 90, topPos + 20, 90, 14,
+        // Linha própria, largura toda: não disputa espaço com o nome da colônia (que pode ser longo).
+        redstoneButton = addRenderableWidget(new FlatButton(leftPos + PADDING, topPos + 34, WIDTH - PADDING * 2, 14,
                 Component.empty(), this::cycleRedstone));
         lastSeen = null; // força copiar o snapshot atual
     }
@@ -79,38 +80,38 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         SupplySnapshot snap = menu.getSnapshot();
         int x = leftPos;
         int y = topPos;
-        g.fill(x, y, x + WIDTH, y + HEIGHT, UiColors.BACKGROUND);
-        g.fill(x, y, x + WIDTH, y + 2, UiColors.ACCENT);
+        int inner = WIDTH - PADDING * 2;
+        ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
 
-        g.drawString(font, title, x + PADDING, y + 8, UiColors.ACCENT, false);
+        // Estado à direita primeiro: o título usa o espaço que sobrar (corta com "…" se preciso).
+        Component status = Component.translatable(snap.status().guiKey());
+        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 8, inner / 2,
+                ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 8, StatusColors.of(snap.status()));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 8, inner - statusWidth - 16, ScreenStyle.TEXT);
         Component colony = snap.colonyName().isEmpty()
                 ? Component.translatable("gui.tccolonybridge.no_colony")
                 : Component.literal(snap.colonyName());
-        g.drawString(font, colony, x + PADDING, y + 22, UiColors.HIGHLIGHT, false);
+        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 20, inner, ScreenStyle.INFO);
 
-        Component status = Component.translatable(snap.status().guiKey());
-        g.fill(x + PADDING, y + 36, x + PADDING + 4, y + 40, StatusColors.of(snap.status()));
-        g.drawString(font, status, x + PADDING + 8, y + 34, UiColors.TEXT, false);
-
-        section(g, x, y + ColonySupplyMenu.KEEP_Y - 12, Component.translatable("gui.tccolonybridge.supply.keep"));
-        section(g, x, y + ColonySupplyMenu.SURPLUS_Y - 12, Component.translatable("gui.tccolonybridge.supply.surplus"));
+        section(g, x, y + ColonySupplyMenu.KEEP_Y - 11, Component.translatable("gui.tccolonybridge.supply.keep"));
+        section(g, x, y + ColonySupplyMenu.SURPLUS_Y - 11, Component.translatable("gui.tccolonybridge.supply.surplus"));
+        section(g, x, y + ColonySupplyMenu.INVENTORY_Y - 11, Component.translatable("gui.tccolonybridge.inventory"));
         renderSlots(g, x, y);
-        g.drawString(font, Component.translatable("gui.tccolonybridge.supply.hint"),
-                x + PADDING, y + HEIGHT - 12, UiColors.TEXT_MUTED, false);
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.supply.hint"),
+                x + PADDING, y + HEIGHT - 13, inner, ScreenStyle.TEXT_MUTED);
     }
 
+    /** Título de seção alinhado com os slots, como no terminal do AE2. */
     private void section(GuiGraphics g, int x, int y, Component label) {
-        g.drawString(font, label, x + PADDING, y, UiColors.TEXT_MUTED, false);
+        ScreenStyle.drawFitted(g, font, label, x + ColonySupplyMenu.LIST_X, y,
+                WIDTH - ColonySupplyMenu.LIST_X - PADDING, ScreenStyle.TEXT);
     }
 
     /** Fundo dos slots e, sobre cada linha configurada, a quantidade alvo. */
     private void renderSlots(GuiGraphics g, int x, int y) {
         for (Slot slot : menu.slots) {
-            int sx = x + slot.x - 1;
-            int sy = y + slot.y - 1;
-            boolean stock = slot.index < StockList.SIZE;
-            g.fill(sx, sy, sx + 18, sy + 18, stock ? UiColors.ACCENT : UiColors.BORDER);
-            g.fill(sx + 1, sy + 1, sx + 17, sy + 17, UiColors.PANEL);
+            ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
         }
         for (int i = 0; i < StockList.SIZE && i < menu.slots.size(); i++) {
             Slot slot = menu.slots.get(i);
@@ -121,7 +122,7 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
             g.pose().pushPose();
             g.pose().translate(x + slot.x + 17f - font.width(amount) * 0.6f, y + slot.y + 10f, 200);
             g.pose().scale(0.6f, 0.6f, 1f);
-            g.drawString(font, amount, 0, 0, UiColors.TEXT, true);
+            g.drawString(font, amount, 0, 0, 0xFFFFFFFF, true); // branco com sombra, como a contagem de itens
             g.pose().popPose();
         }
     }

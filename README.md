@@ -46,7 +46,7 @@ Clique direito abre a tela (para quem tem permissão na colônia; fora de colôn
   - 18 slots "fantasma": clique com um item na mão para copiá-lo (o item continua com você), mão vazia ou
     shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
   - com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
-- **Preferidos:** 9 slots fantasma com a ordem usada pela "Lista de preferidos" (1º slot primeiro). Vazio =
+- **Preferidos:** 18 slots fantasma com a ordem usada pela "Lista de preferidos" (1º slot primeiro). Vazio =
   usa `tagCraftPreferredItems` da config do servidor.
 - **Mods:** modo **Todos / Só os marcados / Todos menos os marcados / Preferir os marcados** e a lista dos mods
   que a rede ME sabe craftar; clique para marcar.

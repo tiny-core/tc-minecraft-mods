@@ -10,8 +10,8 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.block.bridge.CraftSettings;
 import org.tinycore.colonybridge.client.ui.FlatButton;
+import org.tinycore.colonybridge.client.ui.ScreenStyle;
 import org.tinycore.colonybridge.client.ui.StatusColors;
-import org.tinycore.colonybridge.client.ui.UiColors;
 import org.tinycore.colonybridge.logic.bridge.RequestCounts;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
 import org.tinycore.colonybridge.menu.bridge.BridgeSnapshot;
@@ -30,11 +30,11 @@ import java.util.Set;
  * <ul>
  *   <li><b>Geral:</b> resumo dos pedidos, crafting on/off, redstone e preferência de craft por tag;</li>
  *   <li><b>Filtro:</b> modo do filtro, tipo de comparação, 18 ghost slots e o inventário;</li>
- *   <li><b>Preferidos:</b> 9 ghost slots com a ordem de preferência do modo "Lista";</li>
+ *   <li><b>Preferidos:</b> 18 ghost slots com a ordem de preferência do modo "Lista";</li>
  *   <li><b>Mods:</b> modo de mods e a lista de mods craftáveis da rede ({@link ModListView}).</li>
  * </ul>
  * A lista de pedidos e as estatísticas ficam nos monitores; aqui só o resumo.
- * Não tem textura: tudo é desenhado com retângulos e texto usando {@link UiColors}. Os dados vêm do
+ * Visual dos terminais do AE2, desenhado por código ({@link ScreenStyle}). Os dados vêm do
  * {@link BridgeSnapshot} guardado no menu; os botões mandam pacotes e o servidor decide se aplica.
  */
 public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu> {
@@ -46,7 +46,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     private static final int ROW1_Y = 54;
     private static final int ROW2_Y = 74;
     private static final int MOD_LIST_Y = 76;
-    private static final int MOD_LIST_HEIGHT = 132;
+    private static final int MOD_LIST_HEIGHT = 120;
 
     /** Criada no init(): a fonte da tela só existe depois dele. */
     private ModListView modList;
@@ -177,35 +177,36 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         BridgeSnapshot snap = menu.getSnapshot();
         int x = leftPos;
         int y = topPos;
-        g.fill(x, y, x + WIDTH, y + HEIGHT, UiColors.BACKGROUND);
-        g.fill(x, y, x + WIDTH, y + 2, UiColors.ACCENT);
+        int inner = WIDTH - PADDING * 2;
+        ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
 
-        g.drawString(font, title, x + PADDING, y + 8, UiColors.ACCENT, false);
+        // Estado à direita primeiro: o título usa o espaço que sobrar (corta com "…" se preciso).
+        Component status = Component.translatable(snap.status().guiKey());
+        int statusWidth = ScreenStyle.drawFittedRight(g, font, status, x + WIDTH - PADDING, y + 8, inner / 2,
+                ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 8, StatusColors.of(snap.status()));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 8, inner - statusWidth - 16, ScreenStyle.TEXT);
         Component colony = snap.colonyName().isEmpty()
                 ? Component.translatable("gui.tccolonybridge.no_colony")
                 : Component.literal(snap.colonyName());
-        g.drawString(font, colony, x + PADDING, y + 20, UiColors.HIGHLIGHT, false);
-
-        Component status = Component.translatable(snap.status().guiKey());
-        int statusX = x + WIDTH - PADDING - font.width(status);
-        g.fill(statusX - 9, y + 22, statusX - 4, y + 27, StatusColors.of(snap.status()));
-        g.drawString(font, status, statusX, y + 20, UiColors.TEXT, false);
+        ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 20, inner, ScreenStyle.INFO);
 
         switch (tab) {
             case GENERAL -> renderGeneral(g, snap.counts(), x + PADDING, y + ROW2_Y + 26);
             case FILTER -> renderSlots(g, x, y, "gui.tccolonybridge.filter_hint");
             case PREFERRED -> {
-                g.drawString(font, Component.translatable("gui.tccolonybridge.preferred.info"),
-                        x + PADDING, y + ROW1_Y + 4, UiColors.TEXT, false);
-                g.drawString(font, Component.translatable("gui.tccolonybridge.preferred.fallback"),
-                        x + PADDING, y + ROW1_Y + 14, UiColors.TEXT_MUTED, false);
+                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.preferred.info"),
+                        x + PADDING, y + ROW1_Y + 2, inner, ScreenStyle.TEXT);
+                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.preferred.fallback"),
+                        x + PADDING, y + ROW1_Y + 13, inner, ScreenStyle.TEXT_MUTED);
                 renderSlots(g, x, y, "gui.tccolonybridge.filter_hint");
             }
             case MODS -> {
-                modList.render(g, markedMods, x + PADDING, y + MOD_LIST_Y, WIDTH - PADDING * 2, MOD_LIST_HEIGHT,
+                ScreenStyle.inset(g, x + PADDING, y + MOD_LIST_Y - 2, inner, MOD_LIST_HEIGHT + 4, ScreenStyle.SLOT);
+                modList.render(g, markedMods, x + PADDING + 2, y + MOD_LIST_Y, inner - 4, MOD_LIST_HEIGHT,
                         mouseX, mouseY);
-                g.drawString(font, Component.translatable("gui.tccolonybridge.mods.hint"),
-                        x + PADDING, y + HEIGHT - 12, UiColors.TEXT_MUTED, false);
+                ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.mods.hint"),
+                        x + PADDING, y + HEIGHT - 13, inner, ScreenStyle.TEXT_MUTED);
             }
         }
     }
@@ -214,35 +215,36 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     private void renderGeneral(GuiGraphics g, RequestCounts counts, int x, int y) {
         int inner = WIDTH - PADDING * 2;
         int cardWidth = (inner - 3 * 4) / 4;
-        card(g, x, y, cardWidth, "gui.tccolonybridge.count.total", counts.total(), UiColors.TEXT);
-        card(g, x + (cardWidth + 4), y, cardWidth, "gui.tccolonybridge.count.served", counts.served(), UiColors.SUCCESS);
+        card(g, x, y, cardWidth, "gui.tccolonybridge.count.total", counts.total(), ScreenStyle.TEXT);
+        card(g, x + (cardWidth + 4), y, cardWidth, "gui.tccolonybridge.count.served", counts.served(),
+                ScreenStyle.SUCCESS);
         card(g, x + (cardWidth + 4) * 2, y, cardWidth, "gui.tccolonybridge.count.crafting", counts.crafting(),
-                UiColors.HIGHLIGHT);
+                ScreenStyle.INFO);
         card(g, x + (cardWidth + 4) * 3, y, cardWidth, "gui.tccolonybridge.count.pending", counts.pending(),
-                counts.pending() > 0 ? UiColors.WARNING : UiColors.TEXT_MUTED);
+                counts.pending() > 0 ? ScreenStyle.WARNING : ScreenStyle.TEXT_MUTED);
         g.drawWordWrap(font, Component.translatable("gui.tccolonybridge.monitor_hint"), x, y + 44, inner,
-                UiColors.TEXT_MUTED);
+                ScreenStyle.TEXT_MUTED);
     }
 
     private void card(GuiGraphics g, int x, int y, int width, String labelKey, int value, int color) {
-        g.fill(x, y, x + width, y + 34, UiColors.PANEL);
-        g.drawString(font, Component.translatable(labelKey), x + 4, y + 4, UiColors.TEXT_MUTED, false);
-        g.drawString(font, String.valueOf(value), x + 4, y + 18, color, false);
+        ScreenStyle.inset(g, x, y, width, 36, ScreenStyle.SLOT);
+        ScreenStyle.drawFitted(g, font, Component.translatable(labelKey), x + 4, y + 4, width - 8,
+                ScreenStyle.TEXT_MUTED);
+        ScreenStyle.drawFitted(g, font, Component.literal(String.valueOf(value)), x + 4, y + 20, width - 8, color);
     }
 
-    /** Fundo dos slots visíveis (os itens são desenhados pelo próprio AbstractContainerScreen). */
+    /** Fundo dos slots visíveis, título "Inventário" e a dica da aba. */
     private void renderSlots(GuiGraphics g, int x, int y, String hintKey) {
         for (Slot slot : menu.slots) {
-            if (!slot.isActive()) {
-                continue;
+            if (slot.isActive()) {
+                ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
             }
-            int sx = x + slot.x - 1;
-            int sy = y + slot.y - 1;
-            boolean ghost = slot.index < ColonyBridgeMenu.GHOST_COUNT;
-            g.fill(sx, sy, sx + 18, sy + 18, ghost ? UiColors.ACCENT : UiColors.BORDER);
-            g.fill(sx + 1, sy + 1, sx + 17, sy + 17, UiColors.PANEL);
         }
-        g.drawString(font, Component.translatable(hintKey), x + PADDING, y + HEIGHT - 14, UiColors.TEXT_MUTED, false);
+        int inner = WIDTH - PADDING * 2;
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"),
+                x + ColonyBridgeMenu.FILTER_X, y + ColonyBridgeMenu.INVENTORY_Y - 11, inner, ScreenStyle.TEXT);
+        ScreenStyle.drawFitted(g, font, Component.translatable(hintKey), x + PADDING, y + HEIGHT - 13, inner,
+                ScreenStyle.TEXT_MUTED);
     }
 
     /** Título e inventário já são desenhados em renderBg; aqui não desenha nada. */

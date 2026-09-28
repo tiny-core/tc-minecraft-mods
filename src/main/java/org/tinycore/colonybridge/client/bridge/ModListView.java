@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.client.ui.UiColors;
+import org.tinycore.colonybridge.client.ui.ScreenStyle;
 
 import java.util.List;
 import java.util.Set;
@@ -44,8 +44,8 @@ final class ModListView {
     void render(GuiGraphics g, Set<String> marked, int x, int y, int width, int height, int mouseX, int mouseY) {
         lastHeight = height;
         if (mods.isEmpty()) {
-            g.drawString(font, Component.translatable("gui.tccolonybridge.mods.empty"), x, y + 2,
-                    UiColors.TEXT_MUTED, false);
+            ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.mods.empty"), x + 2, y + 2,
+                    width - 4, ScreenStyle.TEXT_MUTED);
             return;
         }
         int rows = visibleRows(height);
@@ -53,22 +53,20 @@ final class ModListView {
             String mod = mods.get(scroll + i);
             int rowY = y + i * ROW_HEIGHT;
             if (mouseX >= x && mouseX < x + width && mouseY >= rowY && mouseY < rowY + ROW_HEIGHT) {
-                g.fill(x, rowY, x + width, rowY + ROW_HEIGHT, UiColors.PANEL_HOVER);
+                g.fill(x, rowY, x + width, rowY + ROW_HEIGHT, ScreenStyle.WINDOW);
             }
-            boolean checked = marked.contains(mod);
             int boxY = rowY + (ROW_HEIGHT - BOX) / 2;
-            g.fill(x + 2, boxY, x + 2 + BOX, boxY + BOX, checked ? UiColors.ACCENT : UiColors.BORDER);
-            g.fill(x + 3, boxY + 1, x + 1 + BOX, boxY + BOX - 1, checked ? UiColors.ACCENT : UiColors.PANEL);
-            int idWidth = font.width(mod);
-            int nameWidth = width - idWidth - BOX - 14; // corta o nome para não encostar no id
-            g.drawString(font, font.plainSubstrByWidth(displayName(mod), nameWidth), x + BOX + 6, rowY + 2,
-                    UiColors.TEXT, false);
-            g.drawString(font, mod, x + width - idWidth - 2, rowY + 2, UiColors.TEXT_MUTED, false);
+            ScreenStyle.inset(g, x + 2, boxY, BOX, BOX, marked.contains(mod) ? ScreenStyle.INFO : ScreenStyle.LIGHT);
+            // id à direita (até 40% da linha) e nome no espaço que sobrar, ambos cortados com "…"
+            int idWidth = ScreenStyle.drawFittedRight(g, font, Component.literal(mod), x + width - 2, rowY + 2,
+                    width * 2 / 5, ScreenStyle.TEXT_MUTED);
+            ScreenStyle.drawFitted(g, font, Component.literal(displayName(mod)), x + BOX + 6, rowY + 2,
+                    width - BOX - idWidth - 14, ScreenStyle.TEXT);
         }
         if (mods.size() > rows) {
             Component more = Component.literal((scroll + 1) + "–" + Math.min(scroll + rows, mods.size())
                     + " / " + mods.size());
-            g.drawString(font, more, x + width - font.width(more), y + height + 2, UiColors.TEXT_MUTED, false);
+            ScreenStyle.drawFittedRight(g, font, more, x + width, y + height + 4, width, ScreenStyle.TEXT_MUTED);
         }
     }
 

@@ -17,7 +17,7 @@ import java.util.List;
  */
 public final class PreferredItems {
 
-    public static final int SIZE = 9;
+    public static final int SIZE = 18;
 
     private final NonNullList<ItemStack> items = NonNullList.withSize(SIZE, ItemStack.EMPTY);
 

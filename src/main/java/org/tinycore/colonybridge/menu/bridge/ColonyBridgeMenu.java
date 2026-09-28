@@ -23,7 +23,7 @@ import org.tinycore.colonybridge.registry.ModMenus;
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:
  * o menu (existe no servidor <b>e</b> no cliente) e a {@code Screen} (só no cliente, em {@code client/}).
  * <p>
- * Slots: 0..17 são os ghost slots do filtro, 18..26 os dos itens preferidos ({@link AbstractGhostMenu}),
+ * Slots: 0..17 são os ghost slots do filtro, 18..35 os dos itens preferidos ({@link AbstractGhostMenu}),
  * e depois o inventário do jogador (só para pegar itens e clicar nos ghost slots). No cliente cada grupo
  * só aparece na sua aba ({@link BridgeTab}); o inventário, nas abas "Filtro" e "Preferidos".
  * <p>
@@ -85,7 +85,8 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
             addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, () -> isVisible(BridgeTab.FILTER));
         }
         for (int i = 0; i < PreferredItems.SIZE; i++) {
-            addGhostSlot(PREFERRED_START + i, FILTER_X + i * 18, FILTER_Y, () -> isVisible(BridgeTab.PREFERRED));
+            addGhostSlot(PREFERRED_START + i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18,
+                    () -> isVisible(BridgeTab.PREFERRED));
         }
         addPlayerInventory(inventory, FILTER_X, INVENTORY_Y, HOTBAR_Y,
                 () -> bridge != null || tab.showsInventory());

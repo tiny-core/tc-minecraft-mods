@@ -143,5 +143,6 @@
   "gui.tccolonybridge.count.served": "Served",
   "gui.tccolonybridge.count.crafting": "Crafting",
   "gui.tccolonybridge.count.pending": "Pending",
-  "gui.tccolonybridge.monitor_hint": "Per-request details and statistics are shown on a Colony Monitor linked to this bridge."
+  "gui.tccolonybridge.monitor_hint": "Per-request details and statistics are shown on a Colony Monitor linked to this bridge.",
+  "gui.tccolonybridge.inventory": "Inventory"
 }

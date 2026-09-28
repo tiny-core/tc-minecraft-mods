@@ -1,8 +1,9 @@
 package org.tinycore.colonybridge.client.ui;
 
 /**
- * Tokens de cor da interface do mod (paleta do TCMine), no formato ARGB que o {@code GuiGraphics} usa:
- * {@code 0xAARRGGBB}. Centralizar aqui mantém telas e, no futuro, os monitores com a mesma identidade.
+ * Tokens de cor dos <b>monitores</b> (tema escuro de display, paleta do TCMine), no formato ARGB que o
+ * {@code GuiGraphics} usa: {@code 0xAARRGGBB}. As telas (interfaces) usam {@link ScreenStyle}, no visual
+ * dos terminais do AE2.
  */
 public final class UiColors {
 

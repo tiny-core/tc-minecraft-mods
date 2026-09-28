@@ -143,5 +143,6 @@
   "gui.tccolonybridge.count.served": "Atendidos",
   "gui.tccolonybridge.count.crafting": "Craftando",
   "gui.tccolonybridge.count.pending": "Pendentes",
-  "gui.tccolonybridge.monitor_hint": "Os detalhes de cada pedido e as estatísticas aparecem num Monitor da Colônia ligado a esta ponte."
+  "gui.tccolonybridge.monitor_hint": "Os detalhes de cada pedido e as estatísticas aparecem num Monitor da Colônia ligado a esta ponte.",
+  "gui.tccolonybridge.inventory": "Inventário"
 }
