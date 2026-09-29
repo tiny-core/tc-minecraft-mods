@@ -107,10 +107,15 @@ a até 64 blocos (`monitorLinkRange`) e com permissão no bloco.
 de largura) e, com 2+ blocos de altura, a **lista de pedidos** (ícone, descrição, quantidade e resultado).
 Com 3+ de altura, gráfico por hora; com 4+, faixa com os itens mais entregues.
 
-**Abastecedor na tela:** linhas faltando, entrou do ME (1h), voltou ao ME (1h), entrou do ME (24h) e,
-com 2+ blocos de altura, a **lista das linhas** com a quantidade atual, a direção e o limite à direita
-(`↓ mín 64` = vem do ME até ter 64; `↑ máx 64` = o que passar de 64 volta ao ME) e uma barra colorida — âmbar = falta repor,
-verde = ok, ciano = acima do alvo (excedente que volta ao ME). Com 3+ de altura, gráfico de repostos por hora.
+**Abastecedor na tela:**
+- **Cartões** (conforme a largura): situação geral ("Tudo certo" ou "N precisam de atenção"), quanto veio da
+  rede ME para o armazém e quanto voltou do armazém para o ME nas últimas 24 h, e a última atividade.
+- **Lista** em duas seções com título: "Manter no armazém · vem da rede ME" e "Excedente · volta para a rede
+  ME" (lado a lado a partir de 4 blocos de largura). Cada linha mostra o item, **o que está acontecendo** em
+  palavras (Abastecido, Trazendo do ME, Falta na rede ME, Armazém cheio, Dentro do limite, Enviando ao ME,
+  Retido: colônia pediu, Rede ME cheia), quanto há **no armazém** × a meta/limite, quanto há **na rede ME**
+  e uma barra. Cor: verde = ok, ciano = movendo, âmbar = aviso, vermelho = problema.
+- Com 3+ blocos de altura, gráfico dos itens trazidos da rede ME por hora.
 
 As listas são paginadas: trocam sozinhas a cada 10 s; clique direito na metade direita da tela avança, na
 esquerda volta (a página é só sua; a troca automática pausa 30 s após um clique). Com 4+ de largura, a lista usa

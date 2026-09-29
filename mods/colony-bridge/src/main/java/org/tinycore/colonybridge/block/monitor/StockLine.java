@@ -5,36 +5,27 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import org.jetbrains.annotations.Nullable;
+import org.tinycore.colonybridge.logic.supply.SupplyLineStatus;
 
 /**
- * Uma linha do Abastecedor no monitor: item, tipo da linha, quantidade alvo e quanto existe no armazém.
+ * Uma linha do Abastecedor no monitor: item, tipo da linha, meta, quanto há no armazém e na rede ME e a
+ * situação em palavras ({@link SupplyLineStatus}), tudo medido no último ciclo do Abastecedor.
  *
- * @param keep    true = "manter no armazém" (alvo mínimo); false = "excedente para o ME" (alvo máximo)
- * @param target  quantidade alvo configurada
- * @param current quanto havia no armazém no último ciclo do Abastecedor
+ * @param keep      true = "manter no armazém" (meta mínima, vem do ME); false = "excedente" (limite, volta ao ME)
+ * @param target    quantidade configurada (mínimo ou máximo, conforme {@code keep})
+ * @param warehouse quanto havia no armazém depois do último ciclo
+ * @param network   quanto havia na rede ME
  */
-public record StockLine(Item item, boolean keep, int target, long current) {
-
-    /** Situação da linha, para a cor no monitor. */
-    public enum State { BELOW, OK, ABOVE }
-
-    /**
-     * Manter: abaixo do alvo = falta repor. Excedente: acima do alvo = vai voltar para o ME.
-     * Nos dois casos, "OK" quando não há nada a fazer.
-     */
-    public State state() {
-        if (keep) {
-            return current < target ? State.BELOW : State.OK;
-        }
-        return current > target ? State.ABOVE : State.OK;
-    }
+public record StockLine(Item item, boolean keep, int target, long warehouse, long network, SupplyLineStatus status) {
 
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putString("id", BuiltInRegistries.ITEM.getKey(item).toString());
         tag.putBoolean("keep", keep);
         tag.putInt("target", target);
-        tag.putLong("current", current);
+        tag.putLong("current", warehouse);
+        tag.putLong("network", network);
+        tag.putByte("status", (byte) status.ordinal());
         return tag;
     }
 
@@ -43,6 +34,7 @@ public record StockLine(Item item, boolean keep, int target, long current) {
         ResourceLocation id = ResourceLocation.tryParse(tag.getString("id"));
         Item item = id == null ? null : BuiltInRegistries.ITEM.getOptional(id).orElse(null);
         return item == null ? null
-                : new StockLine(item, tag.getBoolean("keep"), tag.getInt("target"), tag.getLong("current"));
+                : new StockLine(item, tag.getBoolean("keep"), tag.getInt("target"), tag.getLong("current"),
+                tag.getLong("network"), SupplyLineStatus.byId(tag.getByte("status")));
     }
 }

@@ -156,6 +156,14 @@ final class MonitorPanels {
                 width - statusWidth - MARGIN * 3, 2);
     }
 
+    /** Cartão de texto: igual ao de número, com uma frase curta colorida no lugar do valor. */
+    static void textCard(MonitorCanvas c, float x, float y, float width, Component label, Component value, int color) {
+        c.fill(x, y, x + width, y + 26, UiColors.PANEL, 1);
+        c.fill(x, y, x + 1.5f, y + 26, UiColors.ACCENT, 2);
+        c.textFitted(label, x + 4, y + 3, UiColors.TEXT_MUTED, 0.6f, width - 6, 2);
+        c.textFitted(value, x + 4, y + 13, color, 0.9f, width - 6, 2);
+    }
+
     /** Cartão de número: rótulo pequeno em cima, valor grande embaixo. */
     static void metric(MonitorCanvas c, float x, float y, float width, Component label, float value) {
         c.fill(x, y, x + width, y + 26, UiColors.PANEL, 1);

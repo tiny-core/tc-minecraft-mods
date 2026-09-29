@@ -116,11 +116,16 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
         for (int slot = 0; slot < StockList.SIZE; slot++) {
             ItemStack item = stock.item(slot);
             if (!item.isEmpty()) {
-                lines.add(new StockLine(item.getItem(), StockList.isKeep(slot), stock.amount(slot), logic.count(slot)));
+                lines.add(new StockLine(item.getItem(), StockList.isKeep(slot), stock.amount(slot), logic.count(slot),
+                        logic.networkCount(slot), logic.lineStatus(slot)));
             }
         }
-        SupplySummary summary = level != null ? stats.summary(level.getGameTime()) : SupplySummary.EMPTY;
-        return MonitorData.ok(logic.getStatus(), logic.getColonyName(), new SupplyContent(summary, List.copyOf(lines)));
+        long now = level != null ? level.getGameTime() : 0;
+        SupplySummary summary = level != null ? stats.summary(now) : SupplySummary.EMPTY;
+        // Em minutos (1200 ticks) para o valor mudar pouco: o monitor só reenvia quando algo muda.
+        long minutesSinceMove = logic.lastMoveTime() < 0 ? -1 : (now - logic.lastMoveTime()) / 1200;
+        return MonitorData.ok(logic.getStatus(), logic.getColonyName(),
+                new SupplyContent(summary, List.copyOf(lines), minutesSinceMove));
     }
 
     // ---------------------------------------------------------------- NBT

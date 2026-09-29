@@ -63,6 +63,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `block/supply/ColonySupplyBlock` | Liga o bloco ao block entity e à tela do abastecedor. |
 | `block/supply/ColonySupplyBlockEntity` | Dados do abastecedor (listas, redstone) e ponte com a tela. |
 | `block/supply/StockList` | As duas listas: slots 0-8 "manter no armazém", 9-17 "excedente para o ME", com quantidade alvo. |
+| `logic/supply/SupplyLineStatus` | Situação de cada linha em palavras (Abastecido, Falta na rede ME, Retido...) e gravidade para a cor do monitor (regra pura, testada). |
 | `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). Quantidades decididas pela `SupplyRule` (regra pura, testada). |
 | `menu/supply/ColonySupplyMenu`, `SupplySnapshot` | Container da tela e a "foto" enviada ao cliente. |
 | `client/supply/ColonySupplyScreen` | Tela com as duas listas e o botão de redstone. |

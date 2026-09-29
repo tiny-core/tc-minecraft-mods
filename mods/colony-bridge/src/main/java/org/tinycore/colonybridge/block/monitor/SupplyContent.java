@@ -13,10 +13,12 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * O que o monitor mostra de um Abastecedor: estatísticas (repostos / devolvidos) e as linhas configuradas
- * com quantidade atual e alvo ({@link StockLine}, até {@link StockList#SIZE}).
+ * O que o monitor mostra de um Abastecedor: estatísticas (trazido do ME / enviado ao ME), as linhas
+ * configuradas ({@link StockLine}, até {@link StockList#SIZE}) e há quanto tempo foi o último movimento.
+ *
+ * @param minutesSinceMove minutos desde o último movimento de qualquer linha; -1 = nenhum desde que o mundo carregou
  */
-public record SupplyContent(SupplySummary stats, List<StockLine> lines) implements MonitorContent {
+public record SupplyContent(SupplySummary stats, List<StockLine> lines, long minutesSinceMove) implements MonitorContent {
 
     public static final String KIND = "supply";
 
@@ -25,11 +27,11 @@ public record SupplyContent(SupplySummary stats, List<StockLine> lines) implemen
         return KIND;
     }
 
-    /** Linhas "manter" abaixo do alvo (o número de destaque do painel). */
-    public int belowTarget() {
+    /** Linhas que precisam de atenção (falta na rede, armazém cheio, retido...). */
+    public int needingAttention() {
         int count = 0;
         for (StockLine line : lines) {
-            if (line.state() == StockLine.State.BELOW) {
+            if (line.status().needsAttention()) {
                 count++;
             }
         }
@@ -47,6 +49,7 @@ public record SupplyContent(SupplySummary stats, List<StockLine> lines) implemen
             list.add(line.save());
         }
         tag.put("stock", list);
+        tag.putLong("lastMove", minutesSinceMove);
     }
 
     /** Lê com limites (tamanho de listas): o dado vem da rede. */
@@ -64,6 +67,6 @@ public record SupplyContent(SupplySummary stats, List<StockLine> lines) implemen
             }
         }
         return new SupplyContent(new SupplySummary(tag.getInt("hours"), s[0], s[1], s[2], s[3], chart),
-                List.copyOf(lines));
+                List.copyOf(lines), tag.contains("lastMove") ? tag.getLong("lastMove") : -1);
     }
 }

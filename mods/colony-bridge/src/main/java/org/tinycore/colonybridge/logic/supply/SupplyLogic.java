@@ -16,6 +16,7 @@ import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseStock;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -36,11 +37,17 @@ public final class SupplyLogic {
 
     private final ColonySupplyBlockEntity host;
     private final long[] counts = new long[StockList.SIZE];
+    /** Quanto a rede ME tinha de cada linha no último ciclo (para o monitor). */
+    private final long[] networkCounts = new long[StockList.SIZE];
+    private final SupplyLineStatus[] lineStatus = new SupplyLineStatus[StockList.SIZE];
+    /** Tempo de jogo do último movimento de qualquer linha; -1 = nenhum desde que o mundo carregou. */
+    private long lastMoveTime = -1;
     private BridgeStatus status = BridgeStatus.STARTING;
     private String colonyName = "";
 
     public SupplyLogic(ColonySupplyBlockEntity host) {
         this.host = host;
+        Arrays.fill(lineStatus, SupplyLineStatus.UNKNOWN);
     }
 
     public void runCycle(ServerLevel level, IGrid grid) {
@@ -61,49 +68,55 @@ public final class SupplyLogic {
             return;
         }
 
-        IActionSource source = host.getActionSource();
-        StockList stock = host.getStock();
         List<OpenRequest> requests = ColonyAccess.openRequests(colony);
-        int perCycle = Config.SUPPLY_MAX_PER_CYCLE.get();
-        boolean moved = false;
-
         long now = level.getGameTime();
+        boolean moved = false;
         for (int slot = 0; slot < StockList.SIZE; slot++) {
-            ItemStack model = stock.item(slot);
-            int target = stock.amount(slot);
-            if (model.isEmpty() || target <= 0) {
-                counts[slot] = 0;
-                continue;
-            }
-            long current = WarehouseStock.count(racks, model);
-            if (StockList.isKeep(slot)) {
-                long restocked = keepStocked(grid, source, model, SupplyRule.restock(current, target, perCycle), racks);
-                host.getStats().recordRestocked(now, restocked);
-                // A tela e o monitor mostram o armazém depois do movimento, não a leitura de antes.
-                counts[slot] = current + restocked;
-                moved |= restocked > 0;
-                continue;
-            }
-            long surplus = current > target ? SupplyRule.surplus(current, target, isRequested(requests, model), perCycle) : 0;
-            if (surplus > 0) {
-                long returned = WarehouseStock.toNetwork(racks, model, surplus, grid, source);
-                host.getStats().recordReturned(now, returned);
-                current -= returned;
-                moved |= returned > 0;
-            }
-            counts[slot] = current;
+            moved |= runLine(slot, grid, racks, requests, now);
+        }
+        if (moved) {
+            lastMoveTime = now;
         }
         setStatus(moved ? BridgeStatus.WORKING : BridgeStatus.IDLE);
     }
 
-    /** Repõe {@code amount} (já limitado pela {@link SupplyRule}), tirando da rede ME. @return quantidade colocada no armazém */
-    private static long keepStocked(IGrid grid, IActionSource source, ItemStack model, long amount,
-                                    List<IItemHandler> racks) {
-        if (amount <= 0) {
-            return 0;
-        }
+    /**
+     * Uma linha: mede armazém e rede, move o que a {@link SupplyRule} mandar e guarda o resultado para a
+     * tela e o monitor (armazém <b>depois</b> do movimento e a {@link SupplyLineStatus}).
+     *
+     * @return true se moveu algum item
+     */
+    private boolean runLine(int slot, IGrid grid, List<IItemHandler> racks, List<OpenRequest> requests, long now) {
+        ItemStack model = host.getStock().item(slot);
+        int target = host.getStock().amount(slot);
         AEItemKey key = AEItemKey.of(model);
-        return key == null ? 0 : RackDelivery.deliver(grid, source, key, amount, racks);
+        if (model.isEmpty() || target <= 0 || key == null) {
+            counts[slot] = 0;
+            networkCounts[slot] = 0;
+            lineStatus[slot] = SupplyLineStatus.UNKNOWN;
+            return false;
+        }
+        IActionSource source = host.getActionSource();
+        int perCycle = Config.SUPPLY_MAX_PER_CYCLE.get();
+        boolean keep = StockList.isKeep(slot);
+        boolean requested = !keep && isRequested(requests, model);
+        long current = WarehouseStock.count(racks, model);
+        long moved;
+        if (keep) {
+            long missing = SupplyRule.restock(current, target, perCycle);
+            moved = missing > 0 ? RackDelivery.deliver(grid, source, key, missing, racks) : 0;
+            host.getStats().recordRestocked(now, moved);
+            current += moved;
+        } else {
+            long surplus = SupplyRule.surplus(current, target, requested, perCycle);
+            moved = surplus > 0 ? WarehouseStock.toNetwork(racks, model, surplus, grid, source) : 0;
+            host.getStats().recordReturned(now, moved);
+            current -= moved;
+        }
+        counts[slot] = current;
+        networkCounts[slot] = grid.getStorageService().getCachedInventory().get(key);
+        lineStatus[slot] = SupplyLineStatus.of(keep, current, target, networkCounts[slot], moved, requested);
+        return moved > 0;
     }
 
     /** true se a colônia está pedindo este item agora (então ele não pode sair do armazém). */
@@ -121,6 +134,21 @@ public final class SupplyLogic {
         return slot >= 0 && slot < counts.length ? counts[slot] : 0;
     }
 
+    /** Quanto a rede ME tinha do item da linha no último ciclo. */
+    public long networkCount(int slot) {
+        return slot >= 0 && slot < networkCounts.length ? networkCounts[slot] : 0;
+    }
+
+    /** Situação da linha no último ciclo. */
+    public SupplyLineStatus lineStatus(int slot) {
+        return slot >= 0 && slot < lineStatus.length ? lineStatus[slot] : SupplyLineStatus.UNKNOWN;
+    }
+
+    /** Tempo de jogo do último movimento, ou -1. */
+    public long lastMoveTime() {
+        return lastMoveTime;
+    }
+
     public BridgeStatus getStatus() {
         return status;
     }
@@ -132,7 +160,9 @@ public final class SupplyLogic {
     /** Fora de um ciclo completo as contagens não valem mais, então são zeradas. */
     public void setStatus(BridgeStatus status) {
         if (status != BridgeStatus.IDLE && status != BridgeStatus.WORKING) {
-            java.util.Arrays.fill(counts, 0);
+            Arrays.fill(counts, 0);
+            Arrays.fill(networkCounts, 0);
+            Arrays.fill(lineStatus, SupplyLineStatus.UNKNOWN);
         }
         this.status = status;
     }
