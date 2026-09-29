@@ -67,13 +67,13 @@ erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 Segundo bloco, o caminho contrário da ponte. Mesmas regras (dentro da colônia, com permissão, cabo ME
 comum por baixo) e uma tela com duas listas de 9 itens:
 
-- **Manter no armazém** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede ME
+- **ME → Armazém (mínimo)** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede ME
   e coloca nos racks.
-- **Excedente para a rede ME** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
+- **Armazém → ME (máximo)** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
   entupido pelas fazendas da colônia.
 
 Clique num slot com o item na mão para escolher; role o mouse sobre ele para mudar a quantidade
-(Shift ±10, Ctrl ±64). O excedente **nunca sai** de um item que esteja em algum pedido em aberto da
+(Shift ±10, Ctrl ±64); o tooltip do slot diz a regra em frase e quanto há no armazém agora. O excedente **nunca sai** de um item que esteja em algum pedido em aberto da
 colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num vaivém sem fim.
 `supplyMaxPerCycle` limita quanto cada linha move por ciclo.
 
@@ -90,8 +90,9 @@ a até 64 blocos (`monitorLinkRange`) e com permissão no bloco.
 de largura) e, com 2+ blocos de altura, a **lista de pedidos** (ícone, descrição, quantidade e resultado).
 Com 3+ de altura, gráfico por hora; com 4+, faixa com os itens mais entregues.
 
-**Abastecedor na tela:** linhas abaixo do alvo, itens repostos (1h), devolvidos ao ME (1h), repostos (24h) e,
-com 2+ blocos de altura, a **lista das linhas** com "atual / alvo" e uma barra colorida — âmbar = falta repor,
+**Abastecedor na tela:** linhas faltando, entrou do ME (1h), voltou ao ME (1h), entrou do ME (24h) e,
+com 2+ blocos de altura, a **lista das linhas** com a quantidade atual, a direção e o limite à direita
+(`↓ mín 64` = vem do ME até ter 64; `↑ máx 64` = o que passar de 64 volta ao ME) e uma barra colorida — âmbar = falta repor,
 verde = ok, ciano = acima do alvo (excedente que volta ao ME). Com 3+ de altura, gráfico de repostos por hora.
 
 As listas são paginadas: trocam sozinhas a cada 10 s; clique direito na metade direita da tela avança, na

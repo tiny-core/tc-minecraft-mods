@@ -26,7 +26,8 @@ import static org.tinycore.colonybridge.client.render.MonitorPanels.SERIES_METRI
  *       4+: + repostos na janela inteira;</li>
  *   <li>altura 2 blocos: + lista das linhas com barra atual/alvo; 3+: + gráfico de repostos por hora.</li>
  * </ul>
- * Cada linha da lista mostra ícone, "atual / alvo" e uma barra colorida: âmbar = abaixo do alvo (falta
+ * Cada linha da lista mostra ícone, quantidade atual, a direção com o limite à direita ("↓ mín 64" = vem da
+ * rede ME até ter pelo menos 64; "↑ máx 64" = o que passar de 64 volta para o ME) e uma barra colorida: âmbar = abaixo do alvo (falta
  * repor), verde = ok, ciano = acima do alvo (excedente que vai voltar para o ME). A lista é paginada como
  * a de pedidos (página vem do block entity: troca automática + clique).
  * <p>
@@ -117,9 +118,14 @@ final class SupplyPanel {
             case OK -> UiColors.SUCCESS;
             case ABOVE -> UiColors.HIGHLIGHT;
         };
-        Component amounts = Component.literal(UiFormat.compact(line.current()) + " / " + UiFormat.compact(line.target()));
         float textX = x + 16;
-        c.textFitted(amounts, textX, y + 2, UiColors.TEXT, 0.6f, width - 18, 2);
+        Component limit = Component.translatable(line.keep() ? "monitor.tccolonybridge.supply.min"
+                : "monitor.tccolonybridge.supply.max", UiFormat.compact(line.target()));
+        float limitWidth = Math.min(c.width(limit) * 0.6f, (width - 18) / 2f);
+        float limitScale = limitWidth / Math.max(1, c.width(limit));
+        c.text(limit, x + width - 2 - limitWidth, y + 2, UiColors.TEXT_MUTED, limitScale, 2);
+        c.textFitted(Component.literal(UiFormat.compact(line.current())), textX, y + 2, UiColors.TEXT, 0.6f,
+                width - 22 - limitWidth, 2);
         // Barra: fração atual/alvo, até 100% (acima do alvo a barra fica cheia e ciano).
         float barX = textX;
         float barWidth = width - 18;

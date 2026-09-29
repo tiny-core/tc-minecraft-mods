@@ -153,8 +153,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     }
 
     /**
-     * Tooltip do item sob o cursor. Numa linha configurada, acrescenta ao tooltip normal do item a quantidade
-     * alvo, quanto existe hoje e como mudar — tudo num tooltip só (dois tooltips no mesmo lugar ficavam
+     * Tooltip do item sob o cursor. Numa linha configurada, acrescenta ao tooltip normal do item a regra em
+     * frase (para que lado o item anda e o limite), quanto existe hoje e como mudar — tudo num tooltip só (dois tooltips no mesmo lugar ficavam
      * um por cima do outro). {@code hoveredSlot} é o slot sob o mouse, preenchido pela própria tela.
      */
     @Override
@@ -165,8 +165,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         }
         int index = hoveredSlot.index;
         List<Component> extended = new ArrayList<>(lines);
-        extended.add(Component.translatable("gui.tccolonybridge.supply.target", settings.amount(index))
-                .withStyle(ChatFormatting.GOLD));
+        String rule = StockList.isKeep(index) ? "gui.tccolonybridge.supply.keep_rule" : "gui.tccolonybridge.supply.surplus_rule";
+        extended.add(Component.translatable(rule, settings.amount(index)).withStyle(ChatFormatting.GOLD));
         extended.add(Component.translatable("gui.tccolonybridge.supply.current", menu.getSnapshot().count(index))
                 .withStyle(ChatFormatting.AQUA));
         extended.add(Component.translatable("gui.tccolonybridge.supply.scroll").withStyle(ChatFormatting.GRAY));
