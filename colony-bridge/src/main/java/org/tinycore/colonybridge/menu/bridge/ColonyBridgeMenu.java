@@ -13,11 +13,11 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.bridge.ItemFilter;
 import org.tinycore.colonybridge.block.bridge.PreferredItems;
-import org.tinycore.colonybridge.menu.AbstractGhostMenu;
-import org.tinycore.colonybridge.menu.JoinedList;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
+import org.tinycore.core.menu.AbstractGhostMenu;
+import org.tinycore.core.menu.JoinedList;
 
 /**
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:

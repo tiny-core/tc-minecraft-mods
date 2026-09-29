@@ -17,7 +17,7 @@
   },
   "tasks": [
     {
-      "label": "Gradle: build (gera o jar)",
+      "label": "Gradle: build (todos os mods)",
       "type": "shell",
       "command": "./gradlew",
       "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
@@ -26,7 +26,7 @@
       "problemMatcher": []
     },
     {
-      "label": "Gradle: testes",
+      "label": "Gradle: testes (todos os mods)",
       "type": "shell",
       "command": "./gradlew",
       "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
@@ -35,20 +35,20 @@
       "problemMatcher": []
     },
     {
-      "label": "Gradle: runClient (Minecraft de desenvolvimento)",
+      "label": "Gradle: colony-bridge runClient (Minecraft de desenvolvimento)",
       "type": "shell",
       "command": "./gradlew",
       "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
-      "args": ["-p", "${workspaceFolder}", "runClient"],
+      "args": ["-p", "${workspaceFolder}", ":colony-bridge:runClient"],
       "isBackground": false,
       "problemMatcher": []
     },
     {
-      "label": "Gradle: runServer (servidor de desenvolvimento)",
+      "label": "Gradle: colony-bridge runServer (servidor de desenvolvimento)",
       "type": "shell",
       "command": "./gradlew",
       "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
-      "args": ["-p", "${workspaceFolder}", "runServer"],
+      "args": ["-p", "${workspaceFolder}", ":colony-bridge:runServer"],
       "problemMatcher": []
     },
     {

@@ -1,0 +1,2 @@
+// TC Core: biblioteca comum dos mods TC. Configuração comum em ../gradle/tc-mod.gradle.
+apply from: rootProject.file('gradle/tc-mod.gradle')

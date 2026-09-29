@@ -3,9 +3,9 @@ package org.tinycore.colonybridge.menu.supply;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.core.block.RedstoneMode;
 
 import java.util.ArrayList;
 import java.util.Collections;

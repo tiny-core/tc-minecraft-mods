@@ -26,6 +26,7 @@ import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.CableRules;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.core.block.RedstoneMode;
 
 import java.util.EnumSet;
 import java.util.UUID;

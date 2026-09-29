@@ -1,6 +1,8 @@
 package org.tinycore.colonybridge.stats;
 
 import net.minecraft.nbt.CompoundTag;
+import org.tinycore.colonybridge.Config;
+import org.tinycore.core.stats.MetricSeries;
 
 /**
  * Estatísticas de um Abastecedor: quanto ele repôs no armazém e quanto devolveu à rede ME, na mesma
@@ -10,7 +12,8 @@ public final class SupplyStats {
 
     private static final int CHART_BARS = 24;
 
-    private final MetricSeries<SupplyMetric> series = new MetricSeries<>(SupplyMetric.class, ignored -> {});
+    private final MetricSeries<SupplyMetric> series = new MetricSeries<>(SupplyMetric.class,
+            Config.STATS_BUCKET_TICKS::get, Config.STATS_BUCKETS::get, ignored -> {});
 
     public void recordRestocked(long now, long amount) {
         if (amount > 0) {

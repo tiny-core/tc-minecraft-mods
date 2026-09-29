@@ -5,7 +5,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.client.ui.ScreenStyle;
+import org.tinycore.core.client.ui.ScreenStyle;
 
 import java.util.List;
 import java.util.Set;

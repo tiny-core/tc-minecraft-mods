@@ -27,6 +27,13 @@ entrega e crafta automaticamente os pedidos em aberto e envia-os para o armazem 
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="tccore"
+    type="required"
+    versionRange="${tccore_version_range}"
+    ordering="AFTER"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="ae2"
     type="required"
     versionRange="[${ae2_version},20)"

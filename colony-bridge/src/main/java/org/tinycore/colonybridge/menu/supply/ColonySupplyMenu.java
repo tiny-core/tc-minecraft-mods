@@ -12,10 +12,10 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
-import org.tinycore.colonybridge.menu.AbstractGhostMenu;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
+import org.tinycore.core.menu.AbstractGhostMenu;
 
 /**
  * Menu do bloco de abastecimento. Slots 0..8 são as linhas "manter no armazém", 9..17 as de

@@ -12,7 +12,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
-import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.monitor.BridgeContent;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
@@ -29,6 +28,7 @@ import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModItems;
 import org.tinycore.colonybridge.stats.BridgeStats;
 import org.tinycore.colonybridge.stats.StatsSummary;
+import org.tinycore.core.block.RedstoneMode;
 
 import java.util.List;
 import java.util.Set;

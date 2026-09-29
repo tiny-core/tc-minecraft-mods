@@ -1,0 +1,41 @@
+// Build raiz do workspace: só o que vale para todos os mods TC. O que cada mod repete (NeoForge,
+// metadados, testes) está em gradle/tc-mod.gradle; o específico de cada mod, no build.gradle dele.
+
+plugins {
+    // Declarado aqui (sem aplicar) para todos os subprojetos usarem a mesma versão do ModDevGradle.
+    id 'net.neoforged.moddev' version '2.0.147' apply false
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+subprojects {
+    apply plugin: 'java-library'
+
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+
+    repositories {
+        mavenCentral() // AE2 API, JUnit
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    // Testes automáticos (JUnit 5) das partes que não precisam do jogo carregado: ./gradlew test
+    dependencies {
+        testImplementation platform('org.junit:junit-bom:5.11.3')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+        testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    }
+
+    tasks.named('test', Test) {
+        useJUnitPlatform()
+        // Mostra cada teste no terminal e, se falhar, o motivo completo.
+        testLogging {
+            events 'passed', 'skipped', 'failed'
+            exceptionFormat 'full'
+        }
+    }
+}

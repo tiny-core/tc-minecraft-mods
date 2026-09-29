@@ -1,10 +1,10 @@
 {
   "permissions": {
     "deny": [
-      "Read(./build/**)",
-      "Read(./run/**)",
-      "Read(./.gradle/**)",
-      "Read(./libs/**/*.jar)",
+      "Read(**/build/**)",
+      "Read(**/run/**)",
+      "Read(**/.gradle/**)",
+      "Read(**/libs/**/*.jar)",
       "Read(./gradle/wrapper/**)"
     ]
   }

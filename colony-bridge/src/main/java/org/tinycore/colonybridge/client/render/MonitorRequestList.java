@@ -5,7 +5,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
 import org.tinycore.colonybridge.client.ui.StatusColors;
-import org.tinycore.colonybridge.client.ui.UiColors;
+import org.tinycore.core.client.ui.UiColors;
 
 import java.util.IdentityHashMap;
 import java.util.List;

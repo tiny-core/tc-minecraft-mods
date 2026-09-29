@@ -1,34 +1,14 @@
-plugins {
-    id 'java-library'
-    id 'net.neoforged.moddev' version '2.0.147'
-    id 'idea'
-}
+// TC Colony Bridge. Configuração comum de mod TC em ../gradle/tc-mod.gradle; aqui só o que é deste mod.
+apply from: rootProject.file('gradle/tc-mod.gradle')
 
-tasks.named('wrapper', Wrapper).configure {
-    distributionType = Wrapper.DistributionType.BIN
-}
+// O TC Core precisa estar configurado antes (usamos o sourceSet dele nas execuções de dev).
+evaluationDependsOn(':core')
 
-version = mod_version
-group = mod_group_id
-
-base {
-    archivesName = mod_id
-}
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
-
-repositories {
-    mavenCentral() // AE2 API
-}
+// Pasta dos jars do ATM10 (MineColonies, AE2 completo...). Padrão: ./libs; dá para apontar outra
+// com -Plibs_dir=/caminho (ex.: testar sem copiar os jars).
+var libsDir = project.findProperty('libs_dir') ?: 'libs'
 
 neoForge {
-    version = project.neo_version
-
-    parchment {
-        mappingsVersion = project.parchment_mappings_version
-        minecraftVersion = project.parchment_minecraft_version
-    }
-
     runs {
         client {
             client()
@@ -44,8 +24,9 @@ neoForge {
     }
 
     mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
+        // Em dev o core roda junto, como mod separado (igual no ATM10).
+        tccore {
+            sourceSet(project(':core').sourceSets.main)
         }
     }
 }
@@ -54,64 +35,19 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
-// Testes: classes do Minecraft/NeoForge no classpath (NBT, enums, codecs), sem subir o jogo inteiro.
-neoForge.addModdingDependenciesTo(sourceSets.test)
-
 dependencies {
+    // TC Core: biblioteca comum dos mods TC (mod separado em jogo).
+    implementation project(':core')
+
     // AE2: compila contra a API publicada
     compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
+    testImplementation "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
 
     // MineColonies (+ Structurize, BlockUI, Domum Ornamentum) e o AE2 completo:
     // copiados do seu ATM10 para ./libs, assim você compila e testa contra
     // exatamente as mesmas versões que o modpack usa.
-    compileOnly fileTree(dir: 'libs', include: 'minecolonies-*.jar')
+    compileOnly fileTree(dir: libsDir, include: 'minecolonies-*.jar')
     // JEI: opcional em jogo; só usado para arrastar itens para o filtro (client/jei/).
-    compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
-    localRuntime fileTree(dir: 'libs', include: '*.jar')
-
-    // Testes automáticos (JUnit 5) das partes que não precisam do jogo carregado: ./gradlew test
-    testImplementation "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
-    testImplementation platform('org.junit:junit-bom:5.11.3')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-tasks.named('test', Test) {
-    useJUnitPlatform()
-    // Mostra cada teste no terminal e, se falhar, o motivo completo.
-    testLogging {
-        events 'passed', 'skipped', 'failed'
-        exceptionFormat 'full'
-    }
-}
-
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            loader_version_range   : loader_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_license            : mod_license,
-            mod_version            : mod_version,
-            ae2_version            : ae2_version,
-    ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
-
-idea {
-    module {
-        downloadSources = true
-        downloadJavadoc = true
-    }
+    compileOnly fileTree(dir: libsDir, include: 'jei-*.jar')
+    localRuntime fileTree(dir: libsDir, include: '*.jar')
 }

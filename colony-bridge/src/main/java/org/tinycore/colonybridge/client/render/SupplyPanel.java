@@ -4,10 +4,10 @@ import net.minecraft.network.chat.Component;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.StockLine;
 import org.tinycore.colonybridge.block.monitor.SupplyContent;
-import org.tinycore.colonybridge.client.ui.BarChart;
-import org.tinycore.colonybridge.client.ui.UiColors;
-import org.tinycore.colonybridge.client.ui.UiFormat;
 import org.tinycore.colonybridge.stats.SupplySummary;
+import org.tinycore.core.client.ui.BarChart;
+import org.tinycore.core.client.ui.UiColors;
+import org.tinycore.core.client.ui.UiFormat;
 
 import java.util.List;
 import java.util.function.IntUnaryOperator;

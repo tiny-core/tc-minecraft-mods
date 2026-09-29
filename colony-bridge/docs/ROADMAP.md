@@ -146,3 +146,11 @@ e menu base com os ghost slots (`AbstractGhostMenu`).
   (depende de confirmar se o plano de craft do AE2 expõe a lista do que faltou).
 - **Feito (7b):** estatísticas do Abastecedor (repostos / devolvidos) e painel próprio nos monitores
   (cartão de ligação aceita Ponte e Abastecedor via `MonitorSource`).
+
+---
+
+## Workspace e TC Core (feito em 2026-09-29)
+
+O mod passou a morar em `tc_minecraft_mods/colony-bridge/`, ao lado do **TC Core** (biblioteca comum,
+mod separado). Próximo candidato a ir para o core: a infraestrutura dos monitores, quando o mod de
+reatores do Mekanism precisar dela.

@@ -1,0 +1,10 @@
+# Registro de decisões do workspace
+
+Decisões que valem para todos os mods TC. As de cada mod ficam no `docs/DECISOES.md` dele.
+
+| Data | Decisão | Motivo | Alternativas descartadas |
+|---|---|---|---|
+| 2026-09-29 | Workspace `tc_minecraft_mods` com um repositório git e build Gradle multiprojeto (`core/`, `colony-bridge/`, próximos mods) | Core e mods mudam juntos: uma mudança no core já é compilada e testada contra todos com um `./gradlew build`; histórico do Colony Bridge preservado (`git mv`) | Um repositório por mod + core publicado num Maven (atrito a cada mudança no core); tudo num mod só |
+| 2026-09-29 | TC Core como **mod separado** (o jogador instala o jar do core), declarado como dependência no `mods.toml` de cada mod | Escolha do autor; um core só no modpack, mesmo com vários mods TC | Jar-in-jar (core embutido em cada mod) |
+| 2026-09-29 | Configuração repetida de mod em `gradle/tc-mod.gradle` (NeoForge, parchment, `mods.toml`, testes) e versões comuns no `gradle.properties` da raiz | Mod novo = `build.gradle` de 1–2 linhas + `gradle.properties` próprio; versões de NeoForge/Minecraft mudam num lugar só | Copiar o `build.gradle` inteiro em cada mod |
+| 2026-09-29 | Primeira leva do core: design system das telas, ghost slots, `RedstoneMode`, `MetricRing`/`MetricSeries` (tamanho da janela por parâmetro). Monitores ficam no Colony Bridge por enquanto | Só o que não depende de mod externo e que o mod de reatores vai usar; monitores exigem separar dados de desenho, melhor feito com o segundo mod em mãos | Mover os monitores já (grande, sem um segundo uso concreto para guiar o desenho) |

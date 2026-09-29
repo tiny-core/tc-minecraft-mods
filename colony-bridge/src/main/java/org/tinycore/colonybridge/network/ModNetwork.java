@@ -8,13 +8,13 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
-import org.tinycore.colonybridge.block.RedstoneMode;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ClientPayloadHandler;
 import org.tinycore.colonybridge.menu.bridge.BridgeTab;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.core.block.RedstoneMode;
 
 import java.util.List;
 

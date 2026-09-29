@@ -4,7 +4,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.tinycore.colonybridge.block.RedstoneMode;
+import org.tinycore.core.block.RedstoneMode;
 
 /**
  * Configurações de uma ponte, salvas no NBT do block entity e alteradas pela tela.

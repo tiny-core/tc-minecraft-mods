@@ -12,12 +12,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
+import org.tinycore.colonybridge.multiblock.MonitorFormation;
+import org.tinycore.core.client.ui.UiColors;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
-import org.tinycore.colonybridge.client.ui.UiColors;
-import org.tinycore.colonybridge.multiblock.MonitorFormation;
 
 /**
  * Desenha a tela do monitor no mundo (um {@code BlockEntityRenderer}, chamado a cada frame para

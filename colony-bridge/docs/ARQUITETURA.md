@@ -7,6 +7,11 @@ subpacote específico, então mexer na Ponte não quebra o Abastecedor (e vice-v
 
 Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 
+**Vem do TC Core** (`core/`, pacote `org.tinycore.core`): design system das telas (`UiColors`, `ScreenStyle`,
+`IconButton`, `SideToolbar`, `BarChart`, `Painter`, `UiFormat`, `RedstoneIcons`), ghost slots
+(`AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot`, `JoinedList`), `RedstoneMode` e as
+estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `core/README.md`.
+
 ---
 
 ## Compartilhado entre Ponte e Abastecedor
@@ -16,12 +21,10 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `block/AbstractBridgeBlock` | Bloco no mundo: permissão para colocar, dono, estado visual (`STATUS`), ticker, vizinho mudou, clique direito abre a tela. |
 | `block/AbstractBridgeBlockEntity` | Nó da grid do AE2 e seu ciclo de vida, regra do cabo, redstone, dono/permissão, chama `runCycle` a cada `cycleTicks`. |
 | `block/BridgeVisualState` | Os 4 visuais do blockstate (offline / erro / ocioso / trabalhando). |
-| `block/RedstoneMode` | Ignorar / só com sinal / só sem sinal. |
 | `logic/BridgeStatus` | Estado mostrado ao jogador (sem colônia, sem permissão, trabalhando...). |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
 | `logic/warehouse/WarehouseSnapshot` | Conteúdo dos racks lido uma vez por ciclo da ponte (+ entregas do ciclo). |
-| `menu/AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot`, `JoinedList` | Ghost slots: mostram um item-modelo, nunca guardam nem entregam itens. |
 | `integration/ColonyAccess`, `OpenRequest` | **Único** ponto que fala com o MineColonies: colônia, permissões, pedidos em aberto, racks, reatribuir. |
 | `integration/ae2/CableRules` | Só conecta por baixo e só com cabo comum. |
 
@@ -81,11 +84,10 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | Classe | Responsabilidade |
 |---|---|
 | `ColonyBridgeMod` | Entrada do mod: registros, config, capabilities. |
-| `stats/MetricSeries`, `MetricRing` | Contadores numa janela de tempo (ring buffer) reutilizados pelas estatísticas da Ponte e do Abastecedor. |
 | `Config` | Config do servidor (ciclo, limites, crafting, craft por tag, estatísticas, monitores). |
 | `registry/*` | `DeferredRegister` de blocos, itens, block entities, menus e aba do criativo. |
 | `network/*` | Pacotes cliente↔servidor; tudo que vem do cliente é validado no servidor (`ModNetwork`). |
 | `client/ColonyBridgeClient` | Entrada só do cliente: liga o botão "Config" da lista de mods à tela de config do NeoForge. |
 | `client/ClientSetup`, `ClientPayloadHandler` | Registro das telas/renderers e tratamento dos pacotes no cliente. |
-| `client/ui/*` | Design system: `UiColors` (cores da marca), `ScreenStyle` (estrutura das telas no estilo AE2), `IconButton` + `SideToolbar` (barra lateral com ícones), `RedstoneIcons`, gráfico de barras, `Painter`. |
+| `client/ui/StatusColors` | Cor de cada estado da ponte e resultado de pedido (telas e monitores). O resto do design system está no TC Core. |
 | `client/jei/*` | Arrastar itens do JEI para o filtro (JEI opcional). |

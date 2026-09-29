@@ -1,0 +1,5 @@
+{
+  "redstone.tccore.ignored": "Ignore",
+  "redstone.tccore.active_with_signal": "With signal",
+  "redstone.tccore.active_without_signal": "Without signal"
+}

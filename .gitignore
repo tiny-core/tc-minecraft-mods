@@ -43,8 +43,8 @@ run/
 **/src/generated/**/.cache/
 repo/
 !**/src/**/repo/
-# jars de dependencias locais
-libs/*.jar
+# jars de dependências locais (ATM10), em qualquer mod
+**/libs/*.jar
 
 dist
 # logs de execução (runClient/runServer)

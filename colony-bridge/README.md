@@ -109,28 +109,16 @@ O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é 
 (`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
 ## Setup
-1. Copie para `libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).
-2. Ajuste `neo_version` e `ae2_version` em `gradle.properties` para as versões do ATM10.
-3. `./gradlew build` → `build/libs/tccolonybridge-<versão>.jar` (roda os testes automáticos antes).
-4. `./gradlew runClient` para testar em dev.
+Este mod faz parte do workspace **TC Minecraft Mods** (ver o `README.md` da raiz: build, VS Code, testes).
+1. Copie para `colony-bridge/libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).
+2. `ae2_version` fica em `colony-bridge/gradle.properties`; a versão do NeoForge, no `gradle.properties` da raiz.
+3. Na raiz: `./gradlew :colony-bridge:build` → `colony-bridge/build/libs/tccolonybridge-<versão>.jar`.
+4. **Em jogo, instale também o TC Core** (`core/build/libs/tccore-<versão>.jar`): o Colony Bridge depende dele.
+5. `./gradlew :colony-bridge:runClient` para testar em dev (o core roda junto).
 
-### VS Code
-Abra a pasta do projeto e aceite as extensões recomendadas (Java Extension Pack e Gradle). O Gradle baixa
-sozinho o JDK 21 do projeto; o VS Code só precisa de um JDK 21+ para rodar a extensão Java.
-- **Tarefas** (Terminal → Executar Tarefa; `Ctrl+Shift+B` = build): build, testes, runClient, runServer, clean e
-  atualizar dependências. Funcionam no Windows e no Linux, inclusive com o projeto aberto por pasta de rede.
-- **Executar/depurar** (aba Executar): as configurações "Client" e "Server" são geradas pelo ModDevGradle quando
-  o VS Code importa o projeto (`.vscode/launch.json`, fora do git porque tem caminhos da sua máquina). Se não
-  aparecerem, rode "Java: Clean Java Language Server Workspace" na paleta de comandos.
-- Formato dos arquivos (UTF-8, LF, 4 espaços) vem do `.editorconfig`, igual em qualquer editor.
-
-### Testes automáticos
-`./gradlew test` roda os testes JUnit em `src/test/java` (resultado de cada um no terminal; `--rerun` força
-rodar de novo mesmo sem mudanças). Cobrem as regras que não precisam do jogo carregado: escolha do item a
-craftar (`CraftOrdering`), limpeza de pacotes e NBT das preferências (`CraftSettings`), reservas entre pontes
-(`DeliveryLedger`), estatísticas (`MetricRing`), linhas do Abastecedor no monitor e `JoinedList`.
-O que depende de itens, colônia ou rede ME (entrega, craft no AE2) continua sendo testado em jogo: o NeoForge
-só inicia os registros de itens com o carregador de mods rodando.
+Testes automáticos deste mod: `./gradlew :colony-bridge:test --rerun` — escolha do item a craftar
+(`CraftOrdering`), limpeza de pacotes/NBT das preferências (`CraftSettings`), reservas entre pontes
+(`DeliveryLedger`) e linhas do Abastecedor no monitor. Os do core (`JoinedList`, `MetricRing`) ficam em `core/`.
 
 ## Configuração
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).

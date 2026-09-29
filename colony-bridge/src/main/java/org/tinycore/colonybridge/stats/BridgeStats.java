@@ -2,6 +2,8 @@ package org.tinycore.colonybridge.stats;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
+import org.tinycore.colonybridge.Config;
+import org.tinycore.core.stats.MetricSeries;
 
 import java.util.List;
 
@@ -18,7 +20,8 @@ public final class BridgeStats {
     private static final int CHART_BARS = 24;
 
     private TopItems top = new TopItems();
-    private final MetricSeries<StatMetric> series = new MetricSeries<>(StatMetric.class, this::resetTop);
+    private final MetricSeries<StatMetric> series = new MetricSeries<>(StatMetric.class,
+            Config.STATS_BUCKET_TICKS::get, Config.STATS_BUCKETS::get, this::resetTop);
 
     public void recordDelivery(long now, Item item, long amount) {
         series.add(StatMetric.REQUESTS_DELIVERED, now, 1);
