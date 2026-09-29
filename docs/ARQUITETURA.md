@@ -50,7 +50,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/bridge/RequestCounts` | Resumo do ciclo (abertos, atendidos, craftando) para a aba "Geral". |
 | `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots do filtro e dos preferidos), a "foto" enviada ao cliente e as abas. |
 | `client/bridge/ColonyBridgeScreen`, `ModListView`, `BridgeIcons` | Tela: barra lateral de ajustes, abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
-| `stats/*` | Estatísticas da ponte em ring buffer (entregas, crafts, ranking de itens). |
+| `stats/BridgeStats`, `StatsSummary`, `TopItems` | Estatísticas da ponte (entregas, crafts, ranking de itens). |
 
 ## Abastecedor da Colônia (`supply/`) — mantém o armazém abastecido
 
@@ -62,22 +62,25 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). |
 | `menu/supply/ColonySupplyMenu`, `SupplySnapshot` | Container da tela e a "foto" enviada ao cliente. |
 | `client/supply/ColonySupplyScreen` | Tela com as duas listas e o botão de redstone. |
+| `stats/SupplyStats`, `SupplySummary` | Estatísticas do Abastecedor (itens repostos / devolvidos ao ME). |
 
 ## Monitor da Colônia (`monitor/`) — mostra dados de uma Ponte
 
 | Classe | Responsabilidade |
 |---|---|
-| `block/monitor/MonitorBlock`, `MonitorBlockEntity` | Bloco e posição dentro da tela; o mestre guarda a ligação com a ponte. |
-| `block/monitor/MonitorData`, `MonitorLine` | Dados sincronizados 1×/s, só quando mudam. |
+| `block/monitor/MonitorSource` | O que um bloco precisa para aparecer no monitor (Ponte e Abastecedor implementam). |
+| `block/monitor/MonitorBlock`, `MonitorBlockEntity` | Bloco e posição dentro da tela; o mestre guarda a ligação com o bloco mostrado. |
+| `block/monitor/MonitorData`, `MonitorContent` (`BridgeContent`, `SupplyContent`), `MonitorLine`, `StockLine` | Dados sincronizados 1×/s, só quando mudam; o conteúdo depende do tipo de bloco ligado. |
 | `multiblock/MonitorFormation` | Junta monitores vizinhos num retângulo e elege o mestre. |
-| `item/LinkCardItem` | Cartão de ligação monitor → ponte (valida dimensão, distância, permissão). |
-| `client/render/*` | Desenho no mundo: renderer, canvas, painéis, lista paginada, animação. |
+| `item/LinkCardItem` | Cartão de ligação monitor → Ponte ou Abastecedor (valida dimensão, distância, permissão). |
+| `client/render/*` | Desenho no mundo: renderer, canvas, painel da Ponte (`MonitorPanels`) e do Abastecedor (`SupplyPanel`), lista paginada, animação. |
 
 ## Infraestrutura
 
 | Classe | Responsabilidade |
 |---|---|
 | `ColonyBridgeMod` | Entrada do mod: registros, config, capabilities. |
+| `stats/MetricSeries`, `MetricRing` | Contadores numa janela de tempo (ring buffer) reutilizados pelas estatísticas da Ponte e do Abastecedor. |
 | `Config` | Config do servidor (ciclo, limites, crafting, craft por tag, estatísticas, monitores). |
 | `registry/*` | `DeferredRegister` de blocos, itens, block entities, menus e aba do criativo. |
 | `network/*` | Pacotes cliente↔servidor; tudo que vem do cliente é validado no servidor (`ModNetwork`). |

@@ -11,7 +11,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.multiblock.MonitorFormation;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 
@@ -25,9 +24,10 @@ import org.tinycore.colonybridge.registry.ModBlockEntities;
  * Minecraft para mandar dados de block entity aos jogadores que têm o chunk carregado. Só enviamos
  * quando a estrutura muda ({@link #setStructure}) ou quando os dados da ponte mudam.
  * <p>
- * Ligação (5.2): o mestre guarda a posição da ponte ({@link #setLink}, feito pelo cartão de ligação).
- * A cada {@link #REFRESH_TICKS} ele lê a ponte — só se o chunk dela estiver carregado — e, se os
- * {@link MonitorData} mudaram, envia ao cliente.
+ * Ligação: o mestre guarda a posição do bloco mostrado — Ponte ou Abastecedor, qualquer
+ * {@link MonitorSource} ({@link #setLink}, feito pelo cartão de ligação). A cada {@link #REFRESH_TICKS}
+ * ele lê o bloco — só se o chunk dele estiver carregado — e, se os {@link MonitorData} mudaram, envia ao
+ * cliente.
  */
 public class MonitorBlockEntity extends BlockEntity {
 
@@ -126,15 +126,18 @@ public class MonitorBlockEntity extends BlockEntity {
         return offsetX;
     }
 
-    /** Lê a ponte ligada sem carregar chunks: chunk descarregado ou ponte sumida = "não encontrada". */
+    /**
+     * Lê o bloco ligado (Ponte ou Abastecedor, qualquer {@link MonitorSource}) sem carregar chunks:
+     * chunk descarregado ou bloco sumido = "não encontrado".
+     */
     private MonitorData readBridge() {
         if (link == null) {
             return MonitorData.UNLINKED;
         }
-        if (!level.isLoaded(link) || !(level.getBlockEntity(link) instanceof ColonyBridgeBlockEntity bridge)) {
+        if (!level.isLoaded(link) || !(level.getBlockEntity(link) instanceof MonitorSource source)) {
             return MonitorData.MISSING;
         }
-        return bridge.monitorData();
+        return source.monitorData();
     }
 
     public @Nullable BlockPos getLink() {

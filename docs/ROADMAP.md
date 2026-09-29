@@ -142,5 +142,6 @@ e menu base com os ghost slots (`AbstractGhostMenu`).
 - **Feito:** manter estoque no armazém, excedente do armazém para o ME, tela com as duas listas,
   quantidade por linha, modo de redstone e guarda contra vaivém (não tira o que está em pedido aberto).
 - **Pendente:** alimentar craft do AE2 com o que falta usando os materiais do armazém
-  (depende de confirmar se o plano de craft do AE2 expõe a lista do que faltou), estatísticas do
-  abastecedor e ligação dele aos monitores.
+  (depende de confirmar se o plano de craft do AE2 expõe a lista do que faltou).
+- **Feito (7b):** estatísticas do Abastecedor (repostos / devolvidos) e painel próprio nos monitores
+  (cartão de ligação aceita Ponte e Abastecedor via `MonitorSource`).

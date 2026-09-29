@@ -66,6 +66,7 @@ public final class SupplyLogic {
         int perCycle = Config.SUPPLY_MAX_PER_CYCLE.get();
         boolean moved = false;
 
+        long now = level.getGameTime();
         for (int slot = 0; slot < StockList.SIZE; slot++) {
             ItemStack model = stock.item(slot);
             int target = stock.amount(slot);
@@ -76,24 +77,26 @@ public final class SupplyLogic {
             long current = WarehouseStock.count(racks, model);
             counts[slot] = current;
             if (StockList.isKeep(slot)) {
-                moved |= keepStocked(grid, source, model, target - current, perCycle, racks);
+                long restocked = keepStocked(grid, source, model, target - current, perCycle, racks);
+                host.getStats().recordRestocked(now, restocked);
+                moved |= restocked > 0;
             } else if (current > target && !isRequested(requests, model)) {
-                moved |= WarehouseStock.toNetwork(racks, model,
-                        Math.min(current - target, perCycle), grid, source) > 0;
+                long returned = WarehouseStock.toNetwork(racks, model, Math.min(current - target, perCycle), grid, source);
+                host.getStats().recordReturned(now, returned);
+                moved |= returned > 0;
             }
         }
         setStatus(moved ? BridgeStatus.WORKING : BridgeStatus.IDLE);
     }
 
-    /** Repõe o que falta, tirando da rede ME. */
-    private static boolean keepStocked(IGrid grid, IActionSource source, ItemStack model, long missing,
-                                       int perCycle, List<IItemHandler> racks) {
+    /** Repõe o que falta, tirando da rede ME. @return quantidade colocada no armazém */
+    private static long keepStocked(IGrid grid, IActionSource source, ItemStack model, long missing,
+                                    int perCycle, List<IItemHandler> racks) {
         if (missing <= 0) {
-            return false;
+            return 0;
         }
         AEItemKey key = AEItemKey.of(model);
-        return key != null
-                && RackDelivery.deliver(grid, source, key, Math.min(missing, perCycle), racks) > 0;
+        return key == null ? 0 : RackDelivery.deliver(grid, source, key, Math.min(missing, perCycle), racks);
     }
 
     /** true se a colônia está pedindo este item agora (então ele não pode sair do armazém). */

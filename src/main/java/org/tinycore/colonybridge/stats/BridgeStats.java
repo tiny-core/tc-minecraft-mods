@@ -2,49 +2,32 @@ package org.tinycore.colonybridge.stats;
 
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.Item;
-import org.tinycore.colonybridge.Config;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
  * Estatísticas de uma ponte: registra eventos (entregas, crafts) de forma incremental e monta o
- * {@link StatsSummary} para a tela e os monitores.
+ * {@link StatsSummary} para os monitores.
  * <p>
- * Memória constante: contadores em {@link MetricRing} (blocos de {@code statsBucketTicks}) e ranking
- * em {@link TopItems}. O tempo é o do jogo ({@code gameTime}): com o servidor parado, nada anda.
- * <p>
- * A config só é lida quando a ponte registra ou resume algo, o que só acontece no servidor. Assim o
- * block entity pode ser criado e carregado no cliente sem depender da config do servidor.
+ * Memória constante: contadores numa {@link MetricSeries} (janela de tempo da config) e ranking em
+ * {@link TopItems}. O tempo é o do jogo ({@code gameTime}): com o servidor parado, nada anda.
  * Se {@code statsBucketTicks} ou {@code statsBuckets} mudarem na config, as estatísticas são zeradas.
  */
 public final class BridgeStats {
 
-    /** Uma hora de jogo em ticks (20 ticks/s × 3600 s). */
-    private static final long TICKS_PER_HOUR = 72_000;
     private static final int CHART_BARS = 24;
 
-    private int bucketTicks;
-    private MetricRing ring;
     private TopItems top = new TopItems();
-    /** NBT lido antes da config estar disponível; aplicado no primeiro uso. */
-    private CompoundTag pending = new CompoundTag();
-    /** Algo foi registrado desde a última consulta: o block entity precisa ser salvo. */
-    private boolean dirty;
+    private final MetricSeries<StatMetric> series = new MetricSeries<>(StatMetric.class, this::resetTop);
 
     public void recordDelivery(long now, Item item, long amount) {
-        ensureReady();
-        long bucket = now / bucketTicks;
-        ring.add(StatMetric.REQUESTS_DELIVERED, bucket, 1);
-        ring.add(StatMetric.ITEMS_DELIVERED, bucket, amount);
+        series.add(StatMetric.REQUESTS_DELIVERED, now, 1);
+        series.add(StatMetric.ITEMS_DELIVERED, now, amount);
         top.add(topGroup(now), item, amount);
-        dirty = true;
     }
 
     public void recordCraftStarted(long now) {
-        ensureReady();
-        ring.add(StatMetric.CRAFTS_STARTED, now / bucketTicks, 1);
-        dirty = true;
+        series.add(StatMetric.CRAFTS_STARTED, now, 1);
     }
 
     /**
@@ -52,92 +35,60 @@ public final class BridgeStats {
      * um craft chega em várias partes e o pedido é contado quando a ponte o reatribui.
      */
     public void recordCraftDelivery(long now, Item item, long amount) {
-        ensureReady();
-        ring.add(StatMetric.ITEMS_DELIVERED, now / bucketTicks, amount);
+        series.add(StatMetric.ITEMS_DELIVERED, now, amount);
         top.add(topGroup(now), item, amount);
-        dirty = true;
     }
 
     /** Um job de craft desta ponte terminou no AE2. */
     public void recordCraftDone(long now) {
-        ensureReady();
-        ring.add(StatMetric.CRAFTS_DONE, now / bucketTicks, 1);
-        dirty = true;
+        series.add(StatMetric.CRAFTS_DONE, now, 1);
     }
 
     public void recordCraftFailed(long now) {
-        ensureReady();
-        ring.add(StatMetric.CRAFTS_FAILED, now / bucketTicks, 1);
-        dirty = true;
+        series.add(StatMetric.CRAFTS_FAILED, now, 1);
     }
 
     /** true (uma vez) se houve registro desde a última chamada. */
     public boolean consumeDirty() {
-        boolean was = dirty;
-        dirty = false;
-        return was;
+        return series.consumeDirty();
     }
 
     public StatsSummary summary(long now) {
-        ensureReady();
-        long bucket = now / bucketTicks;
-        int hourBuckets = (int) Math.max(1, TICKS_PER_HOUR / bucketTicks);
-        int all = ring.size();
         StatsSummary.Totals totals = new StatsSummary.Totals(
-                ring.sumLast(StatMetric.ITEMS_DELIVERED, hourBuckets, bucket),
-                ring.sumLast(StatMetric.REQUESTS_DELIVERED, hourBuckets, bucket),
-                ring.sumLast(StatMetric.ITEMS_DELIVERED, all, bucket),
-                ring.sumLast(StatMetric.REQUESTS_DELIVERED, all, bucket),
-                ring.sumLast(StatMetric.CRAFTS_STARTED, all, bucket),
-                ring.sumLast(StatMetric.CRAFTS_FAILED, all, bucket),
-                ring.sumLast(StatMetric.CRAFTS_DONE, all, bucket));
-        List<Integer> chart = Arrays.stream(ring.grouped(StatMetric.ITEMS_DELIVERED, CHART_BARS, bucket)).boxed().toList();
+                series.lastHour(StatMetric.ITEMS_DELIVERED, now),
+                series.lastHour(StatMetric.REQUESTS_DELIVERED, now),
+                series.window(StatMetric.ITEMS_DELIVERED, now),
+                series.window(StatMetric.REQUESTS_DELIVERED, now),
+                series.window(StatMetric.CRAFTS_STARTED, now),
+                series.window(StatMetric.CRAFTS_FAILED, now),
+                series.window(StatMetric.CRAFTS_DONE, now));
         List<StatsSummary.Top> ranking = top.top(StatsSummary.MAX_TOP, topGroup(now)).stream()
                 .map(e -> new StatsSummary.Top(e.item(), e.count()))
                 .toList();
-        int hours = (int) Math.max(1, (long) bucketTicks * all / TICKS_PER_HOUR);
-        return new StatsSummary(hours, totals, chart, ranking);
+        return new StatsSummary(series.windowHours(), totals,
+                series.chart(StatMetric.ITEMS_DELIVERED, CHART_BARS, now), ranking);
     }
 
     /** Cada grupo do ranking cobre 1/{@link TopItems#GROUPS} da janela (1 hora com a config padrão). */
     private long topGroup(long now) {
-        long groupTicks = Math.max(1, (long) bucketTicks * ring.size() / TopItems.GROUPS);
+        long groupTicks = Math.max(1, series.windowTicks() / TopItems.GROUPS);
         return now / groupTicks;
     }
 
-    /** Cria as estruturas com a config atual e aplica o NBT pendente, se ele for compatível. */
-    private void ensureReady() {
-        int ticks = Config.STATS_BUCKET_TICKS.get();
-        int buckets = Config.STATS_BUCKETS.get();
-        if (ring != null && bucketTicks == ticks && ring.size() == buckets) {
-            return;
-        }
-        boolean compatible = pending.getInt("bucketTicks") == ticks && pending.getInt("buckets") == buckets;
-        bucketTicks = ticks;
-        ring = new MetricRing(buckets);
+    /** A janela foi (re)criada: o ranking acompanha (carrega do NBT compatível ou recomeça). */
+    private void resetTop(CompoundTag compatible) {
         top = new TopItems();
-        if (compatible) {
-            ring.load(pending.getCompound("ring"));
-            top.load(pending.getCompound("top"));
+        if (compatible != null) {
+            top.load(compatible.getCompound("top"));
         }
-        pending = new CompoundTag();
     }
 
-    /** Salva sem precisar da config: se ainda não foi usada, regrava o NBT que foi lido. */
+    /** Mesmo formato de antes da {@link MetricSeries} (bucketTicks, buckets, ring, top): saves antigos valem. */
     public CompoundTag save() {
-        if (ring == null) {
-            return pending.copy();
-        }
-        CompoundTag tag = new CompoundTag();
-        tag.putInt("bucketTicks", bucketTicks);
-        tag.putInt("buckets", ring.size());
-        tag.put("ring", ring.save());
-        tag.put("top", top.save());
-        return tag;
+        return series.save(tag -> tag.put("top", top.save()));
     }
 
     public void load(CompoundTag tag) {
-        pending = tag.copy();
-        ring = null; // reaplicado no próximo uso, já com a config conferida
+        series.load(tag);
     }
 }

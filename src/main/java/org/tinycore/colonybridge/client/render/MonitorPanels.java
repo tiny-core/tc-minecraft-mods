@@ -1,7 +1,9 @@
 package org.tinycore.colonybridge.client.render;
 
 import net.minecraft.network.chat.Component;
+import org.tinycore.colonybridge.block.monitor.BridgeContent;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
+import org.tinycore.colonybridge.block.monitor.SupplyContent;
 import org.tinycore.colonybridge.client.ui.BarChart;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.client.ui.UiColors;
@@ -13,10 +15,12 @@ import java.util.List;
 import java.util.function.IntUnaryOperator;
 
 /**
- * O que a tela do monitor mostra, a partir do {@link MonitorData}. Adapta-se ao tamanho:
+ * O que a tela do monitor mostra, a partir do {@link MonitorData}: mensagens de ligação, o painel da
+ * Ponte (aqui) ou o do Abastecedor ({@link SupplyPanel}), conforme o conteúdo. O cabeçalho, os cartões de
+ * número e o gráfico são compartilhados pelos dois painéis. O painel da Ponte adapta-se ao tamanho:
  * <ul>
  *   <li>largura 1 bloco: estado e pedidos em aberto; 2: + itens da última hora e nome da colônia;
- *       3+: + itens da janela inteira;</li>
+ *       3: + itens da janela inteira; 4+: + crafts concluídos;</li>
  *   <li>altura 2 blocos: + lista paginada de pedidos ({@link MonitorRequestList});
  *       3+: gráfico por hora; 4+: + faixa com os itens mais entregues.</li>
  * </ul>
@@ -25,20 +29,20 @@ import java.util.function.IntUnaryOperator;
  */
 final class MonitorPanels {
 
-    private static final int MARGIN = 4;
-    private static final int HEADER = 14;
-    private static final int BLOCK = MonitorRenderer.PIXELS_PER_BLOCK;
+    static final int MARGIN = 4;
+    static final int HEADER = 14;
+    static final int BLOCK = MonitorRenderer.PIXELS_PER_BLOCK;
 
     private MonitorPanels() {}
 
     /** Altura do gráfico quando divide espaço com a lista. */
-    private static final int CHART_HEIGHT = 40;
+    static final int CHART_HEIGHT = 40;
     /** Altura da faixa de itens mais entregues. */
     private static final int TOP_STRIP_HEIGHT = 20;
 
-    /** Índices das séries animadas: 3 números, depois uma por barra do gráfico. */
-    private static final int SERIES_METRICS = 0;
-    private static final int SERIES_CHART = 8;
+    /** Índices das séries animadas: até 8 números, depois uma por barra do gráfico. */
+    static final int SERIES_METRICS = 0;
+    static final int SERIES_CHART = 8;
 
     /**
      * @param pageFor dado o número de páginas, devolve a página atual (vem do block entity mestre)
@@ -53,7 +57,13 @@ final class MonitorPanels {
                     Component.translatable("monitor.tccolonybridge.unlinked_hint"), UiColors.TEXT_MUTED);
             case BRIDGE_MISSING -> message(c, width, height, Component.translatable("monitor.tccolonybridge.missing"),
                     Component.empty(), UiColors.DANGER);
-            case OK -> dashboard(c, width, height, data, pageFor, anim);
+            case OK -> {
+                if (data.content() instanceof SupplyContent supply) {
+                    SupplyPanel.render(c, width, height, data, supply, pageFor, anim);
+                } else if (data.content() instanceof BridgeContent bridge) {
+                    dashboard(c, width, height, data, bridge, pageFor, anim);
+                }
+            }
         }
     }
 
@@ -63,15 +73,15 @@ final class MonitorPanels {
         c.textCentered(hint, width / 2f, y, UiColors.TEXT_MUTED, 0.8f, width - MARGIN * 2, 2);
     }
 
-    private static void dashboard(MonitorCanvas c, int width, int height, MonitorData data,
+    private static void dashboard(MonitorCanvas c, int width, int height, MonitorData data, BridgeContent bridge,
                                   IntUnaryOperator pageFor, MonitorAnimator anim) {
         header(c, width, data);
-        StatsSummary.Totals totals = data.stats().totals();
+        StatsSummary.Totals totals = bridge.stats().totals();
         int columns = Math.min(4, Math.max(1, width / BLOCK));
         float columnWidth = (width - MARGIN * (columns + 1)) / (float) columns;
         float top = HEADER + MARGIN + 2;
         metric(c, MARGIN, top, columnWidth, Component.translatable("monitor.tccolonybridge.open_requests"),
-                anim.value(SERIES_METRICS, data.openRequests()));
+                anim.value(SERIES_METRICS, bridge.openRequests()));
         if (columns >= 2) {
             metric(c, MARGIN * 2 + columnWidth, top, columnWidth,
                     Component.translatable("monitor.tccolonybridge.items_hour"),
@@ -79,12 +89,12 @@ final class MonitorPanels {
         }
         if (columns >= 3) {
             metric(c, MARGIN * 3 + columnWidth * 2, top, columnWidth,
-                    Component.translatable("monitor.tccolonybridge.items_window", data.stats().windowHours()),
+                    Component.translatable("monitor.tccolonybridge.items_window", bridge.stats().windowHours()),
                     anim.value(SERIES_METRICS + 2, totals.itemsWindow()));
         }
         if (columns >= 4) {
             metric(c, MARGIN * 4 + columnWidth * 3, top, columnWidth,
-                    Component.translatable("monitor.tccolonybridge.crafts_done", data.stats().windowHours()),
+                    Component.translatable("monitor.tccolonybridge.crafts_done", bridge.stats().windowHours()),
                     anim.value(SERIES_METRICS + 3, totals.craftsDone()));
         }
         float next = top + 30;
@@ -93,22 +103,21 @@ final class MonitorPanels {
         }
         float inner = width - MARGIN * 2;
         if (height >= BLOCK * 3) {
-            BarChart.render(c, MARGIN, next, inner, CHART_HEIGHT, animatedChart(data, anim), 1);
+            BarChart.render(c, MARGIN, next, inner, CHART_HEIGHT, animatedChart(bridge.stats().chart(), anim), 1);
             next += CHART_HEIGHT + 6;
         }
-        if (height >= BLOCK * 4 && !data.stats().top().isEmpty()) {
-            topStrip(c, MARGIN, next, inner, data.stats().top());
+        if (height >= BLOCK * 4 && !bridge.stats().top().isEmpty()) {
+            topStrip(c, MARGIN, next, inner, bridge.stats().top());
             next += TOP_STRIP_HEIGHT + 4;
         }
         float listHeight = height - next - MARGIN;
-        int pages = MonitorRequestList.pages(data.requests().size(), inner, listHeight);
-        MonitorRequestList.render(c, data.requests(), data.openRequests(), pageFor.applyAsInt(pages),
+        int pages = MonitorRequestList.pages(bridge.requests().size(), inner, listHeight);
+        MonitorRequestList.render(c, bridge.requests(), bridge.openRequests(), pageFor.applyAsInt(pages),
                 MARGIN, next, inner, listHeight);
     }
 
     /** Mesmas barras do gráfico, suavizadas (uma série animada por barra). */
-    private static float[] animatedChart(MonitorData data, MonitorAnimator anim) {
-        List<Integer> chart = data.stats().chart();
+    static float[] animatedChart(List<Integer> chart, MonitorAnimator anim) {
         float[] values = new float[chart.size()];
         for (int i = 0; i < values.length; i++) {
             values[i] = anim.value(SERIES_CHART + i, chart.get(i));
@@ -133,7 +142,7 @@ final class MonitorPanels {
     }
 
     /** Faixa do topo: nome da colônia (se couber) à esquerda, estado à direita com a cor dele. */
-    private static void header(MonitorCanvas c, int width, MonitorData data) {
+    static void header(MonitorCanvas c, int width, MonitorData data) {
         c.fill(0, 2, width, HEADER, UiColors.PANEL, 1);
         Component status = Component.translatable(data.status().guiKey());
         int color = StatusColors.of(data.status());
@@ -148,7 +157,7 @@ final class MonitorPanels {
     }
 
     /** Cartão de número: rótulo pequeno em cima, valor grande embaixo. */
-    private static void metric(MonitorCanvas c, float x, float y, float width, Component label, float value) {
+    static void metric(MonitorCanvas c, float x, float y, float width, Component label, float value) {
         c.fill(x, y, x + width, y + 26, UiColors.PANEL, 1);
         c.fill(x, y, x + 1.5f, y + 26, UiColors.ACCENT, 2);
         c.textFitted(label, x + 4, y + 3, UiColors.TEXT_MUTED, 0.6f, width - 6, 2);

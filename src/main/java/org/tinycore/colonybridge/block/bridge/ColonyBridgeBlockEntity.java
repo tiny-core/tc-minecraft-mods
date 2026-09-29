@@ -13,8 +13,10 @@ import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.RedstoneMode;
+import org.tinycore.colonybridge.block.monitor.BridgeContent;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
+import org.tinycore.colonybridge.block.monitor.MonitorSource;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
 import org.tinycore.colonybridge.logic.bridge.CraftDelivery;
@@ -39,7 +41,7 @@ import java.util.Set;
  * as configurações da tela ({@link BridgeSettings}, {@link CraftSettings}), o filtro, os itens preferidos,
  * as estatísticas e os dados que alimentam a tela ({@link BridgeSnapshot}) e os monitores ({@link MonitorData}).
  */
-public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
+public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implements MonitorSource {
 
     /**
      * Requester dos crafts (resultado direto no armazém). Declarado <b>antes</b> do {@code logic}: campos
@@ -180,10 +182,11 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity {
     }
 
     /** Dados para os monitores ligados a esta ponte (chamado no servidor, 1×/s por tela). */
+    @Override
     public MonitorData monitorData() {
-        return new MonitorData(MonitorData.LinkState.OK, logic.getStatus(), logic.getColonyName(),
+        return MonitorData.ok(logic.getStatus(), logic.getColonyName(), new BridgeContent(
                 logic.getReport().total(), summary(),
-                logic.getReport().lines().stream().map(MonitorLine::of).toList());
+                logic.getReport().lines().stream().map(MonitorLine::of).toList()));
     }
 
     private StatsSummary summary() {

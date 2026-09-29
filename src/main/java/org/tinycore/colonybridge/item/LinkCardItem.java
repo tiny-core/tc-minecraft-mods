@@ -15,20 +15,21 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
+import org.tinycore.colonybridge.block.monitor.MonitorSource;
 
 import java.util.List;
 
 /**
- * Cartão de Ligação: grava uma ponte (shift + clique direito nela) e liga monitores a ela
- * (clique direito no monitor).
+ * Cartão de Ligação: grava um bloco que pode ser mostrado — Ponte ou Abastecedor, qualquer
+ * {@link MonitorSource} — (shift + clique direito nele) e liga monitores a ele (clique direito no monitor).
+ * A posição continua na chave {@code "bridge"} do item, para cartões antigos seguirem valendo.
  * <p>
  * A posição fica no componente {@code CUSTOM_DATA} do item — no 1.21 os itens guardam dados em
  * "data components" em vez de NBT solto; {@code CUSTOM_DATA} é o componente genérico para dados de mods.
  * <p>
- * Toda a validação é no servidor: mesma dimensão, ponte existente e carregada, distância máxima
- * ({@code monitorLinkRange}) e permissão do jogador para configurar a ponte. Assim ninguém exibe
+ * Toda a validação é no servidor: mesma dimensão, bloco existente e carregado, distância máxima
+ * ({@code monitorLinkRange}) e permissão do jogador para configurar o bloco. Assim ninguém exibe
  * os dados da colônia de outro jogador.
  */
 public class LinkCardItem extends Item {
@@ -46,8 +47,8 @@ public class LinkCardItem extends Item {
         }
         BlockPos pos = context.getClickedPos();
         ItemStack stack = context.getItemInHand();
-        if (level.getBlockEntity(pos) instanceof ColonyBridgeBlockEntity bridge && player.isShiftKeyDown()) {
-            return saveBridge(stack, bridge, player, level);
+        if (level.getBlockEntity(pos) instanceof MonitorSource source && player.isShiftKeyDown()) {
+            return saveSource(stack, source, player, level);
         }
         if (level.getBlockEntity(pos) instanceof MonitorBlockEntity monitor) {
             return linkMonitor(stack, monitor, player, level);
@@ -55,16 +56,16 @@ public class LinkCardItem extends Item {
         return InteractionResult.PASS;
     }
 
-    private static InteractionResult saveBridge(ItemStack stack, ColonyBridgeBlockEntity bridge, Player player,
+    private static InteractionResult saveSource(ItemStack stack, MonitorSource source, Player player,
                                                 Level level) {
-        if (!bridge.canConfigure(player)) {
+        if (!source.canConfigure(player)) {
             return fail(player, "link.tccolonybridge.no_permission");
         }
         CompoundTag tag = new CompoundTag();
-        tag.putLong("bridge", bridge.getBlockPos().asLong());
+        tag.putLong("bridge", source.getBlockPos().asLong());
         tag.putString("dimension", level.dimension().location().toString());
         CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
-        BlockPos p = bridge.getBlockPos();
+        BlockPos p = source.getBlockPos();
         player.displayClientMessage(Component.translatable("link.tccolonybridge.saved", p.getX(), p.getY(), p.getZ())
                 .withStyle(ChatFormatting.GREEN), true);
         return InteractionResult.SUCCESS;
@@ -79,10 +80,10 @@ public class LinkCardItem extends Item {
         if (!level.dimension().location().toString().equals(storedDimension(stack))) {
             return fail(player, "link.tccolonybridge.wrong_dimension");
         }
-        if (!level.isLoaded(bridgePos) || !(level.getBlockEntity(bridgePos) instanceof ColonyBridgeBlockEntity bridge)) {
+        if (!level.isLoaded(bridgePos) || !(level.getBlockEntity(bridgePos) instanceof MonitorSource source)) {
             return fail(player, "link.tccolonybridge.not_found");
         }
-        if (!bridge.canConfigure(player)) {
+        if (!source.canConfigure(player)) {
             return fail(player, "link.tccolonybridge.no_permission");
         }
         BlockPos masterPos = clicked.getMasterPos();
@@ -117,7 +118,7 @@ public class LinkCardItem extends Item {
         return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag().getString("dimension");
     }
 
-    /** Brilho de encantamento quando há uma ponte gravada. */
+    /** Brilho de encantamento quando há um bloco gravado. */
     @Override
     public boolean isFoil(ItemStack stack) {
         return storedBridge(stack) != null;

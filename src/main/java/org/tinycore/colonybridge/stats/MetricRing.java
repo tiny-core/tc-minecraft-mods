@@ -9,24 +9,29 @@ import net.minecraft.nbt.CompoundTag;
  * <p>
  * Os blocos são identificados pelo número absoluto {@code gameTime / bucketTicks}; a posição no array
  * é esse número módulo o tamanho.
+ * <p>
+ * {@code <E extends Enum<E>>}: as métricas são um enum qualquer (as da Ponte, as do Abastecedor...), como
+ * um generic com {@code where E : Enum} em C#. Cada valor do enum vira uma linha de contadores.
  */
-final class MetricRing {
+final class MetricRing<E extends Enum<E>> {
 
+    private final E[] metrics;
     private final int size;
     private final int[][] values;
     /** Último bloco absoluto já "aberto" (tudo depois dele ainda não existe). */
     private long current = -1;
 
-    MetricRing(int size) {
+    MetricRing(Class<E> type, int size) {
+        this.metrics = type.getEnumConstants();
         this.size = size;
-        this.values = new int[StatMetric.values().length][size];
+        this.values = new int[metrics.length][size];
     }
 
     int size() {
         return size;
     }
 
-    void add(StatMetric metric, long bucket, long amount) {
+    void add(E metric, long bucket, long amount) {
         advance(bucket);
         int[] row = values[metric.ordinal()];
         int index = index(bucket);
@@ -34,7 +39,7 @@ final class MetricRing {
     }
 
     /** Soma dos últimos {@code buckets} blocos, terminando em {@code nowBucket}. */
-    long sumLast(StatMetric metric, int buckets, long nowBucket) {
+    long sumLast(E metric, int buckets, long nowBucket) {
         advance(nowBucket);
         int[] row = values[metric.ordinal()];
         long sum = 0;
@@ -48,7 +53,7 @@ final class MetricRing {
      * A janela inteira agrupada em {@code groups} partes (ex.: 288 blocos de 5 min → 24 horas),
      * da mais antiga para a mais recente. Usado no gráfico.
      */
-    int[] grouped(StatMetric metric, int groups, long nowBucket) {
+    int[] grouped(E metric, int groups, long nowBucket) {
         advance(nowBucket);
         int[] row = values[metric.ordinal()];
         int perGroup = Math.max(1, size / groups);
@@ -86,7 +91,7 @@ final class MetricRing {
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
         tag.putLong("current", current);
-        for (StatMetric metric : StatMetric.values()) {
+        for (E metric : metrics) {
             tag.putIntArray(metric.name().toLowerCase(), values[metric.ordinal()]);
         }
         return tag;
@@ -95,7 +100,7 @@ final class MetricRing {
     /** Lê do NBT; arrays de tamanho diferente (config mudou) são ignorados e ficam zerados. */
     void load(CompoundTag tag) {
         current = tag.contains("current") ? tag.getLong("current") : -1;
-        for (StatMetric metric : StatMetric.values()) {
+        for (E metric : metrics) {
             int[] saved = tag.getIntArray(metric.name().toLowerCase());
             if (saved.length == size) {
                 System.arraycopy(saved, 0, values[metric.ordinal()], 0, size);
