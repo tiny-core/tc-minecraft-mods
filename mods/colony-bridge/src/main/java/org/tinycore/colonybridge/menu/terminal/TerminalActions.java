@@ -36,7 +36,7 @@ final class TerminalActions {
             case TAKE_TO_INVENTORY -> takeToInventory(player, racks, model);
             case INSERT_CARRIED -> insertCarried(menu, racks);
             case INSERT_ONE -> insertOne(menu, racks);
-            case CLEAR_GRID -> 0; // tratado pelo menu, que é quem conhece a bancada
+            case CLEAR_GRID, GRID_TO_INVENTORY -> 0; // tratados pelo menu, que é quem conhece a bancada
         };
     }
 

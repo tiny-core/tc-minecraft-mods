@@ -29,8 +29,9 @@ import java.util.List;
 /**
  * Tela do Terminal do Armazém (só cliente), com a estrutura do terminal do AE2 e as cores da marca:
  * busca, grade com todos os itens dos racks ({@link WarehouseGrid}), bancada 3×3 (como o Crafting Terminal)
- * e o inventário embaixo. Os slots da bancada são do menu; aqui só se desenha a seta e o botão "×", que
- * devolve a grade ao armazém.
+ * e o inventário embaixo. Os slots da bancada são do menu; aqui se desenha a estrutura do Crafting Terminal
+ * do AE2 — painel afundado, grade, dois botões pequenos (▲ devolve ao armazém, ▼ manda para o inventário),
+ * seta e o resultado numa moldura maior.
  * <p>
  * Cliques na grade, como no AE2: esquerdo tira um stack para o cursor, direito tira meio stack, Shift manda
  * direto para o inventário; com item no cursor, esquerdo guarda tudo e direito guarda um. Shift-clique no
@@ -40,7 +41,9 @@ import java.util.List;
 public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTerminalMenu> {
 
     private static final int WIDTH = 186;
-    private static final int HEIGHT = 307;
+    private static final int HEIGHT = 319;
+    /** Botões pequenos ao lado da grade da bancada (▲ armazém, ▼ inventário), como no AE2. */
+    private static final int SMALL_BUTTON = 9;
     private static final int PADDING = 8;
     private static final int SEARCH_Y = 32;
 
@@ -68,10 +71,14 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         toolbar.layout(leftPos, topPos, WIDTH);
         updateSortButton();
 
-        int clearX = leftPos + WarehouseTerminalMenu.RESULT_X + 26;
-        IconButton clear = addRenderableWidget(new IconButton(clearX, topPos + WarehouseTerminalMenu.RESULT_Y - 1,
-                this::clearGrid).glyph("×"));
-        clear.setTooltipText(Component.translatable("gui.tccolonybridge.terminal.clear_grid"));
+        int buttonsX = leftPos + WarehouseTerminalMenu.CRAFT_X + 57;
+        int buttonsY = topPos + WarehouseTerminalMenu.CRAFT_Y - 1;
+        IconButton toWarehouse = addRenderableWidget(new IconButton(buttonsX, buttonsY, SMALL_BUTTON,
+                () -> sendGridAction(TerminalAction.CLEAR_GRID)).glyph("▲"));
+        toWarehouse.setTooltipText(Component.translatable("gui.tccolonybridge.terminal.clear_grid"));
+        IconButton toInventory = addRenderableWidget(new IconButton(buttonsX, buttonsY + SMALL_BUTTON + 2, SMALL_BUTTON,
+                () -> sendGridAction(TerminalAction.GRID_TO_INVENTORY)).glyph("▼"));
+        toInventory.setTooltipText(Component.translatable("gui.tccolonybridge.terminal.grid_to_inventory"));
 
         String previous = search == null ? "" : search.getValue(); // mantém a busca ao redimensionar a janela
         search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, topPos + SEARCH_Y + 2,
@@ -86,9 +93,8 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
                 WarehouseTerminalMenu.COLUMNS, WarehouseTerminalMenu.ROWS);
     }
 
-    private void clearGrid() {
-        PacketDistributor.sendToServer(new WarehouseActionPayload(menu.containerId, TerminalAction.CLEAR_GRID.ordinal(),
-                ItemStack.EMPTY));
+    private void sendGridAction(TerminalAction action) {
+        PacketDistributor.sendToServer(new WarehouseActionPayload(menu.containerId, action.ordinal(), ItemStack.EMPTY));
     }
 
     private void cycleSort() {
@@ -124,22 +130,39 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         grid.update(menu.getView(), search.getValue(), sort);
         grid.render(g, font, mouseX, mouseY);
 
-        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.terminal.crafting"), x + PADDING,
-                y + WarehouseTerminalMenu.CRAFT_Y - 12, inner, ScreenStyle.TEXT);
-        arrow(g, x + WarehouseTerminalMenu.GRID_X + 58, y + WarehouseTerminalMenu.RESULT_Y + 7,
-                WarehouseTerminalMenu.RESULT_X - WarehouseTerminalMenu.GRID_X - 66);
+        craftingPanel(g, x, y, inner);
         ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"), x + PADDING,
                 y + WarehouseTerminalMenu.INVENTORY_Y - 12, inner, ScreenStyle.TEXT);
-        for (Slot slot : menu.slots) {
-            ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
+        for (int i = 0; i < menu.slots.size(); i++) {
+            Slot slot = menu.slots.get(i);
+            if (i != WarehouseTerminalMenu.RESULT_SLOT) { // o resultado tem moldura própria
+                ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
+            }
         }
     }
 
-    /** Seta "grade → resultado": haste e ponta feitas de retângulos, na cor de texto secundário. */
+    /**
+     * Estrutura do Crafting Terminal do AE2: título da seção, painel afundado ocupando a largura, seta até o
+     * resultado e o resultado numa moldura de 26×26 (os slots da grade são desenhados com os demais).
+     */
+    private void craftingPanel(GuiGraphics g, int x, int y, int inner) {
+        int craftY = y + WarehouseTerminalMenu.CRAFT_Y;
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.terminal.crafting"), x + PADDING,
+                craftY - 14, inner, ScreenStyle.TEXT);
+        ScreenStyle.inset(g, x + PADDING, craftY - 5, inner, 64, ScreenStyle.PANEL);
+        int arrowX = x + WarehouseTerminalMenu.CRAFT_X + 57 + SMALL_BUTTON + 8;
+        arrow(g, arrowX, craftY + 26, x + WarehouseTerminalMenu.RESULT_X - 5 - 6 - arrowX);
+        ScreenStyle.inset(g, x + WarehouseTerminalMenu.RESULT_X - 5, y + WarehouseTerminalMenu.RESULT_Y - 5, 26, 26,
+                ScreenStyle.SLOT);
+    }
+
+    /** Seta grossa "grade → resultado", como a do AE2: haste e ponta feitas de retângulos. */
     private static void arrow(GuiGraphics g, int x, int centerY, int length) {
-        g.fill(x, centerY - 1, x + length - 4, centerY + 1, ScreenStyle.TEXT_MUTED);
-        for (int i = 0; i < 4; i++) {
-            g.fill(x + length - 4 + i, centerY - 4 + i, x + length - 3 + i, centerY + 4 - i, ScreenStyle.TEXT_MUTED);
+        int head = 6;
+        g.fill(x, centerY - 2, x + length - head, centerY + 2, ScreenStyle.TEXT_MUTED);
+        for (int i = 0; i < head; i++) {
+            g.fill(x + length - head + i, centerY - head + i, x + length - head + i + 1, centerY + head - i,
+                    ScreenStyle.TEXT_MUTED);
         }
     }
 

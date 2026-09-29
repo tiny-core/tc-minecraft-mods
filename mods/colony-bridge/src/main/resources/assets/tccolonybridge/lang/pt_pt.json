@@ -157,7 +157,7 @@
   "gui.tccolonybridge.terminal.stored": "No armazém: %s",
   "gui.tccolonybridge.terminal.sort.amount": "Ordem: quantidade",
   "gui.tccolonybridge.terminal.sort.name": "Ordem: nome",
-  "gui.tccolonybridge.help.terminal": "Itens de todos os racks do armazém. Clique esquerdo: tira um stack · Direito: meio stack · Shift: directo para o inventário. Com item no cursor: esquerdo guarda tudo, direito guarda um. Shift-clique no inventário guarda o stack. Procure com @ para filtrar por mod (@minecraft); clique direito na pesquisa para limpar. Bancada: depois de cada craft a grelha é reposta com itens do armazém; Shift-clique no resultado crafta até um stack. O \"+\" do JEI monta a receita com itens do armazém. O × e fechar o ecrã devolvem a grelha ao armazém.",
+  "gui.tccolonybridge.help.terminal": "Itens de todos os racks do armazém. Clique esquerdo: tira um stack · Direito: meio stack · Shift: directo para o inventário. Com item no cursor: esquerdo guarda tudo, direito guarda um. Shift-clique no inventário guarda o stack. Procure com @ para filtrar por mod (@minecraft); clique direito na pesquisa para limpar. Bancada: depois de cada craft a grelha é reposta com itens do armazém; Shift-clique no resultado crafta até um stack. O \"+\" do JEI monta a receita com itens do armazém. ▲ devolve a grelha ao armazém, ▼ manda para o inventário; fechar o ecrã devolve ao armazém.",
   "message.tccolonybridge.terminal.no_colony": "Este terminal não está dentro de uma colónia.",
   "tccolonybridge.configuration.terminalSyncTicks": "Atualização do Terminal do Armazém (ticks)",
   "tccolonybridge.configuration.terminalSyncTicks.tooltip": "Ticks entre leituras do armazém enquanto o ecrã do Terminal do Armazém está aberto.",
@@ -201,5 +201,6 @@
   "tccolonybridge.configuration.terminalIdlePower": "Consumo parado do Terminal (AE/t)",
   "tccolonybridge.configuration.terminalIdlePower.tooltip": "AE/t gastos parado pelo Terminal do Armazém (vale quando o bloco carrega).",
   "tccolonybridge.configuration.terminalEnergyPerItem": "Energia do Terminal por item (AE)",
-  "tccolonybridge.configuration.terminalEnergyPerItem.tooltip": "AE gastos por item que o Terminal do Armazém move entre o armazém e o jogador."
+  "tccolonybridge.configuration.terminalEnergyPerItem.tooltip": "AE gastos por item que o Terminal do Armazém move entre o armazém e o jogador.",
+  "gui.tccolonybridge.terminal.grid_to_inventory": "Mandar a grelha da bancada para o inventário"
 }

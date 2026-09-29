@@ -41,14 +41,16 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     public static final int GRID_Y = 48;
     public static final int COLUMNS = 9;
     public static final int ROWS = 5;
-    public static final int CRAFT_Y = 154;
-    public static final int RESULT_X = GRID_X + 92;
-    public static final int RESULT_Y = CRAFT_Y + 18;
-    public static final int INVENTORY_Y = 224;
-    public static final int HOTBAR_Y = 282;
+    /** Bancada, no estilo do Crafting Terminal do AE2: grade à esquerda, botões, seta e resultado maior. */
+    public static final int CRAFT_X = 25;
+    public static final int CRAFT_Y = 160;
+    public static final int RESULT_X = 140;
+    public static final int RESULT_Y = CRAFT_Y + 19;
+    public static final int INVENTORY_Y = 236;
+    public static final int HOTBAR_Y = 294;
 
     /** Índices dos slots no menu. */
-    private static final int RESULT_SLOT = TerminalCrafting.SIZE;
+    public static final int RESULT_SLOT = TerminalCrafting.SIZE;
     private static final int INVENTORY_START = RESULT_SLOT + 1;
     private static final int INVENTORY_END = INVENTORY_START + 36;
 
@@ -90,7 +92,7 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
                 ? new WarehouseSync(serverPlayer, containerId) : null;
         this.crafting = new TerminalCrafting(this, player);
         for (int i = 0; i < TerminalCrafting.SIZE; i++) {
-            addSlot(new Slot(crafting.grid, i, GRID_X + (i % 3) * 18, CRAFT_Y + (i / 3) * 18));
+            addSlot(new Slot(crafting.grid, i, CRAFT_X + (i % 3) * 18, CRAFT_Y + (i / 3) * 18));
         }
         addSlot(new TerminalResultSlot(this, crafting, player, RESULT_X, RESULT_Y));
         for (int row = 0; row < 3; row++) {
@@ -129,10 +131,25 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
 
     /** Clique na grade, já validado pelo {@code TerminalPackets} (menu certo, distância, permissão). */
     public void handleAction(ServerPlayer player, List<IItemHandler> racks, TerminalAction action, ItemStack item) {
+        if (action == TerminalAction.GRID_TO_INVENTORY) {
+            gridToInventory();
+            return; // não passa pelo armazém: sem energia
+        }
         long moved = action == TerminalAction.CLEAR_GRID ? crafting.clearTo(racks)
                 : TerminalActions.apply(this, player, racks, action, item);
         chargeItems(moved);
         scanSoon();
+    }
+
+    /** Botão ▼ da bancada: a grade vai para o inventário do jogador (o que não couber fica na grade). */
+    private void gridToInventory() {
+        for (int i = 0; i < TerminalCrafting.SIZE; i++) {
+            Slot slot = slots.get(i);
+            if (slot.hasItem()) {
+                moveItemStackTo(slot.getItem(), INVENTORY_START, INVENTORY_END, false);
+                slot.setChanged();
+            }
+        }
     }
 
     /** Receita do JEI, já validada pelo {@code TerminalPackets}. */

@@ -17,8 +17,10 @@ public enum TerminalAction {
     INSERT_CARRIED,
     /** Clique direito com item no cursor: guarda um só. */
     INSERT_ONE,
-    /** Botão da bancada: devolve ao armazém tudo o que está na grade 3×3. */
-    CLEAR_GRID;
+    /** Botão ▲ da bancada: devolve ao armazém tudo o que está na grade 3×3. */
+    CLEAR_GRID,
+    /** Botão ▼ da bancada: manda a grade 3×3 para o inventário do jogador. */
+    GRID_TO_INVENTORY;
 
     /** Ação pelo número vindo do pacote; null se fora da faixa (pacote inválido). */
     public static @Nullable TerminalAction byId(int id) {
