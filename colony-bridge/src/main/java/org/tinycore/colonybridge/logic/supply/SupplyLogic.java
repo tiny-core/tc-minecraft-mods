@@ -29,7 +29,8 @@ import java.util.List;
  * </ul>
  * <b>Proteção contra cabo de guerra:</b> o excedente nunca sai se aquele item estiver em algum pedido
  * em aberto da colônia. Sem isso, a ponte entregaria o item e este bloco o levaria de volta, num
- * vaivém sem fim. O teto {@code supplyMaxPerCycle} limita quanto cada linha move por ciclo.
+ * vaivém sem fim. O teto {@code supplyMaxPerCycle} limita quanto cada linha move por ciclo. As quantidades
+ * saem da {@link SupplyRule} (regra pura, testada sem o jogo).
  */
 public final class SupplyLogic {
 
@@ -77,11 +78,14 @@ public final class SupplyLogic {
             long current = WarehouseStock.count(racks, model);
             counts[slot] = current;
             if (StockList.isKeep(slot)) {
-                long restocked = keepStocked(grid, source, model, target - current, perCycle, racks);
+                long restocked = keepStocked(grid, source, model, SupplyRule.restock(current, target, perCycle), racks);
                 host.getStats().recordRestocked(now, restocked);
                 moved |= restocked > 0;
-            } else if (current > target && !isRequested(requests, model)) {
-                long returned = WarehouseStock.toNetwork(racks, model, Math.min(current - target, perCycle), grid, source);
+                continue;
+            }
+            long surplus = current > target ? SupplyRule.surplus(current, target, isRequested(requests, model), perCycle) : 0;
+            if (surplus > 0) {
+                long returned = WarehouseStock.toNetwork(racks, model, surplus, grid, source);
                 host.getStats().recordReturned(now, returned);
                 moved |= returned > 0;
             }
@@ -89,14 +93,14 @@ public final class SupplyLogic {
         setStatus(moved ? BridgeStatus.WORKING : BridgeStatus.IDLE);
     }
 
-    /** Repõe o que falta, tirando da rede ME. @return quantidade colocada no armazém */
-    private static long keepStocked(IGrid grid, IActionSource source, ItemStack model, long missing,
-                                    int perCycle, List<IItemHandler> racks) {
-        if (missing <= 0) {
+    /** Repõe {@code amount} (já limitado pela {@link SupplyRule}), tirando da rede ME. @return quantidade colocada no armazém */
+    private static long keepStocked(IGrid grid, IActionSource source, ItemStack model, long amount,
+                                    List<IItemHandler> racks) {
+        if (amount <= 0) {
             return 0;
         }
         AEItemKey key = AEItemKey.of(model);
-        return key == null ? 0 : RackDelivery.deliver(grid, source, key, Math.min(missing, perCycle), racks);
+        return key == null ? 0 : RackDelivery.deliver(grid, source, key, amount, racks);
     }
 
     /** true se a colônia está pedindo este item agora (então ele não pode sair do armazém). */

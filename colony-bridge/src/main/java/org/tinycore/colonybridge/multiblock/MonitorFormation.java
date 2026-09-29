@@ -19,7 +19,8 @@ import java.util.Set;
  * Regra: o grupo de monitores conectados (na parede, sem diagonais) precisa ser um <b>retângulo
  * completo</b> de no máximo {@code monitorMaxWidth × monitorMaxHeight}. Se for, o canto inferior
  * esquerdo (visto de frente) vira o <b>mestre</b> e os outros guardam a posição relativa a ele.
- * Se não for, cada bloco fica sozinho marcado como inválido.
+ * Se não for, cada bloco fica sozinho marcado como inválido. A conta do retângulo fica no
+ * {@link MonitorShape} (regra pura, testada sem o jogo); aqui fica a parte que lê o mundo.
  * <p>
  * Só roda quando um monitor é colocado ou quebrado (via tick agendado do {@link MonitorBlock}),
  * nunca por tick contínuo. Não carrega chunks: vizinho em chunk descarregado conta como "não é monitor".
@@ -51,21 +52,12 @@ public final class MonitorFormation {
         Set<BlockPos> group = new HashSet<>();
         boolean overflow = collect(level, start, facing, right, group);
 
-        int minU = Integer.MAX_VALUE, maxU = Integer.MIN_VALUE, minV = Integer.MAX_VALUE, maxV = Integer.MIN_VALUE;
+        MonitorShape shape = new MonitorShape();
         for (BlockPos pos : group) {
-            int u = along(pos, start, right);
-            int v = pos.getY() - start.getY();
-            minU = Math.min(minU, u);
-            maxU = Math.max(maxU, u);
-            minV = Math.min(minV, v);
-            maxV = Math.max(maxV, v);
+            shape.add(along(pos, start, right), pos.getY() - start.getY());
         }
-        int width = maxU - minU + 1;
-        int height = maxV - minV + 1;
         boolean valid = !overflow
-                && group.size() == width * height
-                && width <= Config.MONITOR_MAX_WIDTH.get()
-                && height <= Config.MONITOR_MAX_HEIGHT.get();
+                && shape.isValid(Config.MONITOR_MAX_WIDTH.get(), Config.MONITOR_MAX_HEIGHT.get());
 
         BlockPos link = valid ? takeLink(level, group) : null;
         for (BlockPos pos : group) {
@@ -73,8 +65,8 @@ public final class MonitorFormation {
                 continue;
             }
             if (valid) {
-                monitor.setStructure(along(pos, start, right) - minU, pos.getY() - start.getY() - minV,
-                        width, height, true);
+                monitor.setStructure(along(pos, start, right) - shape.minU(), pos.getY() - start.getY() - shape.minV(),
+                        shape.width(), shape.height(), true);
                 if (monitor.isMaster() && link != null) {
                     monitor.setLink(link); // a ligação passa para o novo mestre
                 }

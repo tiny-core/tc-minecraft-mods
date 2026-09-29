@@ -54,7 +54,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `core/README.md`.
 | `logic/bridge/RequestCounts` | Resumo do ciclo (abertos, atendidos, craftando) para a aba "Geral". |
 | `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots do filtro e dos preferidos), a "foto" enviada ao cliente e as abas. |
 | `client/bridge/ColonyBridgeScreen`, `ModListView`, `BridgeIcons` | Tela: barra lateral de ajustes, abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
-| `stats/BridgeStats`, `StatsSummary`, `TopItems` | Estatísticas da ponte (entregas, crafts, ranking de itens). |
+| `stats/BridgeStats`, `StatsSummary`, `TopItems` | Estatísticas da ponte (entregas, crafts, ranking de itens). A regra do ranking fica em `TopRanking` (genérico, testado). |
 
 ## Abastecedor da Colônia (`supply/`) — mantém o armazém abastecido
 
@@ -63,7 +63,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `core/README.md`.
 | `block/supply/ColonySupplyBlock` | Liga o bloco ao block entity e à tela do abastecedor. |
 | `block/supply/ColonySupplyBlockEntity` | Dados do abastecedor (listas, redstone) e ponte com a tela. |
 | `block/supply/StockList` | As duas listas: slots 0-8 "manter no armazém", 9-17 "excedente para o ME", com quantidade alvo. |
-| `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). |
+| `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). Quantidades decididas pela `SupplyRule` (regra pura, testada). |
 | `menu/supply/ColonySupplyMenu`, `SupplySnapshot` | Container da tela e a "foto" enviada ao cliente. |
 | `client/supply/ColonySupplyScreen` | Tela com as duas listas e o botão de redstone. |
 | `stats/SupplyStats`, `SupplySummary` | Estatísticas do Abastecedor (itens repostos / devolvidos ao ME). |
@@ -75,7 +75,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `core/README.md`.
 | `block/monitor/MonitorSource` | O que um bloco precisa para aparecer no monitor (Ponte e Abastecedor implementam). |
 | `block/monitor/MonitorBlock`, `MonitorBlockEntity` | Bloco e posição dentro da tela; o mestre guarda a ligação com o bloco mostrado. |
 | `block/monitor/MonitorData`, `MonitorContent` (`BridgeContent`, `SupplyContent`), `MonitorLine`, `StockLine` | Dados sincronizados 1×/s, só quando mudam; o conteúdo depende do tipo de bloco ligado. |
-| `multiblock/MonitorFormation` | Junta monitores vizinhos num retângulo e elege o mestre. |
+| `multiblock/MonitorFormation` | Junta monitores vizinhos num retângulo e elege o mestre. A conta do retângulo fica em `MonitorShape` (regra pura, testada). |
 | `item/LinkCardItem` | Cartão de ligação monitor → Ponte ou Abastecedor (valida dimensão, distância, permissão). |
 | `client/render/*` | Desenho no mundo: renderer, canvas, painel da Ponte (`MonitorPanels`) e do Abastecedor (`SupplyPanel`), lista paginada, animação. |
 

@@ -127,9 +127,9 @@ pacotes que o monitor precisa.
 4. ~~Indexar o estoque~~ — **feito** de forma mais simples: `AEItemKey.getReadOnlyStack()` (cache do AE2)
    elimina a alocação por item. Se o custo de `matches()` pesar em redes enormes, aí sim indexar.
 5. ~~Simulação de inserção mais precisa~~ — **feito** em `RackDelivery.capacity()` (soma por slot).
-6. Testes automáticos — **feito em parte:** JUnit das regras sem jogo (`./gradlew test`, 37 testes).
-   **Falta:** GitHub Actions (exige obter os jars do MineColonies fora do git, ex.: Maven da LDTTeam) e
-   GameTests em jogo para entrega/craft (pesado: sobe MineColonies e AE2).
+6. Testes automáticos — **feito o que dá sem o jogo:** JUnit das regras puras (`./gradlew test`: 62 no
+   Colony Bridge, 13 no core). **Fora de escopo por decisão do autor (2026-09-29):** GitHub Actions e
+   GameTests; entrega e craft reais são testados à mão no ATM10.
 7. ~~Separar `ModRegistries` em arquivos por tipo~~ — **feito** (`ModBlocks`, `ModItems`, `ModBlockEntities`).
 8. Publicação futura (CurseForge/Modrinth): definir licença final, página em PT/EN e ícone.
 

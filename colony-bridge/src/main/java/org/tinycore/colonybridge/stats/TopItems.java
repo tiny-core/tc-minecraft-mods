@@ -7,19 +7,15 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Itens mais entregues numa janela de tempo, com memória limitada.
  * <p>
- * A janela é dividida em {@link #GROUPS} grupos (ex.: 24 horas); cada grupo guarda no máximo
- * {@link #PER_GROUP} itens. Quando um grupo enche, o item com menor contagem sai. O resultado é
- * <b>aproximado</b> (um item raro numa hora movimentada pode ficar de fora), em troca de tamanho fixo
- * na memória e no NBT.
+ * A regra do ranking (grupos de tempo, descarte do menor quando o grupo enche) está no
+ * {@link TopRanking}, genérico e testado sem o jogo; aqui fica o que depende do Minecraft: a chave é
+ * {@link Item} e o NBT grava o id do item. A janela tem {@link #GROUPS} grupos (ex.: 24 horas) de no
+ * máximo {@link #PER_GROUP} itens.
  */
 final class TopItems {
 
@@ -29,62 +25,26 @@ final class TopItems {
     /** Item e quantidade (resultado do ranking). */
     record Entry(Item item, long count) {}
 
-    private final List<Map<Item, Long>> groups = new ArrayList<>(GROUPS);
-    private long current = -1;
-
-    TopItems() {
-        for (int i = 0; i < GROUPS; i++) {
-            groups.add(new HashMap<>());
-        }
-    }
+    private final TopRanking<Item> ranking = new TopRanking<>(GROUPS, PER_GROUP);
 
     void add(long group, Item item, long amount) {
-        advance(group);
-        Map<Item, Long> counts = groups.get(index(group));
-        counts.merge(item, amount, Long::sum);
-        if (counts.size() > PER_GROUP) {
-            counts.entrySet().stream()
-                    .min(Map.Entry.comparingByValue())
-                    .ifPresent(smallest -> counts.remove(smallest.getKey()));
-        }
+        ranking.add(group, item, amount);
     }
 
     /** Os {@code limit} itens com maior soma na janela inteira. */
     List<Entry> top(int limit, long nowGroup) {
-        advance(nowGroup);
-        Map<Item, Long> total = new HashMap<>();
-        for (Map<Item, Long> counts : groups) {
-            counts.forEach((item, count) -> total.merge(item, count, Long::sum));
-        }
-        return total.entrySet().stream()
-                .sorted(Map.Entry.<Item, Long>comparingByValue(Comparator.reverseOrder()))
-                .limit(limit)
-                .map(e -> new Entry(e.getKey(), e.getValue()))
+        return ranking.top(limit, nowGroup).stream()
+                .map(e -> new Entry(e.key(), e.count()))
                 .toList();
-    }
-
-    private void advance(long group) {
-        if (group <= current) {
-            return;
-        }
-        long steps = current < 0 ? GROUPS : Math.min(group - current, GROUPS);
-        for (long i = 0; i < steps; i++) {
-            groups.get(index(group - i)).clear();
-        }
-        current = group;
-    }
-
-    private static int index(long group) {
-        return (int) Math.floorMod(group, (long) GROUPS);
     }
 
     CompoundTag save() {
         CompoundTag tag = new CompoundTag();
-        tag.putLong("current", current);
+        tag.putLong("current", ranking.current());
         ListTag list = new ListTag();
-        for (Map<Item, Long> counts : groups) {
+        for (int g = 0; g < GROUPS; g++) {
             ListTag entries = new ListTag();
-            counts.forEach((item, count) -> {
+            ranking.group(g).forEach((item, count) -> {
                 CompoundTag entry = new CompoundTag();
                 entry.putString("id", BuiltInRegistries.ITEM.getKey(item).toString());
                 entry.putLong("n", count);
@@ -98,8 +58,7 @@ final class TopItems {
 
     /** Lê do NBT; itens que não existem mais (mod removido) são descartados. */
     void load(CompoundTag tag) {
-        groups.forEach(Map::clear);
-        current = tag.contains("current") ? tag.getLong("current") : -1;
+        ranking.reset(tag.contains("current") ? tag.getLong("current") : -1);
         ListTag list = tag.getList("groups", Tag.TAG_LIST);
         for (int g = 0; g < Math.min(list.size(), GROUPS); g++) {
             ListTag entries = list.getList(g);
@@ -111,7 +70,7 @@ final class TopItems {
                 }
                 long count = entry.getLong("n");
                 int group = g;
-                BuiltInRegistries.ITEM.getOptional(id).ifPresent(item -> groups.get(group).put(item, count));
+                BuiltInRegistries.ITEM.getOptional(id).ifPresent(item -> ranking.group(group).put(item, count));
             }
         }
     }

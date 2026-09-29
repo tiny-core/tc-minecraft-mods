@@ -118,7 +118,10 @@ Este mod faz parte do workspace **TC Minecraft Mods** (ver o `README.md` da raiz
 
 Testes automáticos deste mod: `./gradlew :colony-bridge:test --rerun` — escolha do item a craftar
 (`CraftOrdering`), limpeza de pacotes/NBT das preferências (`CraftSettings`), reservas entre pontes
-(`DeliveryLedger`) e linhas do Abastecedor no monitor. Os do core (`JoinedList`, `MetricRing`) ficam em `core/`.
+(`DeliveryLedger`), linhas do Abastecedor no monitor, quanto o Abastecedor repõe/devolve (`SupplyRule`),
+ranking de itens (`TopRanking`), formação do monitor (`MonitorShape`), animação e paginação do monitor,
+NBT e pacote das configurações da ponte (`BridgeSettings`). Os do core (`JoinedList`, `MetricRing`,
+`MetricSeries`) ficam em `core/`.
 
 ## Configuração
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).
