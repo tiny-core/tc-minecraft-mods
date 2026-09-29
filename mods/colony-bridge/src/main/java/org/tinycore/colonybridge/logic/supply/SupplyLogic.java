@@ -76,10 +76,11 @@ public final class SupplyLogic {
                 continue;
             }
             long current = WarehouseStock.count(racks, model);
-            counts[slot] = current;
             if (StockList.isKeep(slot)) {
                 long restocked = keepStocked(grid, source, model, SupplyRule.restock(current, target, perCycle), racks);
                 host.getStats().recordRestocked(now, restocked);
+                // A tela e o monitor mostram o armazém depois do movimento, não a leitura de antes.
+                counts[slot] = current + restocked;
                 moved |= restocked > 0;
                 continue;
             }
@@ -87,8 +88,10 @@ public final class SupplyLogic {
             if (surplus > 0) {
                 long returned = WarehouseStock.toNetwork(racks, model, surplus, grid, source);
                 host.getStats().recordReturned(now, returned);
+                current -= returned;
                 moved |= returned > 0;
             }
+            counts[slot] = current;
         }
         setStatus(moved ? BridgeStatus.WORKING : BridgeStatus.IDLE);
     }

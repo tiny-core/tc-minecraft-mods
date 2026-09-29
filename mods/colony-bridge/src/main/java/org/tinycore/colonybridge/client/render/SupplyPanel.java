@@ -125,7 +125,9 @@ final class SupplyPanel {
         float barWidth = width - 18;
         float barY = y + 9;
         float fraction = line.target() <= 0 ? 1f : Math.min(1f, (float) line.current() / line.target());
-        c.fill(barX, barY, barX + barWidth, barY + 3, UiColors.BORDER, 1);
-        c.fill(barX, barY, barX + barWidth * fraction, barY + 3, color, 2);
+        // Camadas acima do fundo da linha (1): no mesmo plano, a placa de vídeo alterna entre os dois e a
+        // barra vazia "pisca" conforme o jogador anda (z-fighting).
+        c.fill(barX, barY, barX + barWidth, barY + 3, UiColors.BORDER, 2);
+        c.fill(barX, barY, barX + barWidth * fraction, barY + 3, color, 3);
     }
 }

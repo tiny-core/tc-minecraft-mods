@@ -13,7 +13,6 @@ import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.tileentities.AbstractTileEntityRack;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -125,7 +124,14 @@ public final class ColonyAccess {
         return name.length() > 64 ? name.substring(0, 64) : name;
     }
 
-    /** Inventários de todos os racks dos armazéns da colônia (apenas chunks carregados). */
+    /**
+     * Inventários de todos os racks dos armazéns da colônia (apenas chunks carregados), um por bloco.
+     * <p>
+     * Usa o inventário próprio de cada rack ({@code getInventory}) e não a capability
+     * ({@code getItemHandlerCap}): num rack duplo, a capability das <b>duas</b> metades devolve o
+     * inventário combinado das duas, e como o armazém lista as duas posições, tudo seria contado
+     * (e movido) em dobro.
+     */
     public static List<IItemHandler> warehouseRacks(IColony colony) {
         Level level = colony.getWorld();
         List<IItemHandler> handlers = new ArrayList<>();
@@ -138,10 +144,7 @@ public final class ColonyAccess {
                     continue;
                 }
                 if (level.getBlockEntity(pos) instanceof AbstractTileEntityRack rack) {
-                    IItemHandler handler = rack.getItemHandlerCap((Direction) null);
-                    if (handler != null) {
-                        handlers.add(handler);
-                    }
+                    handlers.add(rack.getInventory());
                 }
             }
         }
