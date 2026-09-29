@@ -22,6 +22,8 @@ final class MonitorAnimator {
 
     private final List<Double> values = new ArrayList<>();
     private long lastNanos;
+    /** Tempo desde o frame anterior, medido uma vez em {@link #beginFrame} e usado por todas as séries. */
+    private double frameSeconds;
     /** Momento do último uso, para o renderer descartar telas que saíram de vista. */
     long lastUsedMillis;
 
@@ -33,29 +35,38 @@ final class MonitorAnimator {
         while (values.size() <= index) {
             values.add(target); // série nova começa já no alvo (sem animação na primeira vez)
         }
-        double current = values.get(index);
-        double next = current + (target - current) * factor();
-        if (Math.abs(target - next) < SNAP) {
-            next = target;
-        }
+        double next = step(values.get(index), target, frameSeconds);
         values.set(index, next);
         return (float) next;
     }
 
-    /** Fração a percorrer neste frame, a partir do tempo desde o frame anterior. */
-    private double factor() {
-        long now = System.nanoTime();
-        double seconds = lastNanos == 0 ? 0 : (now - lastNanos) / 1_000_000_000.0;
-        lastNanos = now;
+    /**
+     * Um passo da animação: anda de {@code current} em direção a {@code target} a fração correspondente a
+     * {@code seconds} de tempo real. Puro (sem relógio) para poder ser testado.
+     */
+    static double step(double current, double target, double seconds) {
+        double next = current + (target - current) * factor(seconds);
+        return Math.abs(target - next) < SNAP ? target : next;
+    }
+
+    /** Fração do caminho restante a percorrer em {@code seconds}. */
+    private static double factor(double seconds) {
         if (seconds <= 0) {
             return 0;
         }
-        // 1 - (1 - SPEED)^t : decaimento exponencial, independente da taxa de frames
+        // 1 - (1 - SPEED)^t : decaimento exponencial, independente da taxa de frames.
+        // Teto de 0,5 s: depois de uma pausa (menu aberto, lag) o valor não salta direto ao alvo.
         return 1 - Math.pow(1 - SPEED_PER_SECOND, Math.min(seconds, 0.5));
     }
 
-    /** Chamado uma vez por frame, antes de desenhar a tela. */
+    /**
+     * Chamado uma vez por frame, antes de desenhar a tela. Mede aqui o tempo do frame: medir a cada
+     * {@link #value} fazia só a primeira série do frame andar (as outras viam ~0 s decorridos).
+     */
     void beginFrame() {
         lastUsedMillis = System.currentTimeMillis();
+        long now = System.nanoTime();
+        frameSeconds = lastNanos == 0 ? 0 : (now - lastNanos) / 1_000_000_000.0;
+        lastNanos = now;
     }
 }
