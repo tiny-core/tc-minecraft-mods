@@ -3,6 +3,7 @@ package org.tinycore.colonybridge.network;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
@@ -23,12 +24,11 @@ final class TerminalPackets {
      * permissão na colônia ({@code racks()} devolve null se não tiver).
      */
     static void onAction(WarehouseActionPayload payload, IPayloadContext context) {
-        if (!(context.player() instanceof ServerPlayer player)
-                || !(player.containerMenu instanceof WarehouseTerminalMenu menu)
-                || menu.containerId != payload.containerId()
-                || !menu.stillValid(player)) {
+        WarehouseTerminalMenu menu = openTerminal(context, payload.containerId());
+        if (menu == null) {
             return;
         }
+        ServerPlayer player = (ServerPlayer) context.player();
         TerminalAction action = TerminalAction.byId(payload.action());
         List<IItemHandler> racks = menu.racks();
         if (action == null || racks == null) {
@@ -37,5 +37,25 @@ final class TerminalPackets {
             return;
         }
         menu.handleAction(player, racks, action, payload.item());
+    }
+
+    /** Receita do JEI: mesmas validações; o codec já limitou o tamanho das listas. */
+    static void onRecipe(TerminalRecipePayload payload, IPayloadContext context) {
+        WarehouseTerminalMenu menu = openTerminal(context, payload.containerId());
+        List<IItemHandler> racks = menu == null ? null : menu.racks();
+        if (racks != null) {
+            menu.fillRecipe(racks, payload.slots(), payload.max());
+        }
+    }
+
+    /** O terminal aberto com esse id, com o jogador a até 8 blocos; senão null (pacote ignorado). */
+    private static @Nullable WarehouseTerminalMenu openTerminal(IPayloadContext context, int containerId) {
+        if (context.player() instanceof ServerPlayer player
+                && player.containerMenu instanceof WarehouseTerminalMenu menu
+                && menu.containerId == containerId
+                && menu.stillValid(player)) {
+            return menu;
+        }
+        return null;
     }
 }

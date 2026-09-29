@@ -26,7 +26,9 @@ import java.util.List;
 
 /**
  * Tela do Terminal do Armazém (só cliente), com a estrutura do terminal do AE2 e as cores da marca:
- * busca, grade com todos os itens dos racks ({@link WarehouseGrid}) e o inventário embaixo.
+ * busca, grade com todos os itens dos racks ({@link WarehouseGrid}), bancada 3×3 (como o Crafting Terminal)
+ * e o inventário embaixo. Os slots da bancada são do menu; aqui só se desenha a seta e o botão "×", que
+ * devolve a grade ao armazém.
  * <p>
  * Cliques na grade, como no AE2: esquerdo tira um stack para o cursor, direito tira meio stack, Shift manda
  * direto para o inventário; com item no cursor, esquerdo guarda tudo e direito guarda um. Shift-clique no
@@ -36,7 +38,7 @@ import java.util.List;
 public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTerminalMenu> {
 
     private static final int WIDTH = 186;
-    private static final int HEIGHT = 245;
+    private static final int HEIGHT = 307;
     private static final int PADDING = 8;
     private static final int SEARCH_Y = 32;
 
@@ -64,6 +66,11 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         toolbar.layout(leftPos, topPos, WIDTH);
         updateSortButton();
 
+        int clearX = leftPos + WarehouseTerminalMenu.RESULT_X + 26;
+        IconButton clear = addRenderableWidget(new IconButton(clearX, topPos + WarehouseTerminalMenu.RESULT_Y - 1,
+                this::clearGrid).glyph("×"));
+        clear.setTooltipText(Component.translatable("gui.tccolonybridge.terminal.clear_grid"));
+
         String previous = search == null ? "" : search.getValue(); // mantém a busca ao redimensionar a janela
         search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, topPos + SEARCH_Y + 2,
                 WIDTH - PADDING * 2 - 6, 10, Component.translatable("gui.tccolonybridge.terminal.search")));
@@ -75,6 +82,11 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
 
         grid = new WarehouseGrid(leftPos + WarehouseTerminalMenu.GRID_X, topPos + WarehouseTerminalMenu.GRID_Y,
                 WarehouseTerminalMenu.COLUMNS, WarehouseTerminalMenu.ROWS);
+    }
+
+    private void clearGrid() {
+        PacketDistributor.sendToServer(new WarehouseActionPayload(menu.containerId, TerminalAction.CLEAR_GRID.ordinal(),
+                ItemStack.EMPTY));
     }
 
     private void cycleSort() {
@@ -105,10 +117,22 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         grid.update(menu.getView(), search.getValue(), sort);
         grid.render(g, font, mouseX, mouseY);
 
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.terminal.crafting"), x + PADDING,
+                y + WarehouseTerminalMenu.CRAFT_Y - 12, inner, ScreenStyle.TEXT);
+        arrow(g, x + WarehouseTerminalMenu.GRID_X + 58, y + WarehouseTerminalMenu.RESULT_Y + 7,
+                WarehouseTerminalMenu.RESULT_X - WarehouseTerminalMenu.GRID_X - 66);
         ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"), x + PADDING,
                 y + WarehouseTerminalMenu.INVENTORY_Y - 12, inner, ScreenStyle.TEXT);
         for (Slot slot : menu.slots) {
             ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
+        }
+    }
+
+    /** Seta "grade → resultado": haste e ponta feitas de retângulos, na cor de texto secundário. */
+    private static void arrow(GuiGraphics g, int x, int centerY, int length) {
+        g.fill(x, centerY - 1, x + length - 4, centerY + 1, ScreenStyle.TEXT_MUTED);
+        for (int i = 0; i < 4; i++) {
+            g.fill(x + length - 4 + i, centerY - 4 + i, x + length - 3 + i, centerY + 4 - i, ScreenStyle.TEXT_MUTED);
         }
     }
 

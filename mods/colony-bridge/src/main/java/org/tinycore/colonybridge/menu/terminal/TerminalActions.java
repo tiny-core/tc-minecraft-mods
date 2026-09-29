@@ -34,6 +34,7 @@ final class TerminalActions {
             case TAKE_TO_INVENTORY -> takeToInventory(player, racks, model);
             case INSERT_CARRIED -> menu.setCarried(WarehouseItems.insert(racks, menu.getCarried()));
             case INSERT_ONE -> insertOne(menu, racks);
+            case CLEAR_GRID -> { } // tratado pelo menu, que é quem conhece a bancada
         }
     }
 

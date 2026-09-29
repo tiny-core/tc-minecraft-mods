@@ -163,10 +163,13 @@
   "gui.tccolonybridge.terminal.stored": "No armazém: %s",
   "gui.tccolonybridge.terminal.sort.amount": "Ordem: quantidade",
   "gui.tccolonybridge.terminal.sort.name": "Ordem: nome",
-  "gui.tccolonybridge.help.terminal": "Itens de todos os racks do armazém. Clique esquerdo: tira um stack · Direito: meio stack · Shift: directo para o inventário. Com item no cursor: esquerdo guarda tudo, direito guarda um. Shift-clique no inventário guarda o stack. Procure com @ para filtrar por mod (@minecraft); clique direito na pesquisa para limpar.",
+  "gui.tccolonybridge.help.terminal": "Itens de todos os racks do armazém. Clique esquerdo: tira um stack · Direito: meio stack · Shift: directo para o inventário. Com item no cursor: esquerdo guarda tudo, direito guarda um. Shift-clique no inventário guarda o stack. Procure com @ para filtrar por mod (@minecraft); clique direito na pesquisa para limpar. Bancada: depois de cada craft a grelha é reposta com itens do armazém; Shift-clique no resultado crafta até um stack. O \"+\" do JEI monta a receita com itens do armazém. O × e fechar o ecrã devolvem a grelha ao armazém.",
   "message.tccolonybridge.terminal.no_colony": "Este terminal não está dentro de uma colónia.",
   "tccolonybridge.configuration.terminalSyncTicks": "Atualização do Terminal do Armazém (ticks)",
   "tccolonybridge.configuration.terminalSyncTicks.tooltip": "Ticks entre leituras do armazém enquanto o ecrã do Terminal do Armazém está aberto.",
   "tccolonybridge.configuration.terminalMaxTypes": "Máximo de tipos no Terminal do Armazém",
-  "tccolonybridge.configuration.terminalMaxTypes.tooltip": "Máximo de tipos de item mostrados pelo Terminal do Armazém (limita o tráfego em armazéns enormes)."
+  "tccolonybridge.configuration.terminalMaxTypes.tooltip": "Máximo de tipos de item mostrados pelo Terminal do Armazém (limita o tráfego em armazéns enormes).",
+  "gui.tccolonybridge.terminal.crafting": "Bancada",
+  "gui.tccolonybridge.terminal.clear_grid": "Devolver a grelha da bancada ao armazém",
+  "gui.tccolonybridge.terminal.missing": "Falta no armazém e no inventário"
 }

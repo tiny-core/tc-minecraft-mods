@@ -86,6 +86,11 @@ abre precisa da mesma permissão da ponte.
 - **Tirar:** clique esquerdo = um stack no cursor · direito = meio stack · Shift = direto para o inventário.
 - **Guardar:** com item no cursor, esquerdo guarda tudo e direito guarda um; Shift-clique no inventário guarda o stack.
 
+- **Bancada 3×3** (como o Crafting Terminal): depois de cada craft a grade é reposta com os mesmos itens do
+  armazém; Shift-clique no resultado crafta até um stack. O **"+" do JEI** monta a receita com itens do
+  armazém (e do inventário, se faltar); Shift no "+" põe um stack por posição. O botão **×** e fechar a tela
+  devolvem a grade ao armazém.
+
 A grade atualiza a cada `terminalSyncTicks` (só com a tela aberta, mandando só o que mudou) e mostra até
 `terminalMaxTypes` tipos. Modelo provisório (bancada de trabalho) até a arte no Blockbench.
 

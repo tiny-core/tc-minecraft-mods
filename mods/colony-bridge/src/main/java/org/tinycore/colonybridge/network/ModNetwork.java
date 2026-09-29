@@ -53,6 +53,8 @@ public final class ModNetwork {
                 (payload, context) -> ClientPayloadHandler.onWarehouseContents(payload));
         registrar.playToServer(WarehouseActionPayload.TYPE, WarehouseActionPayload.STREAM_CODEC,
                 TerminalPackets::onAction);
+        registrar.playToServer(TerminalRecipePayload.TYPE, TerminalRecipePayload.STREAM_CODEC,
+                TerminalPackets::onRecipe);
     }
 
     private static void onSettings(BridgeSettingsPayload payload, IPayloadContext context) {

@@ -163,10 +163,13 @@
   "gui.tccolonybridge.terminal.stored": "In the warehouse: %s",
   "gui.tccolonybridge.terminal.sort.amount": "Sort: amount",
   "gui.tccolonybridge.terminal.sort.name": "Sort: name",
-  "gui.tccolonybridge.help.terminal": "Items of every warehouse rack. Left click: take a stack · Right click: half a stack · Shift: straight to the inventory. With an item on the cursor: left stores all, right stores one. Shift-click in the inventory stores the stack. Search with @ for a mod (@minecraft); right click the search box to clear it.",
+  "gui.tccolonybridge.help.terminal": "Items of every warehouse rack. Left click: take a stack · Right click: half a stack · Shift: straight to the inventory. With an item on the cursor: left stores all, right stores one. Shift-click in the inventory stores the stack. Search with @ for a mod (@minecraft); right click the search box to clear it. Crafting: after each craft the grid is refilled from the warehouse; Shift-click on the result crafts up to a stack. JEI \"+\" fills the grid from the warehouse. × and closing the screen return the grid to the warehouse.",
   "message.tccolonybridge.terminal.no_colony": "This terminal is not inside a colony.",
   "tccolonybridge.configuration.terminalSyncTicks": "Warehouse Terminal refresh (ticks)",
   "tccolonybridge.configuration.terminalSyncTicks.tooltip": "Ticks between warehouse reads while a Warehouse Terminal screen is open.",
   "tccolonybridge.configuration.terminalMaxTypes": "Warehouse Terminal max item types",
-  "tccolonybridge.configuration.terminalMaxTypes.tooltip": "Max item types shown by the Warehouse Terminal (limits traffic for huge warehouses)."
+  "tccolonybridge.configuration.terminalMaxTypes.tooltip": "Max item types shown by the Warehouse Terminal (limits traffic for huge warehouses).",
+  "gui.tccolonybridge.terminal.crafting": "Crafting",
+  "gui.tccolonybridge.terminal.clear_grid": "Return the crafting grid to the warehouse",
+  "gui.tccolonybridge.terminal.missing": "Missing in the warehouse and inventory"
 }

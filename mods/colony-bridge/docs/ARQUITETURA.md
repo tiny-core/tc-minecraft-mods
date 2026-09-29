@@ -76,11 +76,13 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `menu/terminal/WarehouseTerminalMenu` | Container: inventário do jogador (slots reais) + grade virtual do armazém; shift-clique guarda no armazém. |
 | `menu/terminal/WarehouseSync` | Servidor: lê os racks a cada `terminalSyncTicks` e manda só as mudanças (`CountDiff`), em pacotes de até 256. |
 | `menu/terminal/WarehouseView`, `WarehouseEntry` | Cliente: cópia local do armazém montada pelas mudanças; entrada = item + quantidade. |
+| `menu/terminal/TerminalCrafting`, `TerminalResultSlot` | Bancada 3×3: resultado (receita vanilla), reposição pelo armazém depois de cada craft, devolver a grade, montar receita do JEI. |
 | `menu/terminal/TerminalActions` | Servidor: executa o clique (tirar para cursor/inventário, guardar) a partir do que existe nos racks. |
 | `logic/terminal/CountDiff`, `ItemListing`, `TerminalAction` | Regras puras (testadas): diferença entre contagens, busca/ordem, ações possíveis. |
 | `logic/warehouse/WarehouseItems` | Somar racks por tipo, tirar e guardar com `ItemStack` (sem tipos do AE2). |
-| `network/WarehouseContentsPayload`, `WarehouseActionPayload`, `TerminalPackets` | Pacotes do terminal e validação no servidor (menu, distância, permissão). |
-| `client/terminal/WarehouseTerminalScreen`, `WarehouseGrid` | Tela (busca, ordem, cliques) e a grade desenhada com rolagem. |
+| `network/WarehouseContentsPayload`, `WarehouseActionPayload`, `TerminalRecipePayload`, `TerminalPackets` | Pacotes do terminal e validação no servidor (menu, distância, permissão). |
+| `client/terminal/WarehouseTerminalScreen`, `WarehouseGrid` | Tela (busca, ordem, cliques, bancada) e a grade desenhada com rolagem. |
+| `client/jei/TerminalRecipeTransfer` | "+" do JEI: confere se os ingredientes existem e manda a receita ao servidor. |
 
 ## Monitor da Colônia (`monitor/`) — mostra dados de uma Ponte
 
