@@ -35,7 +35,7 @@ import java.util.List;
 public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu> {
 
     private static final int WIDTH = 182;
-    private static final int HEIGHT = 194;
+    private static final int HEIGHT = 230;
     private static final int PADDING = 8;
 
     private SideToolbar toolbar;

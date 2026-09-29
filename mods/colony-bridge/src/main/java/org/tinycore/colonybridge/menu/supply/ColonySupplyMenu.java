@@ -18,7 +18,7 @@ import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
 
 /**
- * Menu do bloco de abastecimento. Slots 0..8 são as linhas "manter no armazém", 9..17 as de
+ * Menu do bloco de abastecimento. Slots 0..17 são as linhas "manter no armazém", 18..35 as de
  * "excedente para o ME" e o resto é o inventário do jogador. Todos sempre visíveis (a tela não tem abas).
  * <p>
  * Igual à tela da ponte, o servidor envia um {@link SupplySnapshot} no máximo 1×/s e só quando muda.
@@ -30,9 +30,9 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
     /** Posições usadas também pela {@code ColonySupplyScreen} para desenhar o fundo dos slots. */
     public static final int LIST_X = 10;
     public static final int KEEP_Y = 44;
-    public static final int SURPLUS_Y = 77;
-    public static final int INVENTORY_Y = 110;
-    public static final int HOTBAR_Y = 168;
+    public static final int SURPLUS_Y = 95;
+    public static final int INVENTORY_Y = 146;
+    public static final int HOTBAR_Y = 204;
 
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */
@@ -66,9 +66,10 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
 
     private void addSlots(Inventory inventory) {
         for (int i = 0; i < StockList.SIZE; i++) {
-            int row = StockList.isKeep(i) ? 0 : 1;
-            int column = StockList.isKeep(i) ? i : i - StockList.KEEP_SLOTS;
-            addGhostSlot(i, LIST_X + column * 18, (row == 0 ? KEEP_Y : SURPLUS_Y), () -> true);
+            // Cada seção tem duas fileiras de 9: posição dentro da seção → coluna e fileira.
+            int inSection = StockList.isKeep(i) ? i : i - StockList.KEEP_SLOTS;
+            int sectionY = StockList.isKeep(i) ? KEEP_Y : SURPLUS_Y;
+            addGhostSlot(i, LIST_X + (inSection % 9) * 18, sectionY + (inSection / 9) * 18, () -> true);
         }
         addPlayerInventory(inventory, LIST_X, INVENTORY_Y, HOTBAR_Y, () -> true);
     }

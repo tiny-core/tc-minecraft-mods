@@ -6,6 +6,8 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.Arrays;
+
 /**
  * As duas listas do bloco de abastecimento, guardadas num vetor só de {@link #SIZE} posições:
  * <ul>
@@ -20,9 +22,14 @@ import net.minecraft.world.item.ItemStack;
  */
 public final class StockList {
 
-    public static final int KEEP_SLOTS = 9;
-    public static final int SURPLUS_SLOTS = 9;
+    public static final int KEEP_SLOTS = 18;
+    public static final int SURPLUS_SLOTS = 18;
     public static final int SIZE = KEEP_SLOTS + SURPLUS_SLOTS;
+    /** Slots por seção na versão 1 do formato (9 + 9), para migrar blocos antigos. */
+    static final int OLD_KEEP_SLOTS = 9;
+    static final int OLD_SIZE = 18;
+    /** Versão do formato salvo; 2 = 18 + 18. Sem a chave = versão 1. */
+    private static final int LAYOUT = 2;
 
     /** Quantidade alvo padrão ao colocar um item numa linha vazia. */
     public static final int DEFAULT_AMOUNT = 64;
@@ -59,16 +66,36 @@ public final class StockList {
     public CompoundTag save(HolderLookup.Provider registries) {
         CompoundTag tag = ContainerHelper.saveAllItems(new CompoundTag(), items, registries);
         tag.putIntArray("amounts", amounts);
+        tag.putInt("layout", LAYOUT);
         return tag;
     }
 
-    /** Lê do NBT; um vetor de quantidades de tamanho diferente (versão antiga) é ignorado. */
+    /**
+     * Lê do NBT. Blocos salvos no formato antigo (9 + 9, sem a chave {@code layout}) têm as linhas de
+     * excedente movidas para a posição nova ({@link #migratedIndex}), senão virariam linhas "manter".
+     */
     public void load(CompoundTag tag, HolderLookup.Provider registries) {
         items.replaceAll(ignored -> ItemStack.EMPTY);
         ContainerHelper.loadAllItems(tag, items, registries);
         int[] saved = tag.getIntArray("amounts");
-        for (int i = 0; i < SIZE; i++) {
-            amounts[i] = i < saved.length ? Math.max(0, Math.min(MAX_AMOUNT, saved[i])) : 0;
+        boolean old = tag.getInt("layout") < LAYOUT;
+        Arrays.fill(amounts, 0);
+        if (old) {
+            for (int i = OLD_SIZE - 1; i >= OLD_KEEP_SLOTS; i--) { // de trás para frente: não sobrescreve
+                items.set(migratedIndex(i), items.get(i));
+                items.set(i, ItemStack.EMPTY);
+            }
         }
+        for (int i = 0; i < saved.length; i++) {
+            int target = old ? migratedIndex(i) : i;
+            if (target >= 0 && target < SIZE) {
+                amounts[target] = Math.max(0, Math.min(MAX_AMOUNT, saved[i]));
+            }
+        }
+    }
+
+    /** Posição nova de uma linha do formato antigo: "manter" fica; "excedente" (9 a 17) vai para 18 a 26. */
+    static int migratedIndex(int oldIndex) {
+        return oldIndex < OLD_KEEP_SLOTS ? oldIndex : oldIndex - OLD_KEEP_SLOTS + KEEP_SLOTS;
     }
 }
