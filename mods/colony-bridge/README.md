@@ -63,9 +63,17 @@ Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte proc
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 
+### Regras da rede ME
+- **Só uma Ponte por rede.** Com duas ou mais, todas param com "2+ Pontes na rede" até sobrar uma.
+- Abastecedores e Terminais podem ser quantos quiser.
+- Todos os blocos que se ligam à rede consomem energia parada (`bridgeIdlePower`, `supplyIdlePower`,
+  `terminalIdlePower`) e ocupam um canal; mover itens pela rede gasta energia como no próprio AE2. Os
+  Monitores não se ligam à rede e não consomem.
+- Os blocos ficam com a frente virada para quem colocou.
+
 ## Abastecedor da Colônia
 Segundo bloco, o caminho contrário da ponte. Mesmas regras (dentro da colônia, com permissão, cabo ME
-comum por baixo) e uma tela com duas listas de 9 itens:
+comum por baixo) e uma tela com duas listas de 18 itens (duas fileiras cada):
 
 - **ME → Armazém (mínimo)** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede ME
   e coloca nos racks.
@@ -80,8 +88,12 @@ colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num 
 ## Terminal do Armazém
 Terceiro bloco: uma tela como o terminal do AE2, mas para o **armazém da colônia**. Mostra todos os itens de
 todos os racks, somados por tipo, com busca (`@mod` filtra por mod; clique direito limpa) e ordem por
-quantidade ou nome (botão na barra lateral). Não precisa de rede ME: basta estar dentro da colônia, e quem
-abre precisa da mesma permissão da ponte.
+quantidade ou nome (botão na barra lateral).
+
+**Restrições (para não ser "de graça"):** cabo ME comum por baixo (usa um canal), rede com energia e a
+**Ponte desta colônia ativa na mesma rede**. Sem isso a tela abre, mas mostra o motivo no cabeçalho ("Sem
+Ponte na rede", "Offline"...) e o armazém fica bloqueado. Consome `terminalIdlePower` AE/t parado e
+`terminalEnergyPerItem` AE por item movido entre armazém e jogador (tirar, guardar, reposição da bancada).
 
 - **Tirar:** clique esquerdo = um stack no cursor · direito = meio stack · Shift = direto para o inventário.
 - **Guardar:** com item no cursor, esquerdo guarda tudo e direito guarda um; Shift-clique no inventário guarda o stack.

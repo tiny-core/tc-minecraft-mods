@@ -1,102 +1,62 @@
 package org.tinycore.colonybridge.block.terminal;
 
-import com.mojang.serialization.MapCodec;
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.StateDefinition;
-import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
-
-import java.util.List;
+import org.tinycore.colonybridge.registry.ModBlockEntities;
 
 /**
- * Terminal do Armazém: bloco que abre uma tela com todos os itens dos racks do armazém da colônia, para
- * tirar e guardar como num terminal do AE2. Não usa rede ME nem guarda estado, por isso não tem block
- * entity: a colônia é achada pela posição e a permissão é conferida a cada abertura e a cada clique.
+ * Terminal do Armazém: abre uma tela com todos os itens dos racks do armazém da colônia, para tirar,
+ * guardar e craftar como num terminal do AE2.
  * <p>
- * {@code HorizontalDirectionalBlock} dá ao bloco a propriedade {@code FACING} (a frente fica virada para
- * quem colocou), igual ao monitor.
+ * Tudo o que é de bloco (frente virada para quem colocou, permissão, estado visual, cabo ME por baixo,
+ * clique direito) vem do {@link AbstractBridgeBlock}, como na Ponte e no Abastecedor. As restrições de rede
+ * (energia, Ponte da colônia) ficam no {@link WarehouseTerminalBlockEntity}.
  */
-public class WarehouseTerminalBlock extends HorizontalDirectionalBlock {
-
-    /** Codec exigido pelo Minecraft 1.21 para blocos com direção. */
-    public static final MapCodec<WarehouseTerminalBlock> CODEC = simpleCodec(WarehouseTerminalBlock::new);
+public class WarehouseTerminalBlock extends AbstractBridgeBlock<WarehouseTerminalBlockEntity> {
 
     public WarehouseTerminalBlock(Properties props) {
-        super(props);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        super(props, WarehouseTerminalBlockEntity.class);
     }
 
     @Override
-    protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-        return CODEC;
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return new WarehouseTerminalBlockEntity(pos, state);
     }
 
     @Override
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
-    }
-
-    /** Recusa a colocação numa colônia onde o jogador não tem permissão (mesma regra da ponte). */
-    @Override
-    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
-        BlockState state = defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
-        Level level = context.getLevel();
-        Player player = context.getPlayer();
-        if (level.isClientSide
-                || ColonyAccess.canPlaceBridge(level, context.getClickedPos(), player == null ? null : player.getUUID())) {
-            return state;
-        }
-        if (player != null) {
-            player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
-        }
-        return null;
+    protected BlockEntityType<WarehouseTerminalBlockEntity> blockEntityType() {
+        return ModBlockEntities.WAREHOUSE_TERMINAL.get();
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip,
-                                TooltipFlag flag) {
-        tooltip.add(Component.translatable("tooltip.tccolonybridge.warehouse_terminal.line1").withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("tooltip.tccolonybridge.warehouse_terminal.line2").withStyle(ChatFormatting.GRAY));
+    protected String tooltipName() {
+        return "warehouse_terminal";
     }
 
-    /**
-     * Clique direito: abre a tela se a posição está numa colônia e o jogador tem permissão; senão explica
-     * o motivo na barra de ação. {@code openMenu} manda ao cliente a posição e o nome da colônia.
-     */
     @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player,
-                                               BlockHitResult hit) {
-        if (level.isClientSide) {
-            return InteractionResult.SUCCESS;
-        }
-        String colony = ColonyAccess.colonyNameAt(level, pos);
-        if (colony.isEmpty()) {
-            player.displayClientMessage(Component.translatable("message.tccolonybridge.terminal.no_colony"), true);
-            return InteractionResult.CONSUME;
-        }
-        if (ColonyAccess.accessibleRacks(level, pos, player.getUUID()) == null) {
-            player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
-            return InteractionResult.CONSUME;
-        }
-        player.openMenu(new SimpleMenuProvider((id, inventory, p) -> new WarehouseTerminalMenu(id, inventory, pos),
-                Component.translatable("gui.tccolonybridge.terminal.title")),
-                buf -> WarehouseTerminalMenu.writeOpenData(buf, pos, colony));
-        return InteractionResult.CONSUME;
+    protected Component menuTitle() {
+        return Component.translatable("gui.tccolonybridge.terminal.title");
+    }
+
+    @Override
+    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity be) {
+        return new WarehouseTerminalMenu(containerId, inventory, be);
+    }
+
+    /** A tela do terminal mostra o nome da colônia no cabeçalho, então ele vai junto na abertura. */
+    @Override
+    protected void writeMenuData(RegistryFriendlyByteBuf buf, WarehouseTerminalBlockEntity be) {
+        WarehouseTerminalMenu.writeOpenData(buf, be.getBlockPos(),
+                be.getLevel() == null ? "" : ColonyAccess.colonyNameAt(be.getLevel(), be.getBlockPos()));
     }
 }

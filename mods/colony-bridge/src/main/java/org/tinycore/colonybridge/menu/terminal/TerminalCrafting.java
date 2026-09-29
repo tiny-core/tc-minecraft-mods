@@ -78,8 +78,11 @@ final class TerminalCrafting {
     /**
      * Depois de um craft, completa cada slot da grade com o mesmo item tirado do armazém, até a quantidade
      * de antes. Slot onde ficou outro item (ex.: balde vazio que sobra da receita) não é mexido.
+     *
+     * @return quantos itens vieram do armazém
      */
-    void refill(ItemStack[] before, List<IItemHandler> racks) {
+    long refill(ItemStack[] before, List<IItemHandler> racks) {
+        long moved = 0;
         for (int i = 0; i < SIZE; i++) {
             ItemStack was = before[i];
             ItemStack now = grid.getItem(i);
@@ -91,19 +94,29 @@ final class TerminalCrafting {
             if (got.isEmpty()) {
                 continue;
             }
+            moved += got.getCount();
             got.grow(now.getCount());
             grid.setItem(i, got);
         }
+        return moved;
     }
 
-    /** Guarda no armazém tudo o que está na grade; o que não couber fica na grade. */
-    void clearTo(List<IItemHandler> racks) {
+    /**
+     * Guarda no armazém tudo o que está na grade; o que não couber fica na grade.
+     *
+     * @return quantos itens foram guardados
+     */
+    long clearTo(List<IItemHandler> racks) {
+        long moved = 0;
         for (int i = 0; i < SIZE; i++) {
             ItemStack stack = grid.getItem(i);
             if (!stack.isEmpty()) {
-                grid.setItem(i, WarehouseItems.insert(racks, stack));
+                ItemStack leftover = WarehouseItems.insert(racks, stack);
+                moved += stack.getCount() - leftover.getCount();
+                grid.setItem(i, leftover);
             }
         }
+        return moved;
     }
 
     /**
@@ -113,9 +126,11 @@ final class TerminalCrafting {
      * <p>
      * As opções vieram do cliente, mas só servem de filtro: o que entra na grade é sempre um item que já
      * existia no armazém ou no inventário.
+     *
+     * @return quantos itens passaram pelo armazém (guardados + tirados), para a cobrança de energia
      */
-    void fillFromRecipe(List<IItemHandler> racks, List<List<ItemStack>> options, boolean max) {
-        clearTo(racks);
+    long fillFromRecipe(List<IItemHandler> racks, List<List<ItemStack>> options, boolean max) {
+        long moved = clearTo(racks);
         Inventory inventory = player.getInventory();
         for (int i = 0; i < SIZE; i++) {
             if (!grid.getItem(i).isEmpty()) {
@@ -126,11 +141,13 @@ final class TerminalCrafting {
             for (ItemStack option : options.get(i)) {
                 ItemStack got = take(racks, inventory, option, max ? option.getMaxStackSize() : 1);
                 if (!got.isEmpty()) {
+                    moved += got.getCount(); // conta também o que veio do inventário: estimativa simples
                     grid.setItem(i, got);
                     break;
                 }
             }
         }
+        return moved;
     }
 
     private static ItemStack take(List<IItemHandler> racks, Inventory inventory, ItemStack option, int amount) {

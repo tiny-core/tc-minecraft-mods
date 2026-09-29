@@ -30,6 +30,7 @@ import org.tinycore.core.block.RedstoneMode;
 
 import java.util.EnumSet;
 import java.util.UUID;
+import java.util.function.DoubleSupplier;
 
 /**
  * Base dos blocos que ligam uma rede ME a uma colônia (Ponte — {@code ColonyBridgeBlockEntity} — e o bloco de
@@ -47,6 +48,8 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
 
     private final IManagedGridNode mainNode;
     private final IActionSource actionSource;
+    /** Consumo parado (AE/t), lido da config só no servidor, ao carregar ({@link #onLoad}). */
+    private final DoubleSupplier idlePowerUsage;
     /** Jogador que colocou o bloco; a permissão dele na colônia é conferida a cada ciclo. */
     private @Nullable UUID owner;
     private int tickCounter;
@@ -56,11 +59,11 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
     private boolean cableCheckPending = true;
 
     protected AbstractBridgeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
-                                        ItemLike visual, double idlePowerUsage) {
+                                        ItemLike visual, DoubleSupplier idlePowerUsage) {
         super(type, pos, state);
+        this.idlePowerUsage = idlePowerUsage;
         this.mainNode = GridHelper.createManagedNode(this, NodeListener.INSTANCE)
                 .setFlags(GridFlags.REQUIRE_CHANNEL)
-                .setIdlePowerUsage(idlePowerUsage)
                 .setInWorldNode(true)
                 .setExposedOnSides(EnumSet.noneOf(Direction.class)) // aberto só com cabo válido
                 .setTagName("node")
@@ -99,6 +102,9 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
     public void onLoad() {
         super.onLoad();
         if (level != null && !level.isClientSide) {
+            // Config do servidor: lida aqui (e não no construtor), porque o block entity também é criado no
+            // cliente, onde ela pode ainda não existir. {@code DoubleSupplier} ≈ {@code Func<double>} em C#.
+            mainNode.setIdlePowerUsage(idlePowerUsage.getAsDouble());
             GridHelper.onFirstTick(this, be -> {
                 be.refreshCableConnection(); // define os lados antes de criar, sem conectar e desconectar
                 be.mainNode.create(be.level, be.worldPosition);

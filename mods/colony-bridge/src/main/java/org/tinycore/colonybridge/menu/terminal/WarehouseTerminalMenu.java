@@ -13,7 +13,9 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.jetbrains.annotations.Nullable;
+import org.tinycore.colonybridge.block.terminal.WarehouseTerminalBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseItems;
 import org.tinycore.colonybridge.registry.ModBlocks;
@@ -27,9 +29,10 @@ import java.util.List;
  * {@link #handleAction}. Slots de verdade: a bancada 3×3 ({@link TerminalCrafting}), o resultado e o
  * inventário do jogador — nessa ordem.
  * <p>
- * Servidor: guarda a posição do bloco e o {@link WarehouseSync}, que manda o conteúdo dos racks ao cliente.
- * Cliente: guarda o {@link WarehouseView} e o nome da colônia, recebido na abertura ("dados extras").
- * A permissão da colônia é conferida de novo a cada uso ({@link #racks}); o bloco não guarda dono.
+ * Servidor: guarda o block entity do terminal e o {@link WarehouseSync}, que manda o conteúdo dos racks
+ * ao cliente. Cliente: guarda o {@link WarehouseView} e o nome da colônia, recebido na abertura.
+ * O armazém só é liberado com o terminal online (rede ativa + Ponte da colônia) e o jogador com permissão,
+ * conferidos a cada uso ({@link #racks}); cada item movido gasta energia da rede ({@link #chargeItems}).
  */
 public class WarehouseTerminalMenu extends AbstractContainerMenu {
 
@@ -55,6 +58,8 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     private final String colonyName;
     private final TerminalCrafting crafting;
     /** Só no servidor. */
+    private final @Nullable WarehouseTerminalBlockEntity terminal;
+    /** Só no servidor. */
     private final @Nullable WarehouseSync sync;
     /** Só no cliente. */
     private final WarehouseView view = new WarehouseView();
@@ -62,24 +67,27 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     private int quickCrafted;
 
     /** Servidor: criado quando o jogador abre o bloco. */
-    public WarehouseTerminalMenu(int containerId, Inventory inventory, BlockPos pos) {
-        this(containerId, inventory, pos, ColonyAccess.colonyNameAt(inventory.player.level(), pos),
-                ContainerLevelAccess.create(inventory.player.level(), pos));
+    public WarehouseTerminalMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity terminal) {
+        this(containerId, inventory, terminal.getBlockPos(),
+                ColonyAccess.colonyNameAt(inventory.player.level(), terminal.getBlockPos()),
+                ContainerLevelAccess.create(inventory.player.level(), terminal.getBlockPos()), terminal);
     }
 
     /** Cliente: recebe a posição e o nome da colônia escritos por {@link #writeOpenData}. */
     public WarehouseTerminalMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf extraData) {
-        this(containerId, inventory, extraData.readBlockPos(), extraData.readUtf(64), ContainerLevelAccess.NULL);
+        this(containerId, inventory, extraData.readBlockPos(), extraData.readUtf(64), ContainerLevelAccess.NULL, null);
     }
 
     private WarehouseTerminalMenu(int containerId, Inventory inventory, BlockPos pos, String colonyName,
-                                  ContainerLevelAccess access) {
+                                  ContainerLevelAccess access, @Nullable WarehouseTerminalBlockEntity terminal) {
         super(ModMenus.WAREHOUSE_TERMINAL.get(), containerId);
         this.pos = pos;
         this.player = inventory.player;
         this.access = access;
         this.colonyName = colonyName;
-        this.sync = player instanceof ServerPlayer serverPlayer ? new WarehouseSync(serverPlayer, containerId) : null;
+        this.terminal = terminal;
+        this.sync = terminal != null && player instanceof ServerPlayer serverPlayer
+                ? new WarehouseSync(serverPlayer, containerId) : null;
         this.crafting = new TerminalCrafting(this, player);
         for (int i = 0; i < TerminalCrafting.SIZE; i++) {
             addSlot(new Slot(crafting.grid, i, GRID_X + (i % 3) * 18, CRAFT_Y + (i / 3) * 18));
@@ -102,29 +110,34 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Racks do armazém, só no servidor e só se o jogador ainda pode usar a colônia.
-     * @return null no cliente, fora de colônia ou sem permissão
+     * Racks do armazém, só no servidor, com o terminal online e o jogador ainda com permissão na colônia.
+     * @return null no cliente, com o terminal offline (sem energia, sem Ponte...) ou sem permissão
      */
     public @Nullable List<IItemHandler> racks() {
-        if (sync == null) {
+        if (terminal == null || terminal.isRemoved() || !terminal.isOnline()) {
             return null;
         }
         return ColonyAccess.accessibleRacks(player.level(), pos, player.getUUID());
     }
 
+    /** Cobra da rede a energia dos itens movidos (servidor; no cliente não faz nada). */
+    void chargeItems(long items) {
+        if (terminal != null) {
+            terminal.chargeItems(items);
+        }
+    }
+
     /** Clique na grade, já validado pelo {@code TerminalPackets} (menu certo, distância, permissão). */
     public void handleAction(ServerPlayer player, List<IItemHandler> racks, TerminalAction action, ItemStack item) {
-        if (action == TerminalAction.CLEAR_GRID) {
-            crafting.clearTo(racks);
-        } else {
-            TerminalActions.apply(this, player, racks, action, item);
-        }
+        long moved = action == TerminalAction.CLEAR_GRID ? crafting.clearTo(racks)
+                : TerminalActions.apply(this, player, racks, action, item);
+        chargeItems(moved);
         scanSoon();
     }
 
     /** Receita do JEI, já validada pelo {@code TerminalPackets}. */
     public void fillRecipe(List<IItemHandler> racks, List<List<ItemStack>> options, boolean max) {
-        crafting.fillFromRecipe(racks, options, max);
+        chargeItems(crafting.fillFromRecipe(racks, options, max));
         scanSoon();
     }
 
@@ -149,10 +162,11 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
         if (sync == null) {
             return;
         }
+        BridgeStatus status = terminal == null ? BridgeStatus.OFFLINE : terminal.getStatus();
         sync.tick(() -> {
             List<IItemHandler> racks = racks();
-            return racks == null ? List.of() : racks; // sem permissão/colônia: a grade fica vazia
-        });
+            return racks == null ? List.of() : racks; // offline ou sem permissão: a grade fica vazia
+        }, status);
     }
 
     @Override
@@ -182,7 +196,10 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
         }
         List<IItemHandler> racks = racks(); // no cliente é null: o servidor faz e corrige o slot
         if (racks != null) {
-            slot.set(WarehouseItems.insert(racks, slot.getItem()));
+            ItemStack stack = slot.getItem();
+            ItemStack leftover = WarehouseItems.insert(racks, stack);
+            chargeItems(stack.getCount() - leftover.getCount());
+            slot.set(leftover);
             scanSoon();
         }
         return ItemStack.EMPTY;
@@ -216,8 +233,8 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     }
 
     /**
-     * Ao fechar: a grade volta para o armazém (o que não couber, para o inventário ou o chão). A grade não
-     * fica guardada no bloco — ele não tem block entity.
+     * Ao fechar: a grade volta para o armazém (o que não couber, para o inventário ou o chão). Devolver não
+     * cobra energia, para nunca prender itens do jogador por falta dela.
      */
     @Override
     public void removed(Player player) {

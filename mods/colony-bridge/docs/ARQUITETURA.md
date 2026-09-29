@@ -62,7 +62,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 |---|---|
 | `block/supply/ColonySupplyBlock` | Liga o bloco ao block entity e à tela do abastecedor. |
 | `block/supply/ColonySupplyBlockEntity` | Dados do abastecedor (listas, redstone) e ponte com a tela. |
-| `block/supply/StockList` | As duas listas: slots 0-8 "manter no armazém", 9-17 "excedente para o ME", com quantidade alvo. |
+| `block/supply/StockList` | As duas listas: slots 0-17 "manter no armazém", 18-35 "excedente para o ME", com quantidade alvo; migra o formato antigo (9 + 9). |
 | `logic/supply/SupplyLineStatus` | Situação de cada linha em palavras (Abastecido, Falta na rede ME, Retido...) e gravidade para a cor do monitor (regra pura, testada). |
 | `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). Quantidades decididas pela `SupplyRule` (regra pura, testada). |
 | `menu/supply/ColonySupplyMenu`, `SupplySnapshot` | Container da tela e a "foto" enviada ao cliente. |
@@ -73,7 +73,9 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 
 | Classe | Responsabilidade |
 |---|---|
-| `block/terminal/WarehouseTerminalBlock` | Bloco sem block entity: confere colônia e permissão e abre a tela. |
+| `block/terminal/WarehouseTerminalBlock`, `WarehouseTerminalBlockEntity` | Bloco na base comum (rede ME, dono, frente); o block entity confere colônia, permissão e a Ponte da rede (`TerminalLink`) e cobra energia por item. |
+| `integration/ae2/BridgeNetwork` | Conta/acha as Pontes de uma rede ME (`getMachines`): uma Ponte por rede e a Ponte do terminal. |
+| `logic/terminal/TerminalLink` | Regra pura (testada): uma Ponte por rede; terminal só com Ponte ativa da mesma colônia. |
 | `menu/terminal/WarehouseTerminalMenu` | Container: inventário do jogador (slots reais) + grade virtual do armazém; shift-clique guarda no armazém. |
 | `menu/terminal/WarehouseSync` | Servidor: lê os racks a cada `terminalSyncTicks` e manda só as mudanças (`CountDiff`), em pacotes de até 256. |
 | `menu/terminal/WarehouseView`, `WarehouseEntry` | Cliente: cópia local do armazém montada pelas mudanças; entrada = item + quantidade. |

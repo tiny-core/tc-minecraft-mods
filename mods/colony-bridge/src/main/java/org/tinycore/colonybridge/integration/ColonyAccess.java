@@ -165,6 +165,18 @@ public final class ColonyAccess {
         return warehouseRacks(colony);
     }
 
+    /** Chave da colônia nesta posição ({@link #colonyKey}), ou null fora de colônia. */
+    public static @Nullable String colonyKeyAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        return colony == null ? null : colonyKey(colony);
+    }
+
+    /** true se a posição está numa colônia e o jogador tem a permissão da ponte ({@link #canUseBridge}) nela. */
+    public static boolean canUseAt(Level level, BlockPos pos, @Nullable UUID player) {
+        IColony colony = findColony(level, pos);
+        return colony != null && canUseBridge(colony, player);
+    }
+
     /** Nome da colônia nesta posição (limitado como em {@link #colonyName}), ou vazio se não há colônia. */
     public static String colonyNameAt(Level level, BlockPos pos) {
         IColony colony = findColony(level, pos);

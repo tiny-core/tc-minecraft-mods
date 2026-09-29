@@ -151,7 +151,7 @@
   "gui.tccolonybridge.supply.surplus_rule": "Keeps at most %s in the warehouse; anything above goes back to the ME network.",
   "block.tccolonybridge.warehouse_terminal": "TC Warehouse Terminal",
   "tooltip.tccolonybridge.warehouse_terminal.line1": "Shows every item in the colony warehouse racks; take and store items like an ME terminal.",
-  "tooltip.tccolonybridge.warehouse_terminal.line2": "Place inside the colony. No ME network needed.",
+  "tooltip.tccolonybridge.warehouse_terminal.line2": "Needs a regular ME cable below, power, and this colony's Colony Bridge on the same network.",
   "gui.tccolonybridge.terminal.title": "TC Warehouse Terminal",
   "gui.tccolonybridge.terminal.search": "Search… (@mod)",
   "gui.tccolonybridge.terminal.stored": "In the warehouse: %s",
@@ -189,5 +189,17 @@
   "monitor.tccolonybridge.supply.status.within_limit": "Within limit",
   "monitor.tccolonybridge.supply.status.returning": "Sending to ME",
   "monitor.tccolonybridge.supply.status.held_requested": "Held: colony requested it",
-  "monitor.tccolonybridge.supply.status.network_full": "ME network full"
+  "monitor.tccolonybridge.supply.status.network_full": "ME network full",
+  "status.tccolonybridge.duplicate_bridge": "More than one Colony Bridge on the same ME network (only one is allowed)",
+  "status.tccolonybridge.no_bridge": "Warehouse Terminal: no active Colony Bridge of this colony on the ME network",
+  "gui.tccolonybridge.status.duplicate_bridge": "2+ Bridges on network",
+  "gui.tccolonybridge.status.no_bridge": "No Bridge on network",
+  "tccolonybridge.configuration.bridgeIdlePower": "Colony Bridge idle power (AE/t)",
+  "tccolonybridge.configuration.bridgeIdlePower.tooltip": "Idle AE/t used by the Colony Bridge (applies when the block loads).",
+  "tccolonybridge.configuration.supplyIdlePower": "Colony Supply idle power (AE/t)",
+  "tccolonybridge.configuration.supplyIdlePower.tooltip": "Idle AE/t used by the Colony Supply Interface (applies when the block loads).",
+  "tccolonybridge.configuration.terminalIdlePower": "Warehouse Terminal idle power (AE/t)",
+  "tccolonybridge.configuration.terminalIdlePower.tooltip": "Idle AE/t used by the Warehouse Terminal (applies when the block loads).",
+  "tccolonybridge.configuration.terminalEnergyPerItem": "Warehouse Terminal energy per item (AE)",
+  "tccolonybridge.configuration.terminalEnergyPerItem.tooltip": "AE spent for each item the Warehouse Terminal moves between the warehouse and the player."
 }

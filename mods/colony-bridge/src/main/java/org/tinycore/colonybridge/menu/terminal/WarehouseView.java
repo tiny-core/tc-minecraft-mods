@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.menu.terminal;
 
 import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenCustomHashMap;
 import net.minecraft.world.item.ItemStack;
+import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseItems;
 
 import java.util.ArrayList;
@@ -18,9 +19,11 @@ public final class WarehouseView {
 
     private final Object2LongLinkedOpenCustomHashMap<ItemStack> counts = WarehouseItems.newCountMap();
     private int version;
+    private BridgeStatus status = BridgeStatus.STARTING;
 
     /** Aplica um pacote do servidor. {@code reset} apaga o que havia antes. */
-    public void apply(boolean reset, List<WarehouseEntry> entries) {
+    public void apply(boolean reset, BridgeStatus status, List<WarehouseEntry> entries) {
+        this.status = status;
         if (reset) {
             counts.clear();
         }
@@ -49,6 +52,11 @@ public final class WarehouseView {
             list.add(new WarehouseEntry(entry.getKey(), entry.getLongValue()));
         }
         return list;
+    }
+
+    /** Estado do terminal no servidor (cabeçalho da tela). */
+    public BridgeStatus status() {
+        return status;
     }
 
     public long count(ItemStack item) {

@@ -16,62 +16,75 @@ import java.util.List;
  * O cliente só mandou a ação e o tipo de item; quantidades vêm do que existe nos racks agora. Como a
  * retirada só encontra itens que já estão nos racks, um item "forjado" no pacote simplesmente não acha nada.
  * O que não couber no inventário volta ao armazém (ou, em último caso, cai no chão ao lado do jogador).
+ * Cada ação devolve quantos itens moveu, para o menu cobrar a energia da rede.
  */
 final class TerminalActions {
 
     private TerminalActions() {}
 
-    static void apply(WarehouseTerminalMenu menu, ServerPlayer player, List<IItemHandler> racks,
+    /** @return quantos itens passaram entre o armazém e o jogador */
+    static long apply(WarehouseTerminalMenu menu, ServerPlayer player, List<IItemHandler> racks,
                       TerminalAction action, ItemStack clicked) {
         ItemStack model = clicked.isEmpty() ? ItemStack.EMPTY : clicked.copyWithCount(1);
-        switch (action) {
+        return switch (action) {
             case TAKE_STACK -> takeToCursor(menu, racks, model, model.getMaxStackSize());
             case TAKE_HALF -> {
                 long available = model.isEmpty() ? 0 : WarehouseStock.count(racks, model);
                 int stack = (int) Math.min(available, model.getMaxStackSize());
-                takeToCursor(menu, racks, model, (stack + 1) / 2);
+                yield takeToCursor(menu, racks, model, (stack + 1) / 2);
             }
             case TAKE_TO_INVENTORY -> takeToInventory(player, racks, model);
-            case INSERT_CARRIED -> menu.setCarried(WarehouseItems.insert(racks, menu.getCarried()));
+            case INSERT_CARRIED -> insertCarried(menu, racks);
             case INSERT_ONE -> insertOne(menu, racks);
-            case CLEAR_GRID -> { } // tratado pelo menu, que é quem conhece a bancada
-        }
+            case CLEAR_GRID -> 0; // tratado pelo menu, que é quem conhece a bancada
+        };
     }
 
     /** Só com a mão vazia, como no AE2 (senão o item do cursor seria trocado/perdido). */
-    private static void takeToCursor(WarehouseTerminalMenu menu, List<IItemHandler> racks, ItemStack model, int amount) {
+    private static long takeToCursor(WarehouseTerminalMenu menu, List<IItemHandler> racks, ItemStack model, int amount) {
         if (model.isEmpty() || !menu.getCarried().isEmpty() || amount <= 0) {
-            return;
+            return 0;
         }
-        menu.setCarried(WarehouseItems.extract(racks, model, amount));
+        ItemStack taken = WarehouseItems.extract(racks, model, amount);
+        menu.setCarried(taken);
+        return taken.getCount();
     }
 
-    private static void takeToInventory(ServerPlayer player, List<IItemHandler> racks, ItemStack model) {
+    private static long takeToInventory(ServerPlayer player, List<IItemHandler> racks, ItemStack model) {
         if (model.isEmpty()) {
-            return;
+            return 0;
         }
         ItemStack taken = WarehouseItems.extract(racks, model, model.getMaxStackSize());
+        int count = taken.getCount();
         if (taken.isEmpty()) {
-            return;
+            return 0;
         }
         player.getInventory().add(taken); // "add" reduz o stack ao que não coube
         if (taken.isEmpty()) {
-            return;
+            return count;
         }
+        count -= taken.getCount();
         ItemStack leftover = WarehouseItems.insert(racks, taken);
         if (!leftover.isEmpty()) {
             player.drop(leftover, false);
         }
+        return count;
     }
 
-    private static void insertOne(WarehouseTerminalMenu menu, List<IItemHandler> racks) {
+    private static long insertCarried(WarehouseTerminalMenu menu, List<IItemHandler> racks) {
         ItemStack carried = menu.getCarried();
-        if (carried.isEmpty()) {
-            return;
+        ItemStack leftover = WarehouseItems.insert(racks, carried);
+        menu.setCarried(leftover);
+        return carried.getCount() - leftover.getCount();
+    }
+
+    private static long insertOne(WarehouseTerminalMenu menu, List<IItemHandler> racks) {
+        ItemStack carried = menu.getCarried();
+        if (carried.isEmpty() || !WarehouseItems.insert(racks, carried.copyWithCount(1)).isEmpty()) {
+            return 0;
         }
-        if (WarehouseItems.insert(racks, carried.copyWithCount(1)).isEmpty()) {
-            carried.shrink(1);
-            menu.setCarried(carried);
-        }
+        carried.shrink(1);
+        menu.setCarried(carried);
+        return 1;
     }
 }

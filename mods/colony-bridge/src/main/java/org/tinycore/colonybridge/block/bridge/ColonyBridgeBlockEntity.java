@@ -10,6 +10,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.integration.ae2.BridgeNetwork;
+import org.tinycore.colonybridge.logic.terminal.TerminalLink;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.monitor.BridgeContent;
@@ -60,7 +62,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
     private long craftableModsTime = -1;
 
     public ColonyBridgeBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.COLONY_BRIDGE.get(), pos, state, ModItems.COLONY_BRIDGE.get(), 4.0);
+        super(ModBlockEntities.COLONY_BRIDGE.get(), pos, state, ModItems.COLONY_BRIDGE.get(), Config.BRIDGE_IDLE_POWER::get);
         // O AE2 procura o requester pelos serviços do nó ME; precisa ser registrado antes de o nó ser criado.
         managedNode().addService(ICraftingRequester.class, craftLinks);
     }
@@ -69,6 +71,11 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
 
     @Override
     protected void runCycle(ServerLevel level, IGrid grid) {
+        // Só uma Ponte por rede ME: com duas, todas param e avisam (o jogador decide qual remover).
+        if (!TerminalLink.bridgeAllowed(BridgeNetwork.bridgeCount(grid))) {
+            logic.setStatus(BridgeStatus.DUPLICATE_BRIDGE);
+            return;
+        }
         logic.runCycle(level, grid);
     }
 

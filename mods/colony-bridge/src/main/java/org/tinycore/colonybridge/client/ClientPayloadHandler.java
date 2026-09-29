@@ -1,6 +1,7 @@
 package org.tinycore.colonybridge.client;
 
 import net.minecraft.client.Minecraft;
+import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
@@ -32,7 +33,8 @@ public final class ClientPayloadHandler {
         if (player != null
                 && player.containerMenu instanceof WarehouseTerminalMenu menu
                 && menu.containerId == payload.containerId()) {
-            menu.getView().apply(payload.reset(), payload.entries());
+            menu.getView().apply(payload.reset(), BridgeStatus.values()[Math.floorMod(payload.status(), BridgeStatus.values().length)],
+                    payload.entries());
         }
     }
 

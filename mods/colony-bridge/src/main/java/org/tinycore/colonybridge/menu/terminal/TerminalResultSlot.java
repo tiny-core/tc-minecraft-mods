@@ -30,7 +30,7 @@ final class TerminalResultSlot extends ResultSlot {
         super.onTake(player, stack);
         List<IItemHandler> racks = menu.racks(); // null no cliente: lá só o servidor repõe
         if (racks != null) {
-            crafting.refill(before, racks);
+            menu.chargeItems(crafting.refill(before, racks));
         }
     }
 }

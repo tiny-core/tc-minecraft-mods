@@ -151,7 +151,7 @@
   "gui.tccolonybridge.supply.surplus_rule": "Mantém no máximo %s no armazém; o que passar volta para a rede ME.",
   "block.tccolonybridge.warehouse_terminal": "TC Terminal do Armazém",
   "tooltip.tccolonybridge.warehouse_terminal.line1": "Mostra todos os itens dos racks do armazém da colônia; tire e guarde itens como num terminal ME.",
-  "tooltip.tccolonybridge.warehouse_terminal.line2": "Coloque dentro da colônia. Não precisa de rede ME.",
+  "tooltip.tccolonybridge.warehouse_terminal.line2": "Precisa de cabo ME comum por baixo, energia e da Ponte desta colônia na mesma rede.",
   "gui.tccolonybridge.terminal.title": "TC Terminal do Armazém",
   "gui.tccolonybridge.terminal.search": "Buscar… (@mod)",
   "gui.tccolonybridge.terminal.stored": "No armazém: %s",
@@ -189,5 +189,17 @@
   "monitor.tccolonybridge.supply.status.within_limit": "Dentro do limite",
   "monitor.tccolonybridge.supply.status.returning": "Enviando ao ME",
   "monitor.tccolonybridge.supply.status.held_requested": "Retido: colônia pediu",
-  "monitor.tccolonybridge.supply.status.network_full": "Rede ME cheia"
+  "monitor.tccolonybridge.supply.status.network_full": "Rede ME cheia",
+  "status.tccolonybridge.duplicate_bridge": "Mais de uma Ponte da Colônia na mesma rede ME (só uma é permitida)",
+  "status.tccolonybridge.no_bridge": "Terminal do Armazém: nenhuma Ponte ativa desta colônia na rede ME",
+  "gui.tccolonybridge.status.duplicate_bridge": "2+ Pontes na rede",
+  "gui.tccolonybridge.status.no_bridge": "Sem Ponte na rede",
+  "tccolonybridge.configuration.bridgeIdlePower": "Consumo parado da Ponte (AE/t)",
+  "tccolonybridge.configuration.bridgeIdlePower.tooltip": "AE/t gastos parada pela Ponte (vale quando o bloco carrega).",
+  "tccolonybridge.configuration.supplyIdlePower": "Consumo parado do Abastecedor (AE/t)",
+  "tccolonybridge.configuration.supplyIdlePower.tooltip": "AE/t gastos parado pelo Abastecedor (vale quando o bloco carrega).",
+  "tccolonybridge.configuration.terminalIdlePower": "Consumo parado do Terminal (AE/t)",
+  "tccolonybridge.configuration.terminalIdlePower.tooltip": "AE/t gastos parado pelo Terminal do Armazém (vale quando o bloco carrega).",
+  "tccolonybridge.configuration.terminalEnergyPerItem": "Energia do Terminal por item (AE)",
+  "tccolonybridge.configuration.terminalEnergyPerItem.tooltip": "AE gastos por item que o Terminal do Armazém move entre o armazém e o jogador."
 }

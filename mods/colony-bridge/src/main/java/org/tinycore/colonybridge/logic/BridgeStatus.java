@@ -1,6 +1,6 @@
 package org.tinycore.colonybridge.logic;
 
-/** Estado da ponte mostrado ao jogador (clique direito). Cada valor tem uma chave de tradução. */
+/** Estado de um bloco TC ligado à rede (Ponte, Abastecedor, Terminal), mostrado ao jogador. Cada valor tem uma chave de tradução. */
 public enum BridgeStatus {
     STARTING,
     OFFLINE,
@@ -12,6 +12,10 @@ public enum BridgeStatus {
     /** Quem colocou a ponte não tem (ou perdeu) permissão na colônia. */
     NO_PERMISSION,
     NO_WAREHOUSE,
+    /** Ponte: há mais de uma Ponte na mesma rede ME (só uma é permitida). */
+    DUPLICATE_BRIDGE,
+    /** Terminal: nenhuma Ponte ativa desta colônia na rede ME. */
+    NO_BRIDGE,
     IDLE,
     WORKING;
 

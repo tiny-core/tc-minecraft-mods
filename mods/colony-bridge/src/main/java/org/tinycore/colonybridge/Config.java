@@ -88,6 +88,22 @@ public final class Config {
             .comment("Distância máxima (em blocos) entre a tela de monitor e a ponte ligada pelo cartão.")
             .defineInRange("monitorLinkRange", 64, 8, 256);
 
+    public static final ModConfigSpec.DoubleValue BRIDGE_IDLE_POWER = B
+            .comment("Consumo parado da Ponte, em AE/t (vale ao colocar ou recarregar o bloco).")
+            .defineInRange("bridgeIdlePower", 4.0, 0.0, 1000.0);
+
+    public static final ModConfigSpec.DoubleValue SUPPLY_IDLE_POWER = B
+            .comment("Consumo parado do Abastecedor, em AE/t (vale ao colocar ou recarregar o bloco).")
+            .defineInRange("supplyIdlePower", 3.0, 0.0, 1000.0);
+
+    public static final ModConfigSpec.DoubleValue TERMINAL_IDLE_POWER = B
+            .comment("Consumo parado do Terminal do Armazém, em AE/t (vale ao colocar ou recarregar o bloco).")
+            .defineInRange("terminalIdlePower", 2.0, 0.0, 1000.0);
+
+    public static final ModConfigSpec.DoubleValue TERMINAL_ENERGY_PER_ITEM = B
+            .comment("Energia (AE) gasta pelo Terminal do Armazém por item movido entre o armazém e o jogador.")
+            .defineInRange("terminalEnergyPerItem", 1.0, 0.0, 1000.0);
+
     public static final ModConfigSpec.IntValue TERMINAL_SYNC_TICKS = B
             .comment("Intervalo, em ticks, entre leituras do armazém com a tela do Terminal do Armazém aberta.")
             .defineInRange("terminalSyncTicks", 10, 2, 100);

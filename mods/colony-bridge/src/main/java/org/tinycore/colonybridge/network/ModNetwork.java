@@ -29,7 +29,7 @@ import java.util.List;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "7";
+    private static final String PROTOCOL_VERSION = "8";
 
     private ModNetwork() {}
 

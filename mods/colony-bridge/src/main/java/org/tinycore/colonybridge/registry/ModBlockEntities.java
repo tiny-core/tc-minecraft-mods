@@ -9,6 +9,7 @@ import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
+import org.tinycore.colonybridge.block.terminal.WarehouseTerminalBlockEntity;
 
 /**
  * Tipos de block entity. Um {@code BlockEntityType} liga o construtor do block entity aos blocos
@@ -33,6 +34,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MonitorBlockEntity>> COLONY_MONITOR =
             BLOCK_ENTITIES.register("colony_monitor",
                     () -> BlockEntityType.Builder.of(MonitorBlockEntity::new, ModBlocks.COLONY_MONITOR.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WarehouseTerminalBlockEntity>> WAREHOUSE_TERMINAL =
+            BLOCK_ENTITIES.register("warehouse_terminal",
+                    () -> BlockEntityType.Builder.of(WarehouseTerminalBlockEntity::new, ModBlocks.WAREHOUSE_TERMINAL.get()).build(null));
 
     private ModBlockEntities() {}
 

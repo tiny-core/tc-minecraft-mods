@@ -7,6 +7,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
@@ -41,7 +42,7 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
     private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
 
     public ColonySupplyBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.COLONY_SUPPLY.get(), pos, state, ModItems.COLONY_SUPPLY.get(), 3.0);
+        super(ModBlockEntities.COLONY_SUPPLY.get(), pos, state, ModItems.COLONY_SUPPLY.get(), Config.SUPPLY_IDLE_POWER::get);
     }
 
     // ---------------------------------------------------------------- ciclo

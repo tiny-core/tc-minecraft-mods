@@ -12,6 +12,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.tinycore.colonybridge.client.ui.StatusColors;
+import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.terminal.ItemListing;
 import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.menu.terminal.WarehouseEntry;
@@ -109,7 +111,12 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         int inner = WIDTH - PADDING * 2;
         toolbar.render(g);
         ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
-        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner, ScreenStyle.TITLE);
+        // Estado à direita (Online, Sem Ponte na rede, Offline...); o título usa o espaço que sobrar.
+        BridgeStatus status = menu.getView().status();
+        int statusWidth = ScreenStyle.drawFittedRight(g, font, Component.translatable(status.guiKey()),
+                x + WIDTH - PADDING, y + 7, inner / 2, ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 7, StatusColors.of(status));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
         ScreenStyle.drawFitted(g, font, Component.literal(menu.getColonyName()), x + PADDING, y + 19, inner,
                 ScreenStyle.INFO);
         ScreenStyle.inset(g, x + PADDING, y + SEARCH_Y, inner, 13, ScreenStyle.SLOT);

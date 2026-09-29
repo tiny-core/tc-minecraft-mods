@@ -8,6 +8,10 @@
    - nada de malhas livres; tudo é feito de cubos.
 4. Comece simples: um cubo com faces diferentes (frente com "tela", laterais com moldura). Depois
    adicione detalhes com cubos pequenos (parafusos, cabos, relevos).
+5. **Frente para o norte.** Modele a frente do bloco virada para o **norte** (no Blockbench, a face marcada
+   "North"/N na grade). Ponte, Abastecedor e Terminal giram sozinhos para ficar de frente para quem os
+   colocou: o blockstate já gira o modelo 90° (leste), 180° (sul) e 270° (oeste). A conexão com o cabo
+   ME continua sendo **por baixo**, qualquer que seja a frente.
 
 ## Textura
 - Use o **Paint** do próprio Blockbench ou outro editor (Aseprite, GIMP, Krita).

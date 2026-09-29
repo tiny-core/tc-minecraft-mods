@@ -2,6 +2,8 @@ package org.tinycore.colonybridge.block;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
@@ -16,11 +18,15 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.Mirror;
+import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
@@ -32,6 +38,8 @@ import java.util.List;
  * Base dos blocos que ligam uma rede ME a uma colônia (Ponte e Abastecedor). Cuida de tudo o que é
  * igual entre eles, para cada subclasse só dizer <b>qual</b> block entity, tela e tooltip usa:
  * <ul>
+ *   <li>frente virada para quem colocou ({@link #FACING}; os modelos são feitos com a frente para o norte e o
+ *       blockstate gira o modelo);</li>
  *   <li>estado visual no blockstate ({@link #STATUS}, atualizado pelo block entity);</li>
  *   <li>recusar a colocação em colônia onde o jogador não tem permissão e gravar o dono;</li>
  *   <li>ticker só no servidor, que chama {@link AbstractBridgeBlockEntity#serverTick()};</li>
@@ -50,12 +58,16 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
     public static final EnumProperty<BridgeVisualState> STATUS =
             EnumProperty.create("status", BridgeVisualState.class);
 
+    /** Para onde a frente do bloco aponta (só horizontal). */
+    public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+
     private final Class<E> entityClass;
 
     protected AbstractBridgeBlock(Properties props, Class<E> entityClass) {
         super(props);
         this.entityClass = entityClass;
-        registerDefaultState(stateDefinition.any().setValue(STATUS, BridgeVisualState.OFFLINE));
+        registerDefaultState(stateDefinition.any().setValue(STATUS, BridgeVisualState.OFFLINE)
+                .setValue(FACING, Direction.NORTH));
     }
 
     /** Tipo registrado do block entity deste bloco (em {@code ModBlockEntities}). */
@@ -73,7 +85,26 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
     /** Declara quais propriedades o bloco tem; o Minecraft gera uma combinação de estado para cada valor. */
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(STATUS);
+        builder.add(STATUS, FACING);
+    }
+
+    /** Estruturas giradas/espelhadas (ex.: schematics) giram a frente junto. */
+    @Override
+    protected BlockState rotate(BlockState state, Rotation rotation) {
+        return state.setValue(FACING, rotation.rotate(state.getValue(FACING)));
+    }
+
+    @Override
+    protected BlockState mirror(BlockState state, Mirror mirror) {
+        return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    /**
+     * Dados mandados ao cliente ao abrir a tela ("dados extras" do menu). Padrão: só a posição do bloco;
+     * um bloco pode acrescentar o que a tela dele precisa (o Terminal manda também o nome da colônia).
+     */
+    protected void writeMenuData(RegistryFriendlyByteBuf buf, E blockEntity) {
+        buf.writeBlockPos(blockEntity.getBlockPos());
     }
 
     /** Texto ao passar o mouse sobre o item (inventário, JEI/EMI). */
@@ -102,12 +133,14 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
     @Override
     public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
         Level level = context.getLevel();
+        // Frente virada para o jogador: o oposto da direção para onde ele olha.
+        BlockState placed = defaultBlockState().setValue(FACING, context.getHorizontalDirection().getOpposite());
         if (level.isClientSide) {
-            return defaultBlockState();
+            return placed;
         }
         Player player = context.getPlayer();
         if (ColonyAccess.canPlaceBridge(level, context.getClickedPos(), player == null ? null : player.getUUID())) {
-            return defaultBlockState();
+            return placed;
         }
         if (player != null) {
             player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
@@ -153,7 +186,8 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
             return InteractionResult.CONSUME;
         }
         player.openMenu(new SimpleMenuProvider(
-                (containerId, inventory, p) -> createMenu(containerId, inventory, be), menuTitle()), pos);
+                (containerId, inventory, p) -> createMenu(containerId, inventory, be), menuTitle()),
+                buf -> writeMenuData(buf, be));
         return InteractionResult.CONSUME;
     }
 
