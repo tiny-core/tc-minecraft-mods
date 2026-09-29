@@ -4,8 +4,8 @@ Workspace dos mods **TC** (tiny-core) para **NeoForge 1.21.1**, feitos para o mo
 
 | Pasta | Mod | O que faz |
 |---|---|---|
-| `core/` | **TC Core** (`tccore`) | Biblioteca comum: design system das telas, ghost slots, redstone, estatísticas. Obrigatório em jogo para os outros mods TC. |
-| `colony-bridge/` | **TC Colony Bridge** (`tccolonybridge`) | Liga uma rede ME do AE2 aos pedidos do MineColonies (Ponte, Abastecedor, Monitores). |
+| `mods/core/` | **TC Core** (`tccore`) | Biblioteca comum: design system das telas, ghost slots, redstone, estatísticas. Obrigatório em jogo para os outros mods TC. |
+| `mods/colony-bridge/` | **TC Colony Bridge** (`tccolonybridge`) | Liga uma rede ME do AE2 aos pedidos do MineColonies (Ponte, Abastecedor, Monitores). |
 
 Planejado: mod para gerenciar os reatores do Mekanism, no mesmo estilo.
 
@@ -14,11 +14,11 @@ Planejado: mod para gerenciar os reatores do Mekanism, no mesmo estilo.
 Precisa só de um JDK 21+ para rodar o Gradle (o Gradle baixa sozinho o JDK 21 do projeto).
 
 ```bash
-./gradlew build                      # compila e testa tudo; jars em <mod>/build/libs/
+./gradlew build                      # compila e testa tudo; jars em build/libs/ (todos juntos)
 ./gradlew test --rerun               # só os testes (resultado de cada um no terminal)
 ./gradlew :colony-bridge:runClient   # Minecraft de desenvolvimento com o mod (e o core)
 ```
-Para jogar/testar no ATM10: copie para a pasta `mods/` o jar do mod **e** o `core/build/libs/tccore-<versão>.jar`.
+Para jogar/testar no ATM10: copie de `build/libs/` para a pasta `mods/` **do ATM10** o jar do mod **e** o `tccore-<versão>.jar`.
 Cada mod tem o seu README (uso) e `libs/` (jars do ATM10 que ele precisa para compilar, fora do git).
 
 ## VS Code
@@ -32,13 +32,13 @@ Abra **esta pasta** (a raiz) e aceite as extensões recomendadas (Java Extension
 
 ## Criar um mod novo
 
-1. Pasta nova na raiz (ex.: `reactor/`) com:
+1. Pasta nova em `mods/` (ex.: `mods/reactor/`) com:
    - `build.gradle`: `apply from: rootProject.file('gradle/tc-mod.gradle')` + dependências do mod
      (`implementation project(':core')` e, nas execuções de dev, `mods { tccore { sourceSet(project(':core').sourceSets.main) } }`
-     — ver `colony-bridge/build.gradle`);
+     — ver `mods/colony-bridge/build.gradle`);
    - `gradle.properties`: `mod_id`, `mod_name` ("TC ..."), `mod_version`, `mod_group_id`, `tccore_version_range`;
    - `src/main/templates/META-INF/neoforge.mods.toml` com a dependência `tccore`;
    - `CLAUDE.md` com o que é específico do mod (as regras gerais estão no `CLAUDE.md` da raiz).
-2. Uma linha `include 'reactor'` no `settings.gradle`.
+2. O nome `'reactor'` na lista de mods do `settings.gradle` (o projeto fica `:reactor`).
 
 Decisões do workspace: `docs/DECISOES.md`.

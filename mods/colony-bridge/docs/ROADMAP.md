@@ -151,6 +151,6 @@ e menu base com os ghost slots (`AbstractGhostMenu`).
 
 ## Workspace e TC Core (feito em 2026-09-29)
 
-O mod passou a morar em `tc_minecraft_mods/colony-bridge/`, ao lado do **TC Core** (biblioteca comum,
+O mod passou a morar em `tc_minecraft_mods/colony-bridge/` (depois `mods/colony-bridge/`), ao lado do **TC Core** (biblioteca comum,
 mod separado). Próximo candidato a ir para o core: a infraestrutura dos monitores, quando o mod de
 reatores do Mekanism precisar dela.

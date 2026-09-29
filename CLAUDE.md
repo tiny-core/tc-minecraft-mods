@@ -8,8 +8,9 @@ arquivo vale para **todos**.
 tc_minecraft_mods/
 ├── settings.gradle / build.gradle / gradle.properties   # build multiprojeto e versões comuns
 ├── gradle/tc-mod.gradle     # configuração que todo mod TC repete (NeoForge, mods.toml, testes)
-├── core/                    # TC Core (tccore): biblioteca comum — mod separado em jogo
-└── colony-bridge/           # TC Colony Bridge (tccolonybridge): AE2 ↔ MineColonies
+├── mods/
+│   ├── core/                # TC Core (tccore): biblioteca comum — mod separado em jogo
+│   └── colony-bridge/       # TC Colony Bridge (tccolonybridge): AE2 ↔ MineColonies
 ```
 Planejado: mod de reatores do Mekanism, no mesmo estilo (ver README.md, "Criar um mod novo").
 
@@ -30,7 +31,7 @@ Planejado: mod de reatores do Mekanism, no mesmo estilo (ver README.md, "Criar u
 ## 2. Comandos (na raiz)
 
 ```bash
-./gradlew build                      # compila e testa todos os mods; jars em <mod>/build/libs/
+./gradlew build                      # compila e testa todos os mods; jars em build/libs/ (todos juntos)
 ./gradlew test --rerun               # testes JUnit de todos os mods (resultado de cada um no terminal)
 ./gradlew :colony-bridge:runClient   # cliente de desenvolvimento de um mod (o core roda junto)
 ./gradlew :colony-bridge:runServer   # servidor de desenvolvimento
@@ -43,7 +44,7 @@ em código genérico (ex.: `CraftOrdering` no Colony Bridge).
 
 ## 3. O que vai para o core
 
-- Vai para `core/` só o que **mais de um mod usa ou vai usar** e **não depende** de mod externo
+- Vai para `mods/core/` só o que **mais de um mod usa ou vai usar** e **não depende** de mod externo
   (MineColonies, AE2, Mekanism): design system das telas, ghost slots, redstone, estatísticas.
 - O core **nunca** importa nada de um mod TC. Um mod depende do core, nunca o contrário.
 - Mudança no core pode quebrar todos os mods: rode `./gradlew build` na raiz (compila e testa tudo).

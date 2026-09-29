@@ -110,10 +110,10 @@ O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é 
 
 ## Setup
 Este mod faz parte do workspace **TC Minecraft Mods** (ver o `README.md` da raiz: build, VS Code, testes).
-1. Copie para `colony-bridge/libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).
-2. `ae2_version` fica em `colony-bridge/gradle.properties`; a versão do NeoForge, no `gradle.properties` da raiz.
-3. Na raiz: `./gradlew :colony-bridge:build` → `colony-bridge/build/libs/tccolonybridge-<versão>.jar`.
-4. **Em jogo, instale também o TC Core** (`core/build/libs/tccore-<versão>.jar`): o Colony Bridge depende dele.
+1. Copie para `mods/colony-bridge/libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).
+2. `ae2_version` fica em `mods/colony-bridge/gradle.properties`; a versão do NeoForge, no `gradle.properties` da raiz.
+3. Na raiz: `./gradlew :colony-bridge:build` → `build/libs/tccolonybridge-<versão>.jar`.
+4. **Em jogo, instale também o TC Core** (`build/libs/tccore-<versão>.jar`): o Colony Bridge depende dele.
 5. `./gradlew :colony-bridge:runClient` para testar em dev (o core roda junto).
 
 Testes automáticos deste mod: `./gradlew :colony-bridge:test --rerun` — escolha do item a craftar
@@ -121,7 +121,7 @@ Testes automáticos deste mod: `./gradlew :colony-bridge:test --rerun` — escol
 (`DeliveryLedger`), linhas do Abastecedor no monitor, quanto o Abastecedor repõe/devolve (`SupplyRule`),
 ranking de itens (`TopRanking`), formação do monitor (`MonitorShape`), animação e paginação do monitor,
 NBT e pacote das configurações da ponte (`BridgeSettings`). Os do core (`JoinedList`, `MetricRing`,
-`MetricSeries`) ficam em `core/`.
+`MetricSeries`) ficam em `mods/core/`.
 
 ## Configuração
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).

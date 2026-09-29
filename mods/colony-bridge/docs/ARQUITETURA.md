@@ -7,10 +7,10 @@ subpacote específico, então mexer na Ponte não quebra o Abastecedor (e vice-v
 
 Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 
-**Vem do TC Core** (`core/`, pacote `org.tinycore.core`): design system das telas (`UiColors`, `ScreenStyle`,
+**Vem do TC Core** (`mods/core/`, pacote `org.tinycore.core`): design system das telas (`UiColors`, `ScreenStyle`,
 `IconButton`, `SideToolbar`, `BarChart`, `Painter`, `UiFormat`, `RedstoneIcons`), ghost slots
 (`AbstractGhostMenu`, `GhostContainer`, `GhostSlot`, `TabSlot`, `JoinedList`), `RedstoneMode` e as
-estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `core/README.md`.
+estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.md`.
 
 ---
 

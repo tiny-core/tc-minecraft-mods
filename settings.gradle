@@ -11,7 +11,11 @@ plugins {
 
 rootProject.name = 'tc_minecraft_mods'
 
-// Cada mod é um subprojeto. Para criar um mod novo: nova pasta com build.gradle + gradle.properties
-// (ver README.md) e uma linha aqui.
-include 'core'
-include 'colony-bridge'
+// Cada mod é um subprojeto que mora em mods/<nome>. O nome do projeto continua curto (':core',
+// ':colony-bridge'), então os comandos não mudam: ./gradlew :colony-bridge:runClient.
+// Para criar um mod novo: pasta mods/<nome> com build.gradle + gradle.properties (ver README.md)
+// e o nome dele na lista abaixo.
+['core', 'colony-bridge'].each { name ->
+    include name
+    project(":$name").projectDir = file("mods/$name")
+}

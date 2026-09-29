@@ -16,13 +16,13 @@ Responsabilidade de cada classe: `docs/ARQUITETURA.md`. Guia de modelos: `docs/G
 ## Comandos (na raiz do workspace)
 
 ```bash
-./gradlew :colony-bridge:build       # jar em colony-bridge/build/libs/ (instale junto com o do core)
+./gradlew :colony-bridge:build       # jar em build/libs/ da raiz (instale junto com o do core)
 ./gradlew :colony-bridge:test --rerun
 ./gradlew :colony-bridge:runClient
 ```
 Dependências: a API do AE2 vem do Maven Central; MineColonies, Structurize, BlockUI, Domum Ornamentum,
-AE2 completo, GuideMe e JEI vêm de `colony-bridge/libs/` (jars copiados do ATM10; `-Plibs_dir=...` aponta
-outra pasta). Versões em `colony-bridge/gradle.properties` (AE2) e na raiz (NeoForge) casam com o ATM10.
+AE2 completo, GuideMe e JEI vêm de `mods/colony-bridge/libs/` (jars copiados do ATM10; `-Plibs_dir=...` aponta
+outra pasta). Versões em `mods/colony-bridge/gradle.properties` (AE2) e na raiz (NeoForge) casam com o ATM10.
 
 ## Mapa
 
