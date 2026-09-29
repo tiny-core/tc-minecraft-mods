@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
+import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
     }
 
     /**
-     * Arrastar itens para os ghost slots da ponte, e as barras laterais (fora da janela) das duas telas
+     * Arrastar itens para os ghost slots da ponte, e as barras laterais (fora da janela) das telas
      * como "áreas extras", para o JEI não desenhar a lista de itens por cima delas.
      */
     @Override
@@ -45,6 +46,12 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(ColonySupplyScreen.class, new IGuiContainerHandler<>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(ColonySupplyScreen screen) {
+                return screen.extraAreas();
+            }
+        });
+        registration.addGuiContainerHandler(WarehouseTerminalScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(WarehouseTerminalScreen screen) {
                 return screen.extraAreas();
             }
         });

@@ -88,6 +88,14 @@ public final class Config {
             .comment("Distância máxima (em blocos) entre a tela de monitor e a ponte ligada pelo cartão.")
             .defineInRange("monitorLinkRange", 64, 8, 256);
 
+    public static final ModConfigSpec.IntValue TERMINAL_SYNC_TICKS = B
+            .comment("Intervalo, em ticks, entre leituras do armazém com a tela do Terminal do Armazém aberta.")
+            .defineInRange("terminalSyncTicks", 10, 2, 100);
+
+    public static final ModConfigSpec.IntValue TERMINAL_MAX_TYPES = B
+            .comment("Máximo de tipos de item mostrados pelo Terminal do Armazém (limita o tráfego em armazéns enormes).")
+            .defineInRange("terminalMaxTypes", 4096, 64, 32768);
+
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

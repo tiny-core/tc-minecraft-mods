@@ -68,6 +68,20 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `client/supply/ColonySupplyScreen` | Tela com as duas listas e o botão de redstone. |
 | `stats/SupplyStats`, `SupplySummary` | Estatísticas do Abastecedor (itens repostos / devolvidos ao ME). |
 
+## Terminal do Armazém (`terminal/`) — ver, tirar e guardar itens do armazém
+
+| Classe | Responsabilidade |
+|---|---|
+| `block/terminal/WarehouseTerminalBlock` | Bloco sem block entity: confere colônia e permissão e abre a tela. |
+| `menu/terminal/WarehouseTerminalMenu` | Container: inventário do jogador (slots reais) + grade virtual do armazém; shift-clique guarda no armazém. |
+| `menu/terminal/WarehouseSync` | Servidor: lê os racks a cada `terminalSyncTicks` e manda só as mudanças (`CountDiff`), em pacotes de até 256. |
+| `menu/terminal/WarehouseView`, `WarehouseEntry` | Cliente: cópia local do armazém montada pelas mudanças; entrada = item + quantidade. |
+| `menu/terminal/TerminalActions` | Servidor: executa o clique (tirar para cursor/inventário, guardar) a partir do que existe nos racks. |
+| `logic/terminal/CountDiff`, `ItemListing`, `TerminalAction` | Regras puras (testadas): diferença entre contagens, busca/ordem, ações possíveis. |
+| `logic/warehouse/WarehouseItems` | Somar racks por tipo, tirar e guardar com `ItemStack` (sem tipos do AE2). |
+| `network/WarehouseContentsPayload`, `WarehouseActionPayload`, `TerminalPackets` | Pacotes do terminal e validação no servidor (menu, distância, permissão). |
+| `client/terminal/WarehouseTerminalScreen`, `WarehouseGrid` | Tela (busca, ordem, cliques) e a grade desenhada com rolagem. |
+
 ## Monitor da Colônia (`monitor/`) — mostra dados de uma Ponte
 
 | Classe | Responsabilidade |

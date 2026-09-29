@@ -77,6 +77,18 @@ Clique num slot com o item na mão para escolher; role o mouse sobre ele para mu
 colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num vaivém sem fim.
 `supplyMaxPerCycle` limita quanto cada linha move por ciclo.
 
+## Terminal do Armazém
+Terceiro bloco: uma tela como o terminal do AE2, mas para o **armazém da colônia**. Mostra todos os itens de
+todos os racks, somados por tipo, com busca (`@mod` filtra por mod; clique direito limpa) e ordem por
+quantidade ou nome (botão na barra lateral). Não precisa de rede ME: basta estar dentro da colônia, e quem
+abre precisa da mesma permissão da ponte.
+
+- **Tirar:** clique esquerdo = um stack no cursor · direito = meio stack · Shift = direto para o inventário.
+- **Guardar:** com item no cursor, esquerdo guarda tudo e direito guarda um; Shift-clique no inventário guarda o stack.
+
+A grade atualiza a cada `terminalSyncTicks` (só com a tela aberta, mandando só o que mudou) e mostra até
+`terminalMaxTypes` tipos. Modelo provisório (bancada de trabalho) até a arte no Blockbench.
+
 ### Monitor da Colônia (em desenvolvimento)
 Coloque vários **Monitores da Colônia** lado a lado numa parede, virados para o mesmo lado: se formarem
 um retângulo completo (até 8×6, configurável em `monitorMaxWidth`/`monitorMaxHeight`), viram uma tela única.

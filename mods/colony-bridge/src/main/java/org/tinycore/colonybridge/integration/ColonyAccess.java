@@ -152,6 +152,26 @@ public final class ColonyAccess {
     }
 
     /**
+     * Racks do armazém da colônia nesta posição, para o Terminal do Armazém: só se a posição está numa
+     * colônia e o jogador tem a mesma permissão exigida da ponte ({@link #canUseBridge}).
+     *
+     * @return null se não há colônia ou o jogador não tem permissão (lista vazia = colônia sem armazém)
+     */
+    public static @Nullable List<IItemHandler> accessibleRacks(Level level, BlockPos pos, UUID player) {
+        IColony colony = findColony(level, pos);
+        if (colony == null || !canUseBridge(colony, player)) {
+            return null;
+        }
+        return warehouseRacks(colony);
+    }
+
+    /** Nome da colônia nesta posição (limitado como em {@link #colonyName}), ou vazio se não há colônia. */
+    public static String colonyNameAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        return colony == null ? "" : colonyName(colony);
+    }
+
+    /**
      * Pede ao MineColonies para voltar a procurar um resolver para o pedido.
      * Depois de colocarmos os itens no armazém, o resolver do armazém deve ficar com ele
      * e um courier faz a entrega.

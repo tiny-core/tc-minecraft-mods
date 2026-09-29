@@ -9,6 +9,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 
 /**
  * Tipos de menu (telas ligadas a blocos). O {@code MenuType} diz ao cliente qual construtor usar
@@ -25,6 +26,9 @@ public final class ModMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ColonySupplyMenu>> COLONY_SUPPLY =
             MENUS.register("colony_supply", () -> IMenuTypeExtension.create(ColonySupplyMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<WarehouseTerminalMenu>> WAREHOUSE_TERMINAL =
+            MENUS.register("warehouse_terminal", () -> IMenuTypeExtension.create(WarehouseTerminalMenu::new));
 
     private ModMenus() {}
 

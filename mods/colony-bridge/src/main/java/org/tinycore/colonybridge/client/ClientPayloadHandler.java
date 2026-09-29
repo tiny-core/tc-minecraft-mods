@@ -3,8 +3,10 @@ package org.tinycore.colonybridge.client;
 import net.minecraft.client.Minecraft;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
+import org.tinycore.colonybridge.network.WarehouseContentsPayload;
 
 /**
  * Trata, no cliente, os pacotes vindos do servidor. Fica em {@code client/} porque usa
@@ -21,6 +23,16 @@ public final class ClientPayloadHandler {
                 && player.containerMenu instanceof ColonyBridgeMenu menu
                 && menu.containerId == payload.containerId()) {
             menu.setSnapshot(payload.snapshot());
+        }
+    }
+
+    /** Conteúdo do armazém para a tela do Terminal do Armazém, se ela ainda é a tela aberta. */
+    public static void onWarehouseContents(WarehouseContentsPayload payload) {
+        var player = Minecraft.getInstance().player;
+        if (player != null
+                && player.containerMenu instanceof WarehouseTerminalMenu menu
+                && menu.containerId == payload.containerId()) {
+            menu.getView().apply(payload.reset(), payload.entries());
         }
     }
 

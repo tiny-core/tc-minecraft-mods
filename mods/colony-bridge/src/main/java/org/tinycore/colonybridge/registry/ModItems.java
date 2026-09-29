@@ -22,6 +22,9 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> COLONY_MONITOR =
             ITEMS.registerSimpleBlockItem("colony_monitor", ModBlocks.COLONY_MONITOR, new Item.Properties());
 
+    public static final DeferredItem<BlockItem> WAREHOUSE_TERMINAL =
+            ITEMS.registerSimpleBlockItem("warehouse_terminal", ModBlocks.WAREHOUSE_TERMINAL, new Item.Properties());
+
     public static final DeferredItem<LinkCardItem> LINK_CARD =
             ITEMS.registerItem("link_card", LinkCardItem::new, new Item.Properties().stacksTo(1));
 

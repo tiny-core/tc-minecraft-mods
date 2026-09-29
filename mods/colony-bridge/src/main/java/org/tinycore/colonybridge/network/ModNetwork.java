@@ -29,7 +29,7 @@ import java.util.List;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "6";
+    private static final String PROTOCOL_VERSION = "7";
 
     private ModNetwork() {}
 
@@ -49,6 +49,10 @@ public final class ModNetwork {
                 ModNetwork::onBridgeTab);
         registrar.playToServer(SupplyConfigPayload.TYPE, SupplyConfigPayload.STREAM_CODEC,
                 ModNetwork::onSupplyConfig);
+        registrar.playToClient(WarehouseContentsPayload.TYPE, WarehouseContentsPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.onWarehouseContents(payload));
+        registrar.playToServer(WarehouseActionPayload.TYPE, WarehouseActionPayload.STREAM_CODEC,
+                TerminalPackets::onAction);
     }
 
     private static void onSettings(BridgeSettingsPayload payload, IPayloadContext context) {

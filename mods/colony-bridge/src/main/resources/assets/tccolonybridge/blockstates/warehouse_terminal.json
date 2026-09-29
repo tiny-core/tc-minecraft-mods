@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "tccolonybridge:block/warehouse_terminal"
+    },
+    "facing=east": {
+      "model": "tccolonybridge:block/warehouse_terminal",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "tccolonybridge:block/warehouse_terminal",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "tccolonybridge:block/warehouse_terminal",
+      "y": 270
+    }
+  }
+}

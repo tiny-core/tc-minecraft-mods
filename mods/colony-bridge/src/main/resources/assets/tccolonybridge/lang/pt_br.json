@@ -154,5 +154,19 @@
   "gui.tccolonybridge.supply.keep_rule": "Mantém pelo menos %s no armazém; o que faltar vem da rede ME.",
   "gui.tccolonybridge.supply.surplus_rule": "Mantém no máximo %s no armazém; o que passar volta para a rede ME.",
   "monitor.tccolonybridge.supply.min": "↓ mín %s",
-  "monitor.tccolonybridge.supply.max": "↑ máx %s"
+  "monitor.tccolonybridge.supply.max": "↑ máx %s",
+  "block.tccolonybridge.warehouse_terminal": "TC Terminal do Armazém",
+  "tooltip.tccolonybridge.warehouse_terminal.line1": "Mostra todos os itens dos racks do armazém da colônia; tire e guarde itens como num terminal ME.",
+  "tooltip.tccolonybridge.warehouse_terminal.line2": "Coloque dentro da colônia. Não precisa de rede ME.",
+  "gui.tccolonybridge.terminal.title": "TC Terminal do Armazém",
+  "gui.tccolonybridge.terminal.search": "Buscar… (@mod)",
+  "gui.tccolonybridge.terminal.stored": "No armazém: %s",
+  "gui.tccolonybridge.terminal.sort.amount": "Ordem: quantidade",
+  "gui.tccolonybridge.terminal.sort.name": "Ordem: nome",
+  "gui.tccolonybridge.help.terminal": "Itens de todos os racks do armazém. Clique esquerdo: tira um stack · Direito: meio stack · Shift: direto para o inventário. Com item no cursor: esquerdo guarda tudo, direito guarda um. Shift-clique no inventário guarda o stack. Busque com @ para filtrar por mod (@minecraft); clique direito na busca para limpar.",
+  "message.tccolonybridge.terminal.no_colony": "Este terminal não está dentro de uma colônia.",
+  "tccolonybridge.configuration.terminalSyncTicks": "Atualização do Terminal do Armazém (ticks)",
+  "tccolonybridge.configuration.terminalSyncTicks.tooltip": "Ticks entre leituras do armazém enquanto a tela do Terminal do Armazém está aberta.",
+  "tccolonybridge.configuration.terminalMaxTypes": "Máximo de tipos no Terminal do Armazém",
+  "tccolonybridge.configuration.terminalMaxTypes.tooltip": "Máximo de tipos de item mostrados pelo Terminal do Armazém (limita o tráfego em armazéns enormes)."
 }

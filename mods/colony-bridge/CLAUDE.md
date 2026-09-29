@@ -8,7 +8,8 @@ Depende do **TC Core** (`tccore`, mod separado): design system das telas, ghost 
 estatísticas vêm de lá (`org.tinycore.core.*`).
 
 Estado: Ponte (entrega/craft dos pedidos, craft por tag com preferências por ponte, `ICraftingRequester`),
-Abastecedor (manter estoque / devolver excedente) e Monitores (multibloco mostrando Ponte ou Abastecedor).
+Abastecedor (manter estoque / devolver excedente), Monitores (multibloco mostrando Ponte ou Abastecedor) e
+Terminal do Armazém (ver/tirar/guardar itens dos racks, sem rede ME).
 
 Roadmap: `docs/ROADMAP.md` (ler **só** quando a tarefa for sobre planejamento ou feature nova).
 Responsabilidade de cada classe: `docs/ARQUITETURA.md`. Guia de modelos: `docs/GUIA-BLOCKBENCH.md`.
@@ -31,9 +32,9 @@ src/main/java/org/tinycore/colonybridge/
 ├── ColonyBridgeMod.java        # entrada do mod: registros, config, capabilities
 ├── Config.java                 # config de servidor (ModConfigSpec)
 ├── registry/                   # ModBlocks, ModItems, ModBlockEntities, ModMenus, ModCreativeTabs
-├── block/                      # bases compartilhadas + bridge/, supply/, monitor/
-├── logic/                      # BridgeStatus + bridge/, supply/, crafting/, warehouse/
-├── menu/  client/              # bridge/, supply/ (client/ também render/, ui/, jei/)
+├── block/                      # bases compartilhadas + bridge/, supply/, monitor/, terminal/
+├── logic/                      # BridgeStatus + bridge/, supply/, crafting/, warehouse/, terminal/
+├── menu/  client/              # bridge/, supply/, terminal/ (client/ também render/, ui/, jei/)
 ├── network/  stats/  multiblock/  item/
 └── integration/                # ÚNICO lugar que toca na API do MineColonies (ae2/ para regras do AE2)
 ```

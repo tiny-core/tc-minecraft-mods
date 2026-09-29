@@ -3,6 +3,7 @@
   "values": [
     "tccolonybridge:colony_bridge",
     "tccolonybridge:colony_monitor",
-    "tccolonybridge:colony_supply"
+    "tccolonybridge:colony_supply",
+    "tccolonybridge:warehouse_terminal"
   ]
 }
