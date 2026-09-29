@@ -27,7 +27,12 @@ bin/
 !**/src/**/bin/
 
 ### VS Code ###
-.vscode/
+# Tarefas, extensões e configurações são compartilhadas; o launch.json é gerado pelo ModDevGradle
+# com caminhos da máquina de quem importou, então fica fora do git.
+.vscode/*
+!.vscode/tasks.json
+!.vscode/extensions.json
+!.vscode/settings.json
 
 ### Mac OS ###
 .DS_Store
@@ -42,3 +47,5 @@ repo/
 libs/*.jar
 
 dist
+# logs de execução (runClient/runServer)
+logs/

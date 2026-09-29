@@ -1,0 +1,19 @@
+{
+  // Java: análise de @Nullable/@NotNull e projeto importado pelo Gradle (build.gradle é a fonte da verdade).
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.import.gradle.enabled": true,
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.import.gradle.wrapper.enabled": true,
+
+  // Mesmo formato em Windows e Linux: UTF-8, fim de linha LF, 4 espaços.
+  "files.encoding": "utf8",
+  "files.eol": "\n",
+  "[java]": { "editor.tabSize": 4, "editor.insertSpaces": true },
+
+  // Pastas geradas: fora da busca e do "vigia" de arquivos (importante abrindo pela rede, senão fica lento).
+  "files.exclude": { "**/.gradle": true, "bin": true },
+  "search.exclude": { "build": true, "run": true, "bin": true, "logs": true, ".gradle": true, "libs": true },
+  "files.watcherExclude": {
+    "**/build/**": true, "**/run/**": true, "**/bin/**": true, "**/.gradle/**": true, "**/logs/**": true
+  }
+}

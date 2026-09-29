@@ -1,0 +1,8 @@
+{
+  // O VS Code sugere instalar estas extensões ao abrir o projeto.
+  "recommendations": [
+    "vscjava.vscode-java-pack",
+    "vscjava.vscode-gradle",
+    "EditorConfig.EditorConfig"
+  ]
+}

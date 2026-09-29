@@ -1,0 +1,72 @@
+{
+  // Tarefas do Gradle para o VS Code (Terminal > Executar Tarefa, ou Ctrl+Shift+B para o build).
+  // Funcionam no Linux (./gradlew) e no Windows (gradlew.bat), inclusive abrindo o projeto por pasta de
+  // rede (\\servidor\...): o "-p ${workspaceFolder}" diz ao Gradle onde está o projeto, porque o cmd.exe
+  // não aceita caminho de rede como pasta atual.
+  "version": "2.0.0",
+  "options": {
+    "cwd": "${workspaceFolder}"
+  },
+  "windows": {
+    "options": {
+      "shell": {
+        "executable": "powershell.exe",
+        "args": ["-NoProfile", "-Command"]
+      }
+    }
+  },
+  "tasks": [
+    {
+      "label": "Gradle: build (gera o jar)",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "build"],
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Gradle: testes",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "test", "--rerun"],
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Gradle: runClient (Minecraft de desenvolvimento)",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "runClient"],
+      "isBackground": false,
+      "problemMatcher": []
+    },
+    {
+      "label": "Gradle: runServer (servidor de desenvolvimento)",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "runServer"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Gradle: clean",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "clean"],
+      "problemMatcher": []
+    },
+    {
+      "label": "Gradle: atualizar dependências",
+      "detail": "Rebaixa dependências (use depois de trocar jars em libs/ ou versões em gradle.properties)",
+      "type": "shell",
+      "command": "./gradlew",
+      "windows": { "command": "& '${workspaceFolder}\\gradlew.bat'" },
+      "args": ["-p", "${workspaceFolder}", "--refresh-dependencies", "build"],
+      "problemMatcher": []
+    }
+  ]
+}
