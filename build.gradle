@@ -54,6 +54,9 @@ configurations {
     runtimeClasspath.extendsFrom localRuntime
 }
 
+// Testes: classes do Minecraft/NeoForge no classpath (NBT, enums, codecs), sem subir o jogo inteiro.
+neoForge.addModdingDependenciesTo(sourceSets.test)
+
 dependencies {
     // AE2: compila contra a API publicada
     compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
@@ -65,6 +68,21 @@ dependencies {
     // JEI: opcional em jogo; só usado para arrastar itens para o filtro (client/jei/).
     compileOnly fileTree(dir: 'libs', include: 'jei-*.jar')
     localRuntime fileTree(dir: 'libs', include: '*.jar')
+
+    // Testes automáticos (JUnit 5) das partes que não precisam do jogo carregado: ./gradlew test
+    testImplementation "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
+    testImplementation platform('org.junit:junit-bom:5.11.3')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+    // Mostra cada teste no terminal e, se falhar, o motivo completo.
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        exceptionFormat 'full'
+    }
 }
 
 var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {

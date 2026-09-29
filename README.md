@@ -109,10 +109,18 @@ O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é 
 (`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
 ## Setup
-1. Copia para `libs/` os jars do teu ATM10 (ver `libs/LEIA-ME.txt`).
-2. Ajusta `neo_version` e `ae2_version` em `gradle.properties` para as versões do ATM10.
-3. `./gradlew build` → `build/libs/tccolonybridge-<versão>.jar`
+1. Copie para `libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).
+2. Ajuste `neo_version` e `ae2_version` em `gradle.properties` para as versões do ATM10.
+3. `./gradlew build` → `build/libs/tccolonybridge-<versão>.jar` (roda os testes automáticos antes).
 4. `./gradlew runClient` para testar em dev.
+
+### Testes automáticos
+`./gradlew test` roda os testes JUnit em `src/test/java` (resultado de cada um no terminal; `--rerun` força
+rodar de novo mesmo sem mudanças). Cobrem as regras que não precisam do jogo carregado: escolha do item a
+craftar (`CraftOrdering`), limpeza de pacotes e NBT das preferências (`CraftSettings`), reservas entre pontes
+(`DeliveryLedger`), estatísticas (`MetricRing`), linhas do Abastecedor no monitor e `JoinedList`.
+O que depende de itens, colônia ou rede ME (entrega, craft no AE2) continua sendo testado em jogo: o NeoForge
+só inicia os registros de itens com o carregador de mods rodando.
 
 ## Configuração
 `<mundo>/serverconfig/tccolonybridge-server.toml` (gerado no primeiro arranque do mundo).

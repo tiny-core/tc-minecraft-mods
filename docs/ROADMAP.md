@@ -127,8 +127,9 @@ pacotes que o monitor precisa.
 4. ~~Indexar o estoque~~ — **feito** de forma mais simples: `AEItemKey.getReadOnlyStack()` (cache do AE2)
    elimina a alocação por item. Se o custo de `matches()` pesar em redes enormes, aí sim indexar.
 5. ~~Simulação de inserção mais precisa~~ — **feito** em `RackDelivery.capacity()` (soma por slot).
-6. **GameTests** para a lógica de entrega (NeoForge suporta `@GameTest`) e **GitHub Actions** para
-   compilar a cada push.
+6. Testes automáticos — **feito em parte:** JUnit das regras sem jogo (`./gradlew test`, 37 testes).
+   **Falta:** GitHub Actions (exige obter os jars do MineColonies fora do git, ex.: Maven da LDTTeam) e
+   GameTests em jogo para entrega/craft (pesado: sobe MineColonies e AE2).
 7. ~~Separar `ModRegistries` em arquivos por tipo~~ — **feito** (`ModBlocks`, `ModItems`, `ModBlockEntities`).
 8. Publicação futura (CurseForge/Modrinth): definir licença final, página em PT/EN e ícone.
 

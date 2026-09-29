@@ -43,6 +43,7 @@ Caminhos relativos a `src/main/java/org/tinycore/colonybridge/`.
 | `logic/crafting/CraftLinks` | `ICraftingRequester` da ponte: vínculos dos crafts com os pedidos (salvos no NBT) e recebimento do resultado. |
 | `logic/bridge/CraftDelivery` | Coloca o resultado do craft nos racks (sobra → rede ME), registra "craft concluído" e libera pedido cancelado. |
 | `logic/crafting/CraftCandidates` | Escolhe o item a craftar para pedidos por tag (preferência, só vanilla, limite de candidatos). |
+| `logic/crafting/CraftOrdering` | Regras de ordem dos candidatos (mods preferidos, preferência, desempate), genéricas para teste. |
 | `logic/crafting/CraftCost` | Custo estimado de um item pelas receitas do AE2 (cache por ciclo). |
 | `logic/crafting/CraftPreference` | `CHEAPEST` / `MOST_EXPENSIVE` / `LIST`. |
 | `logic/crafting/CraftRules`, `ModFilterMode` | Regras prontas (ponte + config do servidor) que o `CraftCandidates` recebe; filtro/prioridade por mod. |

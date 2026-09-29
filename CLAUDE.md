@@ -24,12 +24,15 @@ ou uma feature nova). Guia de modelos: `docs/GUIA-BLOCKBENCH.md`.
 ## 2. Comandos
 
 ```bash
-./gradlew build        # gera build/libs/tccolonybridge-<versão>.jar
+./gradlew build        # gera build/libs/tccolonybridge-<versão>.jar (roda os testes)
+./gradlew test --rerun # testes JUnit (src/test/java), resultado de cada um no terminal
 ./gradlew runClient    # cliente de desenvolvimento
 ./gradlew runServer    # servidor de desenvolvimento
 ```
 O teste real é feito pelo autor no ATM10. Depois de mudanças em lógica de jogo, diga **o que ele
-deve testar em jogo** (passos curtos e o resultado esperado).
+deve testar em jogo** (passos curtos e o resultado esperado). Regras puras (sem item/colônia/rede) ganham
+teste JUnit em `src/test/java`; itens do Minecraft não podem ser criados nos testes (o NeoForge exige o
+carregador de mods), então isole a regra em código genérico, como em `CraftOrdering`.
 
 Dependências: a API do AE2 vem do Maven Central; MineColonies, Structurize, BlockUI, Domum
 Ornamentum, AE2 completo e GuideMe vêm de `libs/` (jars copiados do ATM10). Versões em
