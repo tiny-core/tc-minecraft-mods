@@ -16,6 +16,9 @@ import java.util.Objects;
  * botão, qualquer que seja a fonte ou o idioma.
  * <p>
  * Um "selo" colorido no canto ({@link #setBadge}) mostra estado sem texto (ex.: verde = ligado).
+ * <p>
+ * O destaque de foco só aparece com navegação por teclado (Tab/setas): o Minecraft deixa em foco o último
+ * botão clicado, e com o mouse isso deixava o botão "aceso" depois do clique.
  */
 public class IconButton extends AbstractButton {
 
@@ -30,7 +33,12 @@ public class IconButton extends AbstractButton {
     private Component tooltipText = Component.empty();
 
     public IconButton(int x, int y, Runnable onPress) {
-        super(x, y, SIZE, SIZE, Component.empty());
+        this(x, y, SIZE, onPress);
+    }
+
+    /** Botão quadrado de {@code size} pixels (ex.: 9 para os botões pequenos ao lado da bancada). */
+    public IconButton(int x, int y, int size, Runnable onPress) {
+        super(x, y, size, size, Component.empty());
         this.onPress = onPress;
     }
 
@@ -73,10 +81,11 @@ public class IconButton extends AbstractButton {
     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         int x = getX();
         int y = getY();
-        int border = selected ? ScreenStyle.ACCENT : isHoveredOrFocused() ? ScreenStyle.INFO : ScreenStyle.FRAME;
+        boolean highlighted = isHovered() || (isFocused() && Minecraft.getInstance().getLastInputType().isKeyboard());
+        int border = selected ? ScreenStyle.ACCENT : highlighted ? ScreenStyle.INFO : ScreenStyle.FRAME;
         g.fill(x, y, x + width, y + height, border);
         g.fill(x + 1, y + 1, x + width - 1, y + height - 1,
-                selected || isHoveredOrFocused() ? ScreenStyle.HOVER : ScreenStyle.PANEL);
+                selected || highlighted ? ScreenStyle.HOVER : ScreenStyle.PANEL);
         if (!icon.isEmpty()) {
             g.renderItem(icon, x + 1, y + 1);
         } else if (!glyph.isEmpty()) {
