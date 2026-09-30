@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Integração com o JEI: arrastar itens da lista do JEI para os ghost slots do filtro e o "+" das receitas
+ * Integração com o JEI: arrastar itens da lista do JEI para as listas (filtro, Abastecedor) e ghost slots, e o "+" das receitas
  * de bancada no Terminal do Armazém.
  * <p>
  * O JEI encontra esta classe pela anotação {@code @JeiPlugin} e só a carrega se estiver instalado;
@@ -50,7 +50,10 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
 
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration registration) {
-        registration.addGhostIngredientHandler(ColonyBridgeScreen.class, new FilterGhostHandler());
+        registration.addGhostIngredientHandler(ColonyBridgeScreen.class,
+                new FilterGhostHandler<>(ColonyBridgeScreen::listWidget, ColonyBridgeScreen::visibleGhostSlots));
+        registration.addGhostIngredientHandler(ColonySupplyScreen.class,
+                new FilterGhostHandler<>(ColonySupplyScreen::listWidget, screen -> List.of()));
         registration.addGuiContainerHandler(ColonyBridgeScreen.class, new IGuiContainerHandler<>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(ColonyBridgeScreen screen) {

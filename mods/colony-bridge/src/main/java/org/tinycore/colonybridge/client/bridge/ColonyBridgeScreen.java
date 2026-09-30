@@ -10,9 +10,11 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.block.bridge.CraftSettings;
+import org.tinycore.colonybridge.client.list.TargetListWidget;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.bridge.RequestCounts;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.bridge.BridgeSnapshot;
 import org.tinycore.colonybridge.menu.bridge.BridgeTab;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
@@ -35,7 +37,9 @@ import java.util.Set;
  *       ponte toda (ajuda "?", crafting, redstone); à direita os ajustes da aba aberta; o valor atual
  *       aparece no tooltip;</li>
  *   <li><b>abas com ícone</b> ({@link BridgeTab}): Geral (resumo), Filtro, Preferidos e Mods;</li>
- *   <li>cada aba tem uma <b>seção com título</b>; Filtro e Preferidos mostram o inventário embaixo.</li>
+ *   <li>cada aba tem uma <b>seção com título</b>; Filtro e Preferidos mostram o inventário embaixo;</li>
+ *   <li>o <b>filtro</b> é uma lista de linhas ({@link TargetListWidget}: item, {@code #tag} ou {@code @mod}); os
+ *       preferidos continuam em grade de ghost slots.</li>
  * </ul>
  * A lista de pedidos e as estatísticas ficam nos monitores. Os dados vêm do {@link BridgeSnapshot} guardado
  * no menu; os botões mandam pacotes e o servidor decide se aplica.
@@ -43,15 +47,18 @@ import java.util.Set;
 public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu> {
 
     private static final int WIDTH = 202;
-    private static final int HEIGHT = 200;
+    private static final int HEIGHT = 263;
     private static final int PADDING = 8;
     private static final int TABS_Y = 31;
     private static final int SECTION_Y = 53;
     private static final int CONTENT_Y = 64;
     private static final int MOD_LIST_HEIGHT = 120;
+    private static final int FILTER_LIST_Y = 66;
+    private static final int FILTER_ROWS = 5;
 
     /** Criada no init(): a fonte da tela só existe depois dele. */
     private ModListView modList;
+    private TargetListWidget filterList;
     private BridgeTab tab = BridgeTab.GENERAL;
     private final IconButton[] tabButtons = new IconButton[BridgeTab.values().length];
     /** Esquerda: ajustes do bloco todo. Direita: ajustes da aba aberta. */
@@ -90,6 +97,11 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
             tabButtons[t.ordinal()] = addRenderableWidget(button);
         }
 
+        filterList = new TargetListWidget(font, TargetListKind.FILTER, menu.containerId, menu.targetLists(), null,
+                FILTER_ROWS);
+        filterList.init(this::addRenderableWidget, this::setFocused, leftPos + PADDING, topPos + FILTER_LIST_Y,
+                WIDTH - PADDING * 2);
+
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         tabToolbar = new SideToolbar(SideToolbar.Side.RIGHT);
         helpButton = tool(toolbar, new IconButton(0, 0, () -> {}).glyph("?"));
@@ -124,6 +136,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         filterModeButton.visible = selected == BridgeTab.FILTER;
         exactMatchButton.visible = selected == BridgeTab.FILTER;
         modModeButton.visible = selected == BridgeTab.MODS;
+        filterList.setVisible(selected == BridgeTab.FILTER);
         toolbar.layout(leftPos, topPos, WIDTH);
         tabToolbar.layout(leftPos, topPos, WIDTH);
         helpButton.setTooltipText(Component.translatable("gui.tccolonybridge.help." + selected.name().toLowerCase()));
@@ -158,6 +171,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         modModeButton.icon(BridgeIcons.modMode(craft.modMode()));
         modModeButton.setTooltipText(Component.translatable("gui.tccolonybridge.mod_mode",
                 Component.translatable(craft.modMode().translationKey())));
+        filterList.tick();
     }
 
     private void setCraft(CraftSettings value) {
@@ -214,7 +228,11 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
                 x + PADDING, y + SECTION_Y, inner, ScreenStyle.TEXT);
         switch (tab) {
             case GENERAL -> renderGeneral(g, snap.counts(), x + PADDING, y + CONTENT_Y);
-            case FILTER, PREFERRED -> renderSlots(g, x, y);
+            case FILTER -> {
+                filterList.render(g, mouseX, mouseY);
+                renderSlots(g, x, y);
+            }
+            case PREFERRED -> renderSlots(g, x, y);
             case MODS -> {
                 int listWidth = inner - 8;
                 ScreenStyle.inset(g, x + PADDING, y + CONTENT_Y - 2, listWidth, MOD_LIST_HEIGHT + 4, ScreenStyle.SLOT);
@@ -267,11 +285,19 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        renderTooltip(g, mouseX, mouseY);
+        List<Component> tip = filterList.tooltip(mouseX, mouseY);
+        if (tip != null) {
+            g.renderComponentTooltip(font, tip, mouseX, mouseY);
+        } else {
+            renderTooltip(g, mouseX, mouseY);
+        }
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (filterList.mouseClicked(mouseX, mouseY, button, menu.getCarried())) {
+            return true;
+        }
         if (tab == BridgeTab.MODS && button == 0) {
             String mod = modList.modAt(mouseX, mouseY, leftPos + PADDING + 2, topPos + CONTENT_Y,
                     WIDTH - PADDING * 2 - 12, MOD_LIST_HEIGHT);
@@ -288,7 +314,19 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         if (tab == BridgeTab.MODS) {
             modList.scroll(scrollY, MOD_LIST_HEIGHT);
         }
+        filterList.mouseScrolled(mouseX, mouseY, scrollY, hasShiftDown(), hasControlDown());
         return true;
+    }
+
+    /** Com uma caixa de texto do filtro em foco, as teclas vão para ela (senão "E" fecharia a tela). */
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        return filterList.keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /** Lista do filtro, para o JEI saber onde soltar itens (vazia fora da aba "Filtro"). */
+    public TargetListWidget listWidget() {
+        return filterList;
     }
 
     /** Ghost slots visíveis agora (usado pela integração com JEI para saber onde soltar itens). */

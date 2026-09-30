@@ -4,7 +4,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
-import org.tinycore.colonybridge.block.supply.StockList;
+import org.tinycore.colonybridge.logic.target.TargetList;
 import org.tinycore.colonybridge.stats.StatsSummary;
 import org.tinycore.colonybridge.stats.SupplySummary;
 
@@ -14,7 +14,7 @@ import java.util.List;
 
 /**
  * O que o monitor mostra de um Abastecedor: estatísticas (trazido do ME / enviado ao ME), as linhas
- * configuradas ({@link StockLine}, até {@link StockList#SIZE}) e há quanto tempo foi o último movimento.
+ * configuradas ({@link StockLine}, até duas listas de {@link TargetList#HARD_MAX_LINES}) e há quanto tempo foi o último movimento.
  *
  * @param minutesSinceMove minutos desde o último movimento de qualquer linha; -1 = nenhum desde que o mundo carregou
  */
@@ -60,7 +60,7 @@ public record SupplyContent(SupplySummary stats, List<StockLine> lines, long min
                 .boxed().toList();
         List<StockLine> lines = new ArrayList<>();
         ListTag list = tag.getList("stock", Tag.TAG_COMPOUND);
-        for (int i = 0; i < Math.min(list.size(), StockList.SIZE); i++) {
+        for (int i = 0; i < Math.min(list.size(), TargetList.HARD_MAX_LINES * 2); i++) {
             StockLine line = StockLine.load(list.getCompound(i));
             if (line != null) {
                 lines.add(line);

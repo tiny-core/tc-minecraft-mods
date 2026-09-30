@@ -11,26 +11,30 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
-import org.tinycore.colonybridge.block.bridge.ItemFilter;
 import org.tinycore.colonybridge.block.bridge.PreferredItems;
+import org.tinycore.colonybridge.logic.target.TargetListHost;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.menu.TargetListEditor;
+import org.tinycore.colonybridge.menu.TargetListMenu;
+import org.tinycore.colonybridge.menu.TargetListSync;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
-import org.tinycore.core.menu.JoinedList;
 
 /**
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:
  * o menu (existe no servidor <b>e</b> no cliente) e a {@code Screen} (só no cliente, em {@code client/}).
  * <p>
- * Slots: 0..17 são os ghost slots do filtro, 18..35 os dos itens preferidos ({@link AbstractGhostMenu}),
- * e depois o inventário do jogador (só para pegar itens e clicar nos ghost slots). No cliente cada grupo
- * só aparece na sua aba ({@link BridgeTab}); o inventário, nas abas "Filtro" e "Preferidos".
+ * Slots: 0..17 são os ghost slots dos itens preferidos ({@link AbstractGhostMenu}) e depois o inventário do
+ * jogador (só para pegar itens e clicar nos ghost slots / ícones da lista). O <b>filtro</b> não é slot: é uma
+ * lista de linhas ({@link TargetListMenu}) editada por pacote. No cliente os preferidos só aparecem na aba
+ * deles ({@link BridgeTab}); o inventário, nas abas "Filtro" e "Preferidos".
  * <p>
  * O menu do servidor envia um {@link BridgeSnapshot} quando os dados mudam (checagem a cada
  * {@link #SNAPSHOT_INTERVAL_TICKS}); o do cliente guarda o último recebido para a tela desenhar.
  */
-public class ColonyBridgeMenu extends AbstractGhostMenu {
+public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMenu {
 
     /** Frequência máxima de envio do snapshot: 1×/s. */
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
@@ -38,12 +42,10 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     /** Posições (relativas à tela) usadas também pela {@code ColonyBridgeScreen} para desenhar o fundo. */
     public static final int FILTER_X = 20; // 9 colunas centralizadas na janela de 202 px
     public static final int FILTER_Y = 64;
-    public static final int INVENTORY_Y = 116;
-    public static final int HOTBAR_Y = 174;
+    public static final int INVENTORY_Y = 181;
+    public static final int HOTBAR_Y = 239;
 
-    /** Primeiro índice dos ghost slots de itens preferidos (logo depois dos do filtro). */
-    public static final int PREFERRED_START = ItemFilter.SIZE;
-    public static final int GHOST_COUNT = ItemFilter.SIZE + PreferredItems.SIZE;
+    public static final int GHOST_COUNT = PreferredItems.SIZE;
 
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */
@@ -57,11 +59,12 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     private BridgeSnapshot snapshot = BridgeSnapshot.EMPTY;
     /** Aba aberta: no cliente vem da tela; no servidor, do {@code BridgeTabPayload}. */
     private BridgeTab tab = BridgeTab.GENERAL;
+    private final TargetListSync lists = new TargetListSync(TargetListKind.FILTER);
 
     /** Construtor do servidor, chamado ao abrir a tela. */
     public ColonyBridgeMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity bridge) {
         super(ModMenus.COLONY_BRIDGE.get(), containerId,
-                new JoinedList<>(bridge.getFilter().items(), bridge.getPreferred().items()), bridge::setChanged);
+                bridge.getPreferred().items(), bridge::setChanged);
         this.pos = bridge.getBlockPos();
         this.bridge = bridge;
         this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
@@ -81,12 +84,8 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     }
 
     private void addSlots(Inventory inventory) {
-        for (int i = 0; i < ItemFilter.SIZE; i++) {
-            addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, () -> isVisible(BridgeTab.FILTER));
-        }
         for (int i = 0; i < PreferredItems.SIZE; i++) {
-            addGhostSlot(PREFERRED_START + i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18,
-                    () -> isVisible(BridgeTab.PREFERRED));
+            addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, () -> isVisible(BridgeTab.PREFERRED));
         }
         addPlayerInventory(inventory, FILTER_X, INVENTORY_Y, HOTBAR_Y,
                 () -> bridge != null || tab.showsInventory());
@@ -97,19 +96,23 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
         return bridge != null || tab == slotTab;
     }
 
-    /** Shift-clique no inventário vai para o grupo de ghost slots da aba aberta. */
-    @Override
-    protected int quickMoveStart() {
-        return tab == BridgeTab.PREFERRED ? PREFERRED_START : 0;
-    }
-
+    /** Shift-clique no inventário só vale na aba "Preferidos" (na aba "Filtro" vira linha nova, abaixo). */
     @Override
     protected int quickMoveEnd() {
-        return switch (tab) {
-            case FILTER -> ItemFilter.SIZE;
-            case PREFERRED -> GHOST_COUNT;
-            default -> 0;
-        };
+        return tab == BridgeTab.PREFERRED ? GHOST_COUNT : 0;
+    }
+
+    /** Na aba "Filtro", shift-clique no inventário vira uma linha nova do filtro. Nunca move o item. */
+    @Override
+    public ItemStack quickMoveStack(Player player, int index) {
+        if (tab != BridgeTab.FILTER || bridge == null) {
+            return super.quickMoveStack(player, index);
+        }
+        if (index >= GHOST_COUNT && index < slots.size() && canEditGhosts(player)
+                && TargetListEditor.addStack(bridge.getFilter(), slots.get(index).getItem())) {
+            bridge.onTargetListChanged(TargetListKind.FILTER);
+        }
+        return ItemStack.EMPTY;
     }
 
     @Override
@@ -129,6 +132,7 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
         if (bridge == null || !(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
+        lists.sendChanged(serverPlayer, containerId, bridge);
         if (--ticksUntilSync > 0) {
             return;
         }
@@ -144,6 +148,21 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     /** Força o envio no próximo tick (ex.: logo após o jogador mudar uma configuração). */
     public void requestSync() {
         ticksUntilSync = 0;
+    }
+
+    @Override
+    public TargetListSync targetLists() {
+        return lists;
+    }
+
+    @Override
+    public @Nullable TargetListHost listHost() {
+        return bridge;
+    }
+
+    /** A Ponte só tem a lista do filtro: nada a escolher. */
+    @Override
+    public void setActiveList(TargetListKind kind) {
     }
 
     /** Só no servidor: a ponte desta tela (null no cliente). */

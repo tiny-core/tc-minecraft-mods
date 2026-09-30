@@ -33,6 +33,25 @@ final class SupplyRule {
         return requested ? 0 : clamp(current - target, perCycle);
     }
 
+    /**
+     * Divide uma quantidade entre várias fontes, na ordem dada (quem chama ordena: a de mais estoque
+     * primeiro). Usado nas linhas de tag e de mod: "trazer 40 de {@code #c:ingots/iron}" tira do item que a
+     * rede tem mais e, se não bastar, do seguinte.
+     *
+     * @param wanted    total a mover
+     * @param available quanto cada fonte tem (valores negativos contam como 0)
+     * @return quanto tirar de cada fonte (mesmo tamanho de {@code available}; soma ≤ {@code wanted})
+     */
+    static long[] allocate(long wanted, long[] available) {
+        long[] take = new long[available.length];
+        long remaining = Math.max(0, wanted);
+        for (int i = 0; i < available.length && remaining > 0; i++) {
+            take[i] = Math.min(remaining, Math.max(0, available[i]));
+            remaining -= take[i];
+        }
+        return take;
+    }
+
     private static long clamp(long amount, long perCycle) {
         return Math.max(0, Math.min(amount, perCycle));
     }

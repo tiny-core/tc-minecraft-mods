@@ -46,9 +46,8 @@ aberta, crafting, redstone); à **direita** os ajustes da aba aberta. Quatro aba
   A lista com o motivo de cada pedido e as estatísticas ficam no **Monitor da Colônia**.
 - **Filtro:** quais itens podem sair da rede (entrega ou craft):
   - modo **Desligado / Só permitir / Bloquear** e comparação **só o item** ou **exata** (encantamentos, durabilidade);
-  - 18 slots "fantasma": clique com um item na mão para copiá-lo (o item continua com você), mão vazia ou
-    shift-clique limpa, shift-clique no inventário copia para o primeiro slot livre;
-  - com **JEI** instalado, dá para arrastar itens da lista do JEI direto para os slots.
+  - lista de linhas com item, `#tag` ou `@mod` (ver "Listas" abaixo); com **JEI**, dá para arrastar itens da
+    lista do JEI para os ícones e para o **+**.
 - **Preferidos:** 18 slots fantasma com a ordem usada pela "Lista de preferidos" (1º slot primeiro). Vazio =
   usa `tagCraftPreferredItems` da config do servidor.
 - **Mods:** modo **Todos / Só os marcados / Todos menos os marcados / Preferir os marcados** e a lista dos mods
@@ -78,19 +77,40 @@ erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
   Monitores não se ligam à rede e não consomem.
 - Os blocos ficam com a frente virada para quem colocou.
 
+### Listas (filtro da Ponte e Abastecedor)
+Cada linha tem um **ícone**, uma **caixa de texto** com o alvo e, no Abastecedor, a **quantidade**. O alvo pode ser:
+
+| Texto | Significa |
+|---|---|
+| `minecraft:iron_ingot` (ou só `iron_ingot`) | o item |
+| `#c:ingots/iron` | todos os itens da tag (o ícone alterna entre eles) |
+| `@mekanism` | todos os itens do mod (filtro e Excedente) |
+
+- **+** (em cima da lista) abre uma linha nova: digite e aperte **Enter**, clique no ícone com um item na mão ou
+  arraste um item do JEI. Shift-clique num item do inventário também adiciona uma linha.
+- Clique no ícone com um item para trocar o alvo; **botão direito** alterna entre o item e as tags dele
+  (item → 1ª tag → 2ª tag → ... → item).
+- Texto inválido, que não existe no modpack ou não permitido na lista fica **vermelho** e não é salvo.
+- Item solto no ícone guarda os dados dele (encantamentos, nome): a linha mostra ✦ e compara exatamente.
+- **x** remove a linha. Máximo de linhas por lista: `listMaxLines` (padrão 32).
+- Blocos de versões anteriores têm as grades convertidas em listas automaticamente, na mesma ordem.
+
 ## Abastecedor da Colônia
 Segundo bloco, o caminho contrário da ponte. Mesmas regras (dentro da colônia, com permissão, cabo ME
-comum por baixo) e uma tela com duas listas de 18 itens (duas fileiras cada):
+comum por baixo) e uma tela com duas abas, cada uma com a sua lista (ver "Listas" acima):
 
-- **ME → Armazém (mínimo)** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede ME
-  e coloca nos racks.
-- **Armazém → ME (máximo)** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
-  entupido pelas fazendas da colônia.
+- **Manter (ME → Armazém, mínimo)** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede
+  ME e coloca nos racks. Aceita item e `#tag`: numa tag, a meta vale para a **soma** dos itens dela, e o que
+  falta vem do item que a rede ME tem mais (e do seguinte, se não bastar).
+- **Excedente (Armazém → ME, máximo)** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
+  entupido pelas fazendas da colônia. Aceita item, `#tag` e `@mod`; o **∞** devolve tudo. Numa tag ou mod,
+  sai primeiro o item com mais unidades no armazém.
 
-Clique num slot com o item na mão para escolher; role o mouse sobre ele para mudar a quantidade
-(Shift ±10, Ctrl ±64); o tooltip do slot diz a regra em frase e quanto há no armazém agora. O excedente **nunca sai** de um item que esteja em algum pedido em aberto da
-colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num vaivém sem fim.
-`supplyMaxPerCycle` limita quanto cada linha move por ciclo.
+A roda do mouse sobre a quantidade muda o valor (Shift ±10, Ctrl ±64); **quantidade 0 desliga a linha**. A faixa
+colorida à esquerda mostra a situação da linha e a dica do ícone diz a regra em frase e quanto há no armazém
+agora. O excedente **nunca sai** de um item que esteja em algum pedido em aberto da colônia — sem isso, a ponte
+entregaria e o abastecedor levaria de volta, num vaivém sem fim. `supplyMaxPerCycle` limita quanto cada linha
+move por ciclo.
 
 ## Terminal do Armazém
 Terceiro bloco: uma tela como o terminal do AE2, mas para o **armazém da colônia**. Mostra todos os itens de

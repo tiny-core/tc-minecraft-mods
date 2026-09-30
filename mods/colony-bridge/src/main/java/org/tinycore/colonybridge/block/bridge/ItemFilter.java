@@ -8,6 +8,8 @@ import net.minecraft.world.item.ItemStack;
 import org.tinycore.colonybridge.logic.target.TargetList;
 
 /**
+ * <b>Formato antigo</b> do filtro (só lido para migrar para a lista de {@code TargetList}, ver {@link #exportTo}).
+ * <p>
  * Lista de itens do filtro da ponte ({@link #SIZE} posições, cada uma com 1 item "fantasma" ou vazia).
  * <p>
  * Os itens aqui são só modelos para comparação: nunca são entregues nem voltam para o jogador.

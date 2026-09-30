@@ -1,9 +1,13 @@
 package org.tinycore.colonybridge.client.render;
 
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.StockLine;
 import org.tinycore.colonybridge.block.monitor.SupplyContent;
+import org.tinycore.colonybridge.client.list.TargetIcons;
+import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.supply.SupplyLineStatus;
 import org.tinycore.colonybridge.stats.SupplySummary;
 import org.tinycore.core.client.ui.BarChart;
@@ -209,22 +213,24 @@ final class SupplyPanel {
      * e a quantidade na rede ME; barra = armazém em relação à meta/limite.
      */
     private static void row(MonitorCanvas c, StockLine line, float x, float y, float width) {
-        int color = colorOf(line.status().severity());
+        int color = StatusColors.of(line.status().severity());
         c.fill(x, y, x + width, y + ROW_HEIGHT - 2, UiColors.PANEL, 1);
         c.fill(x, y, x + 1.5f, y + ROW_HEIGHT - 2, color, 2);
-        c.item(MonitorRequestList.icon(line.item()), x + 3, y + 3, 14, 2);
+        // Linha de item: o item; tag e mod: ícone alternando entre os itens (escolhido aqui no cliente).
+        ItemStack model = line.item() == Items.AIR ? ItemStack.EMPTY : MonitorRequestList.icon(line.item());
+        c.item(TargetIcons.icon(line.spec(), model), x + 3, y + 3, 14, 2);
         float textX = x + 20;
         float textWidth = width - 22;
 
         Component status = Component.translatable(line.status().translationKey());
         float statusWidth = Math.min(c.width(status) * 0.55f, textWidth * 0.5f);
         c.text(status, x + width - 2 - statusWidth, y + 3, color, statusWidth / Math.max(1, c.width(status)), 2);
-        c.textFitted(line.item().getDescription(), textX, y + 3, UiColors.TEXT, 0.6f,
+        c.textFitted(TargetIcons.name(line.spec(), model), textX, y + 3, UiColors.TEXT, 0.6f,
                 textWidth - statusWidth - 3, 2);
 
         Component amounts = Component.translatable(line.keep() ? "monitor.tccolonybridge.supply.warehouse_goal"
                 : "monitor.tccolonybridge.supply.warehouse_limit",
-                UiFormat.compact(line.warehouse()), UiFormat.compact(line.target()));
+                UiFormat.compact(line.warehouse()), line.all() ? "0" : UiFormat.compact(line.target()));
         Component network = Component.translatable("monitor.tccolonybridge.supply.network",
                 UiFormat.compact(line.network()));
         float networkWidth = Math.min(c.width(network) * 0.5f, textWidth * 0.45f);
@@ -236,15 +242,5 @@ final class SupplyPanel {
         float fraction = line.target() <= 0 ? 1f : Math.min(1f, (float) line.warehouse() / line.target());
         c.fill(textX, barY, textX + textWidth, barY + 2.5f, UiColors.BORDER, 2);
         c.fill(textX, barY, textX + textWidth * fraction, barY + 2.5f, color, 3);
-    }
-
-    private static int colorOf(SupplyLineStatus.Severity severity) {
-        return switch (severity) {
-            case OK -> UiColors.SUCCESS;
-            case ACTIVE -> UiColors.HIGHLIGHT;
-            case WARNING -> UiColors.WARNING;
-            case PROBLEM -> UiColors.DANGER;
-            case NEUTRAL -> UiColors.TEXT_MUTED;
-        };
     }
 }

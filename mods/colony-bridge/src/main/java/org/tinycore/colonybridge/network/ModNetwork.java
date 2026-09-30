@@ -9,14 +9,15 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
-import org.tinycore.colonybridge.block.supply.StockList;
 import org.tinycore.colonybridge.client.ClientPayloadHandler;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.menu.TargetListEditor;
+import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.menu.bridge.BridgeTab;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.core.block.RedstoneMode;
 
-import java.util.List;
 
 /**
  * Registro dos pacotes do mod e tratamento dos que chegam ao servidor.
@@ -29,7 +30,7 @@ import java.util.List;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "8";
+    private static final String PROTOCOL_VERSION = "9";
 
     private ModNetwork() {}
 
@@ -49,6 +50,9 @@ public final class ModNetwork {
                 ModNetwork::onBridgeTab);
         registrar.playToServer(SupplyConfigPayload.TYPE, SupplyConfigPayload.STREAM_CODEC,
                 ModNetwork::onSupplyConfig);
+        registrar.playToServer(TargetEditPayload.TYPE, TargetEditPayload.STREAM_CODEC, ModNetwork::onTargetEdit);
+        registrar.playToClient(TargetListPayload.TYPE, TargetListPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.onTargetList(payload));
         registrar.playToClient(WarehouseContentsPayload.TYPE, WarehouseContentsPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.onWarehouseContents(payload));
         registrar.playToServer(WarehouseActionPayload.TYPE, WarehouseActionPayload.STREAM_CODEC,
@@ -67,7 +71,7 @@ public final class ModNetwork {
     }
 
     /**
-     * Item arrastado do JEI para um ghost slot da ponte (filtro ou preferidos). O menu confere o índice
+     * Item arrastado do JEI para um ghost slot dos preferidos da ponte. O menu confere o índice
      * e grava só uma cópia de 1 unidade.
      */
     private static void onFilterSlot(FilterSlotPayload payload, IPayloadContext context) {
@@ -96,7 +100,7 @@ public final class ModNetwork {
         }
     }
 
-    /** Quantidades e modo de redstone do bloco de abastecimento; cada valor é limitado aqui. */
+    /** Modo de redstone do Abastecedor (o {@code byId} troca valor inválido pelo padrão). */
     private static void onSupplyConfig(SupplyConfigPayload payload, IPayloadContext context) {
         ColonySupplyMenu menu = validMenu(context, payload.containerId(), ColonySupplyMenu.class);
         if (menu == null) {
@@ -107,11 +111,26 @@ public final class ModNetwork {
             return;
         }
         supply.setRedstoneMode(RedstoneMode.byId(payload.redstoneMode()));
-        List<Integer> amounts = payload.amounts();
-        for (int slot = 0; slot < Math.min(amounts.size(), StockList.SIZE); slot++) {
-            supply.setAmount(slot, amounts.get(slot)); // a StockList limita o valor
-        }
         menu.requestSync();
+    }
+
+    /**
+     * Edição de uma lista (Abastecedor ou filtro da Ponte). O menu já foi validado aqui (distância, permissão);
+     * o conteúdo é validado pelo {@link TargetListEditor}. O item do cursor é lido do jogador, nunca do pacote.
+     */
+    private static void onTargetEdit(TargetEditPayload payload, IPayloadContext context) {
+        AbstractContainerMenu menu = validMenu(context, payload.containerId(), AbstractContainerMenu.class);
+        if (!(menu instanceof TargetListMenu listMenu) || listMenu.listHost() == null) {
+            return;
+        }
+        if (payload.op() == TargetEditPayload.Op.SELECT.ordinal()) {
+            TargetListKind[] kinds = TargetListKind.values();
+            if (payload.kind() >= 0 && payload.kind() < kinds.length) {
+                listMenu.setActiveList(kinds[payload.kind()]);
+            }
+            return;
+        }
+        TargetListEditor.apply(listMenu.listHost(), payload, menu.getCarried());
     }
 
     /**

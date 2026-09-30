@@ -7,39 +7,46 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.tinycore.colonybridge.block.supply.StockList;
+import org.tinycore.colonybridge.client.list.TargetListWidget;
 import org.tinycore.colonybridge.client.ui.StatusColors;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.menu.TargetLineView;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.supply.SupplyLineStat;
 import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
 import org.tinycore.colonybridge.network.SupplyConfigPayload;
+import org.tinycore.colonybridge.network.TargetEditPayload;
 import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.RedstoneIcons;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
-import org.tinycore.core.client.ui.UiFormat;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tela do bloco de abastecimento (só cliente), com a estrutura dos terminais do AE2 e as cores da marca
- * ({@link ScreenStyle}): barra lateral com ajuda "?" e redstone, duas seções de slots (manter / excedente)
- * com quantidade alvo e o inventário embaixo.
+ * Tela do Abastecedor (só cliente), com a estrutura dos terminais do AE2 e as cores da marca
+ * ({@link ScreenStyle}): barra lateral com ajuda "?" e redstone, duas abas (Manter no armazém / Excedente para
+ * o ME), cada uma com a sua lista de linhas ({@link TargetListWidget}), e o inventário embaixo.
  * <p>
- * O item de cada linha é escolhido clicando no slot (o menu cuida disso). A <b>quantidade</b> muda com a
- * roda do mouse sobre o slot — Shift multiplica por 10, Ctrl por 64. Cada mudança manda a configuração
- * inteira ao servidor, que valida e responde com o estado novo.
+ * As listas são editadas pela própria {@link TargetListWidget} (pacotes ao servidor). Aqui ficam o layout, as
+ * abas e o que só o Abastecedor tem: a cor de cada linha e a dica com "no armazém agora" ({@link Info}).
  */
 public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu> {
 
     private static final int WIDTH = 202;
-    private static final int HEIGHT = 230;
+    private static final int HEIGHT = 261;
     private static final int PADDING = 8;
+    private static final int TABS_Y = 31;
+    private static final int TAB_HEIGHT = 14;
+    private static final int LIST_Y = 62;
+    private static final int LIST_ROWS = 5;
 
     private SideToolbar toolbar;
     private IconButton redstoneButton;
+    private TargetListWidget keepList;
+    private TargetListWidget surplusList;
+    private boolean keepTab = true;
     /** Estado local: muda na hora do clique e é corrigido pelo próximo snapshot do servidor. */
     private SupplySnapshot settings = SupplySnapshot.EMPTY;
     private SupplySnapshot lastSeen;
@@ -58,7 +65,33 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));
         redstoneButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleRedstone)));
         toolbar.layout(leftPos, topPos, WIDTH);
+
+        keepList = list(TargetListKind.KEEP, true);
+        surplusList = list(TargetListKind.SURPLUS, false);
+        selectTab(keepTab);
         lastSeen = null; // força copiar o snapshot atual
+    }
+
+    private TargetListWidget list(TargetListKind kind, boolean keep) {
+        TargetListWidget widget = new TargetListWidget(font, kind, menu.containerId, menu.targetLists(),
+                new Info(keep), LIST_ROWS);
+        widget.init(this::addRenderableWidget, this::setFocused, leftPos + PADDING, topPos + LIST_Y,
+                WIDTH - PADDING * 2);
+        return widget;
+    }
+
+    private void selectTab(boolean keep) {
+        keepTab = keep;
+        keepList.setVisible(keep);
+        surplusList.setVisible(!keep);
+        TargetListKind kind = keep ? TargetListKind.KEEP : TargetListKind.SURPLUS;
+        menu.setActiveList(kind);
+        PacketDistributor.sendToServer(TargetEditPayload.of(menu.containerId, kind.ordinal(),
+                TargetEditPayload.Op.SELECT, -1, "", 0, false));
+    }
+
+    private TargetListWidget activeList() {
+        return keepTab ? keepList : surplusList;
     }
 
     @Override
@@ -72,16 +105,13 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         redstoneButton.icon(RedstoneIcons.of(settings.redstoneMode()));
         redstoneButton.setTooltipText(Component.translatable("gui.tccolonybridge.redstone",
                 Component.translatable(settings.redstoneMode().translationKey())));
+        keepList.tick();
+        surplusList.tick();
     }
 
     private void cycleRedstone() {
         settings = settings.withRedstone(settings.redstoneMode().next());
-        send();
-    }
-
-    private void send() {
-        PacketDistributor.sendToServer(new SupplyConfigPayload(menu.containerId,
-                settings.redstoneMode().ordinal(), settings.amounts()));
+        PacketDistributor.sendToServer(new SupplyConfigPayload(menu.containerId, settings.redstoneMode().ordinal()));
     }
 
     // ---------------------------------------------------------------- desenho
@@ -106,45 +136,87 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
                 : Component.literal(snap.colonyName());
         ScreenStyle.drawFitted(g, font, colony, x + PADDING, y + 19, inner, ScreenStyle.INFO);
 
-        section(g, x, y + ColonySupplyMenu.KEEP_Y - 11, Component.translatable("gui.tccolonybridge.supply.keep"));
-        section(g, x, y + ColonySupplyMenu.SURPLUS_Y - 11, Component.translatable("gui.tccolonybridge.supply.surplus"));
-        section(g, x, y + ColonySupplyMenu.INVENTORY_Y - 11, Component.translatable("gui.tccolonybridge.inventory"));
+        int tabWidth = (inner - 4) / 2;
+        tab(g, x + PADDING, y + TABS_Y, tabWidth, "gui.tccolonybridge.supply.tab_keep", keepTab, mouseX, mouseY);
+        tab(g, x + PADDING + tabWidth + 4, y + TABS_Y, tabWidth, "gui.tccolonybridge.supply.tab_surplus", !keepTab,
+                mouseX, mouseY);
+        String rule = keepTab ? "gui.tccolonybridge.supply.keep_hint" : "gui.tccolonybridge.supply.surplus_hint";
+        ScreenStyle.drawFitted(g, font, Component.translatable(rule), x + PADDING, y + LIST_Y - 11, inner - 50,
+                ScreenStyle.TEXT);
+        activeList().render(g, mouseX, mouseY);
+
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"),
+                x + ColonySupplyMenu.INVENTORY_X - 1, y + ColonySupplyMenu.INVENTORY_Y - 11, inner, ScreenStyle.TEXT);
         for (Slot slot : menu.slots) {
             ScreenStyle.slot(g, x + slot.x - 1, y + slot.y - 1);
         }
     }
 
-    /** Título de seção, como no terminal do AE2, alinhado com a borda dos slots (centralizados na janela). */
-    private void section(GuiGraphics g, int x, int y, Component label) {
-        ScreenStyle.drawFitted(g, font, label, x + ColonySupplyMenu.LIST_X - 1, y, WIDTH - PADDING * 2, ScreenStyle.TEXT);
+    /** Aba de texto (as duas listas); a aberta fica com a cor de destaque. */
+    private void tab(GuiGraphics g, int x, int y, int width, String key, boolean selected, int mouseX, int mouseY) {
+        boolean hover = mouseX >= x && mouseX < x + width && mouseY >= y && mouseY < y + TAB_HEIGHT;
+        ScreenStyle.inset(g, x, y, width, TAB_HEIGHT, selected ? ScreenStyle.HOVER : hover ? ScreenStyle.PANEL : ScreenStyle.SLOT);
+        Component label = Component.translatable(key);
+        int textWidth = Math.min(font.width(label), width - 6);
+        ScreenStyle.drawFitted(g, font, label, x + (width - textWidth) / 2, y + 3, width - 6,
+                selected ? ScreenStyle.ACCENT : ScreenStyle.TEXT_MUTED);
     }
 
-    /**
-     * Quantidade alvo sobre cada linha configurada. Fica aqui, e não no {@code renderBg}, porque este método
-     * roda <b>depois</b> que os itens são desenhados (senão o número fica escondido atrás do ícone).
-     * As coordenadas já são relativas ao canto da janela.
-     */
+    /** Título e inventário já são desenhados em renderBg. */
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
-        for (int i = 0; i < StockList.SIZE && i < menu.slots.size(); i++) {
-            Slot slot = menu.slots.get(i);
-            if (slot.getItem().isEmpty()) {
-                continue;
-            }
-            String amount = UiFormat.compact(settings.amount(i));
-            g.pose().pushPose();
-            // z 300: acima do item e da contagem padrão de itens (z 200)
-            g.pose().translate(slot.x + 17f - font.width(amount) * 0.6f, slot.y + 11f, 300);
-            g.pose().scale(0.6f, 0.6f, 1f);
-            g.drawString(font, amount, 0, 0, 0xFFFFFFFF, true); // branco com sombra, como a contagem de itens
-            g.pose().popPose();
-        }
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        renderTooltip(g, mouseX, mouseY);
+        List<Component> tip = activeList().tooltip(mouseX, mouseY);
+        if (tip != null) {
+            g.renderComponentTooltip(font, tip, mouseX, mouseY);
+        } else {
+            renderTooltip(g, mouseX, mouseY);
+        }
+    }
+
+    // ---------------------------------------------------------------- entrada
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        int inner = WIDTH - PADDING * 2;
+        int tabWidth = (inner - 4) / 2;
+        double tabY = mouseY - topPos - TABS_Y;
+        if (tabY >= 0 && tabY < TAB_HEIGHT) {
+            double tabX = mouseX - leftPos - PADDING;
+            if (tabX >= 0 && tabX < tabWidth) {
+                selectTab(true);
+                return true;
+            }
+            if (tabX >= tabWidth + 4 && tabX < inner) {
+                selectTab(false);
+                return true;
+            }
+        }
+        if (activeList().mouseClicked(mouseX, mouseY, button, menu.getCarried())) {
+            return true;
+        }
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return activeList().mouseScrolled(mouseX, mouseY, scrollY, hasShiftDown(), hasControlDown())
+                || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    /** Com uma caixa de texto em foco, as teclas vão para ela (senão "E" fecharia a tela no meio da digitação). */
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        return activeList().keyPressed(keyCode, scanCode, modifiers) || super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /** Lista aberta, para o JEI saber onde soltar itens. */
+    public TargetListWidget listWidget() {
+        return activeList();
     }
 
     /** Áreas fora da janela ocupadas pela tela (a barra lateral), para o JEI não desenhar por cima. */
@@ -152,50 +224,34 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         return List.of(toolbar.area());
     }
 
-    /**
-     * Tooltip do item sob o cursor. Numa linha configurada, acrescenta ao tooltip normal do item a regra em
-     * frase (para que lado o item anda e o limite), quanto existe hoje e como mudar — tudo num tooltip só (dois tooltips no mesmo lugar ficavam
-     * um por cima do outro). {@code hoveredSlot} é o slot sob o mouse, preenchido pela própria tela.
-     */
-    @Override
-    protected List<Component> getTooltipFromContainerItem(ItemStack stack) {
-        List<Component> lines = super.getTooltipFromContainerItem(stack);
-        if (hoveredSlot == null || hoveredSlot.index >= StockList.SIZE) {
-            return lines;
-        }
-        int index = hoveredSlot.index;
-        List<Component> extended = new ArrayList<>(lines);
-        String rule = StockList.isKeep(index) ? "gui.tccolonybridge.supply.keep_rule" : "gui.tccolonybridge.supply.surplus_rule";
-        extended.add(Component.translatable(rule, settings.amount(index)).withStyle(ChatFormatting.GOLD));
-        extended.add(Component.translatable("gui.tccolonybridge.supply.current", menu.getSnapshot().count(index))
-                .withStyle(ChatFormatting.AQUA));
-        extended.add(Component.translatable("gui.tccolonybridge.supply.scroll").withStyle(ChatFormatting.GRAY));
-        return extended;
-    }
+    /** O que só o Abastecedor mostra por linha: cor da situação e a dica com a regra e o armazém. */
+    private final class Info implements TargetListWidget.LineInfo {
 
-    /** Roda do mouse sobre uma linha muda a quantidade alvo (Shift ×10, Ctrl ×64). */
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        int index = stockSlotAt((int) mouseX, (int) mouseY);
-        if (index < 0 || menu.slots.get(index).getItem().isEmpty()) {
-            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
-        }
-        int step = hasControlDown() ? 64 : hasShiftDown() ? 10 : 1;
-        int amount = settings.amount(index) + (int) Math.signum(scrollY) * step;
-        settings = settings.withAmount(index, Math.max(0, Math.min(StockList.MAX_AMOUNT, amount)));
-        send();
-        return true;
-    }
+        private final boolean keep;
 
-    /** Índice da linha de estoque sob o cursor, ou -1. */
-    private int stockSlotAt(int mouseX, int mouseY) {
-        for (int i = 0; i < StockList.SIZE && i < menu.slots.size(); i++) {
-            Slot slot = menu.slots.get(i);
-            if (mouseX >= leftPos + slot.x && mouseX < leftPos + slot.x + 16
-                    && mouseY >= topPos + slot.y && mouseY < topPos + slot.y + 16) {
-                return i;
+        Info(boolean keep) {
+            this.keep = keep;
+        }
+
+        @Override
+        public int color(int index) {
+            return StatusColors.of(menu.getSnapshot().line(keep, index).status().severity());
+        }
+
+        @Override
+        public void appendTooltip(int index, List<Component> lines) {
+            List<TargetLineView> views = menu.targetLists().lines(keep ? TargetListKind.KEEP : TargetListKind.SURPLUS);
+            if (index >= views.size()) {
+                return;
             }
+            TargetLineView view = views.get(index);
+            SupplyLineStat stat = menu.getSnapshot().line(keep, index);
+            String rule = keep ? "gui.tccolonybridge.supply.keep_rule"
+                    : view.all() ? "gui.tccolonybridge.supply.surplus_all_rule" : "gui.tccolonybridge.supply.surplus_rule";
+            lines.add(Component.translatable(rule, view.amount()).withStyle(ChatFormatting.GOLD));
+            lines.add(Component.translatable("gui.tccolonybridge.supply.current", stat.warehouse())
+                    .withStyle(ChatFormatting.AQUA));
+            lines.add(Component.translatable(stat.status().translationKey()).withStyle(ChatFormatting.GRAY));
         }
-        return -1;
     }
 }

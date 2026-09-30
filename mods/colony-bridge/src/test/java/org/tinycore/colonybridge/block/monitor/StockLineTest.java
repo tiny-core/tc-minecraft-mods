@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class StockLineTest {
 
     private static StockLine line(SupplyLineStatus status) {
-        return new StockLine(null, true, 64, 0, 0, status);
+        return new StockLine(null, null, true, 64, false, 0, 0, status);
     }
 
     @Test

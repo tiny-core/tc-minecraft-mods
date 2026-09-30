@@ -9,6 +9,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.integration.ae2.BridgeNetwork;
 import org.tinycore.colonybridge.logic.terminal.TerminalLink;
@@ -26,6 +27,10 @@ import org.tinycore.colonybridge.logic.crafting.CraftLinks;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
 import org.tinycore.colonybridge.logic.crafting.CraftRules;
 import org.tinycore.colonybridge.logic.crafting.CraftableMods;
+import org.tinycore.colonybridge.logic.target.TargetList;
+import org.tinycore.colonybridge.logic.target.TargetListHost;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.logic.target.TargetMatcher;
 import org.tinycore.colonybridge.menu.bridge.BridgeSnapshot;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModItems;
@@ -41,10 +46,12 @@ import java.util.Set;
  * <p>
  * Nó do AE2, dono, permissão, regra do cabo e pausa por redstone vêm de
  * {@link AbstractBridgeBlockEntity}; a lógica de pedidos vive em {@link BridgeLogic}. Aqui ficam só
- * as configurações da tela ({@link BridgeSettings}, {@link CraftSettings}), o filtro, os itens preferidos,
- * as estatísticas e os dados que alimentam a tela ({@link BridgeSnapshot}) e os monitores ({@link MonitorData}).
+ * as configurações da tela ({@link BridgeSettings}, {@link CraftSettings}), o filtro (lista de item/tag/mod,
+ * {@link TargetList}, editada pela tela via {@link TargetListHost}), os itens preferidos, as estatísticas e os
+ * dados que alimentam a tela ({@link BridgeSnapshot}) e os monitores ({@link MonitorData}).
+ * Pontes salvas com o filtro em grade ({@link ItemFilter}) são convertidas ao carregar.
  */
-public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implements MonitorSource {
+public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implements MonitorSource, TargetListHost {
 
     /**
      * Requester dos crafts (resultado direto no armazém). Declarado <b>antes</b> do {@code logic}: campos
@@ -53,7 +60,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
     private final CraftLinks craftLinks = new CraftLinks(this::getActionableNode, new CraftDelivery(this),
             this::setChanged);
     private final BridgeLogic logic = new BridgeLogic(this);
-    private final ItemFilter filter = new ItemFilter();
+    private final TargetList filter = new TargetList(TargetListKind.FILTER);
     private final PreferredItems preferred = new PreferredItems();
     private final BridgeStats stats = new BridgeStats();
     private BridgeSettings settings = BridgeSettings.DEFAULT;
@@ -72,6 +79,9 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
 
     @Override
     protected void runCycle(ServerLevel level, IGrid grid) {
+        if (filter.trim(Config.LIST_MAX_LINES.get())) {
+            setChanged(); // o admin baixou o limite na config
+        }
         // Só uma Ponte por rede ME: com duas, todas param e avisam (o jogador decide qual remover).
         if (!TerminalLink.bridgeAllowed(BridgeNetwork.bridgeCount(grid))) {
             logic.setStatus(BridgeStatus.DUPLICATE_BRIDGE);
@@ -118,8 +128,19 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         return stats;
     }
 
-    public ItemFilter getFilter() {
+    public TargetList getFilter() {
         return filter;
+    }
+
+    @Override
+    public @Nullable TargetList targetList(TargetListKind kind) {
+        return kind == TargetListKind.FILTER ? filter : null;
+    }
+
+    @Override
+    public void onTargetListChanged(TargetListKind kind) {
+        forceCycleNextTick();
+        setChanged();
     }
 
     public CraftLinks craftLinks() {
@@ -137,7 +158,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
 
     /** true se o filtro deixa este item sair da rede (entrega ou craft). */
     public boolean filterAllows(ItemStack stack) {
-        return settings.filterMode().allows(filter.contains(stack, settings.exactMatch()));
+        return settings.filterMode().allows(TargetMatcher.anyMatches(filter, stack, settings.exactMatch()));
     }
 
     /** Aplica configurações já validadas (ver {@code ModNetwork}) e marca o bloco para salvar. */
@@ -213,7 +234,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         super.saveAdditional(tag, registries);
         tag.put("settings", settings.save());
         tag.put("craft", craftSettings.save());
-        tag.put("filter", filter.save(registries));
+        tag.put("filterList", filter.save(registries));
         tag.put("preferred", preferred.save(registries));
         tag.put("craftLinks", craftLinks.save(registries));
         tag.put("stats", stats.save());
@@ -224,7 +245,15 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         super.loadAdditional(tag, registries);
         settings = BridgeSettings.load(tag.getCompound("settings"));
         craftSettings = CraftSettings.load(tag.getCompound("craft"));
-        filter.load(tag.getCompound("filter"), registries);
+        if (tag.contains("filterList")) {
+            filter.load(tag.getCompound("filterList"), registries);
+        } else {
+            // Ponte salva com o filtro em grade (antes das listas): converte uma vez.
+            filter.clear();
+            ItemFilter legacy = new ItemFilter();
+            legacy.load(tag.getCompound("filter"), registries);
+            legacy.exportTo(filter);
+        }
         preferred.load(tag.getCompound("preferred"), registries);
         craftLinks.load(CraftLinks.listFrom(tag, "craftLinks"), registries);
         stats.load(tag.getCompound("stats"));

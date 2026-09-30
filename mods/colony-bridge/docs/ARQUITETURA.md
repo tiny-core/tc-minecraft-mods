@@ -26,7 +26,12 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/colony/ColonyBlockRegistry` | `SavedData`: posição do bloco de cada tipo em cada colônia (também servirá ao Tablet). |
 | `logic/target/TargetSpec`, `TargetKind` | Alvo de uma linha lido do texto (`id`, `#tag`, `@mod`); só sintaxe (regra pura, testada). |
 | `logic/target/TargetListKind` | Regras de cada lista (Manter / Excedente / Filtro): tipos aceitos, quantidade, "tudo" (testada). |
-| `logic/target/TargetLine`, `TargetList`, `ListEdits` | Linha (alvo + item modelo + quantidade) e lista com NBT, limites e migração das grades antigas (`importSlots`). |
+| `logic/target/TargetLine`, `TargetList`, `ListEdits` | Linha (alvo + item modelo + quantidade) e lista com NBT, limites, versão (para sincronizar) e migração das grades antigas (`importSlots`). |
+| `logic/target/TargetResolver`, `TargetMatcher` | Alvo ↔ registros (existe? itens da tag, mod do item) e "o item passa nesta linha?" (filtro e Abastecedor). |
+| `logic/target/TargetListHost` | Interface dos blocos com listas (Abastecedor, Ponte), para edição e sincronização genéricas. |
+| `menu/TargetListEditor` | Servidor: aplica uma edição de lista (`TargetEditPayload`), validando alvo, existência, índice e limite; item do cursor lido do jogador. |
+| `menu/TargetListSync`, `TargetLineView`, `TargetListMenu` | Envio das listas à tela só quando mudam (versão) e cópia no cliente; menus com listas. |
+| `client/list/TargetListWidget`, `TargetRowEditor`, `TargetRowLayout`, `TargetEditSender`, `TargetIcons` | Lista na tela: linhas com ícone (slot virtual), caixa de texto validada na hora, quantidade, "∞", "x", "+" em cima, rascunho só no cliente, clique direito alterna tags; ícone alternando para tag/mod (também no monitor). |
 | `logic/colony/ColonySlotRule`, `ColonyBlockType` | Regra pura (testada) de quem fica com a vaga; tipos com vaga única. |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
@@ -58,7 +63,8 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/crafting/CraftRules`, `ModFilterMode` | Regras prontas (ponte + config do servidor) que o `CraftCandidates` recebe; filtro/prioridade por mod. |
 | `logic/crafting/CraftableMods` | Mods com item craftável na rede, para a aba "Mods". |
 | `logic/bridge/RequestCounts` | Resumo do ciclo (abertos, atendidos, craftando) para a aba "Geral". |
-| `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots do filtro e dos preferidos), a "foto" enviada ao cliente e as abas. |
+| `menu/bridge/ColonyBridgeMenu`, `BridgeSnapshot`, `BridgeTab` | Container da tela (ghost slots dos preferidos; o filtro é lista), a "foto" enviada ao cliente e as abas. |
+| `block/bridge/ItemFilter` | Formato antigo do filtro (grade de 18): só lido para migrar para a lista. |
 | `client/bridge/ColonyBridgeScreen`, `ModListView`, `BridgeIcons` | Tela: barra lateral de ajustes, abas Geral, Filtro, Preferidos e Mods. Lista de pedidos e estatísticas ficam só no monitor. |
 | `stats/BridgeStats`, `StatsSummary`, `TopItems` | Estatísticas da ponte (entregas, crafts, ranking de itens). A regra do ranking fica em `TopRanking` (genérico, testado). |
 
@@ -67,12 +73,13 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | Classe | Responsabilidade |
 |---|---|
 | `block/supply/ColonySupplyBlock` | Liga o bloco ao block entity e à tela do abastecedor. |
-| `block/supply/ColonySupplyBlockEntity` | Dados do abastecedor (listas, redstone) e ponte com a tela. |
-| `block/supply/StockList` | As duas listas: slots 0-17 "manter no armazém", 18-35 "excedente para o ME", com quantidade alvo; migra o formato antigo (9 + 9). |
+| `block/supply/ColonySupplyBlockEntity` | Dados do abastecedor (listas Manter e Excedente, redstone) e ponte com a tela. |
+| `block/supply/StockList` | Formato antigo (grade 18 + 18, e antes 9 + 9): só lido para migrar para as listas. |
 | `logic/supply/SupplyLineStatus` | Situação de cada linha em palavras (Abastecido, Falta na rede ME, Retido...) e gravidade para a cor do monitor (regra pura, testada). |
-| `logic/supply/SupplyLogic` | **Ciclo:** repõe o que falta da rede; devolve o excedente, exceto itens em pedido aberto (anti vaivém). Quantidades decididas pela `SupplyRule` (regra pura, testada). |
-| `menu/supply/ColonySupplyMenu`, `SupplySnapshot` | Container da tela e a "foto" enviada ao cliente. |
-| `client/supply/ColonySupplyScreen` | Tela com as duas listas e o botão de redstone. |
+| `logic/supply/SupplyLogic` | **Ciclo:** lê o armazém uma vez, repõe o que falta da rede (tag: soma, item com mais estoque primeiro); devolve o excedente (tag/mod: item com mais unidades primeiro), exceto itens em pedido aberto (anti vaivém). Quantidades e divisão pela `SupplyRule` (regra pura, testada). |
+| `logic/supply/SupplyLineResults` | Armazém, rede e situação de cada linha no último ciclo (tela e monitor). |
+| `menu/supply/ColonySupplyMenu`, `SupplySnapshot`, `SupplyLineStat` | Container (só inventário; shift-clique vira linha da aba aberta) e a "foto" enviada ao cliente. |
+| `client/supply/ColonySupplyScreen` | Tela com as abas Manter / Excedente, uma lista em cada, e o botão de redstone. |
 | `stats/SupplyStats`, `SupplySummary` | Estatísticas do Abastecedor (itens repostos / devolvidos ao ME). |
 
 ## Terminal do Armazém (`terminal/`) — ver, tirar e guardar itens do armazém
@@ -114,5 +121,5 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `network/*` | Pacotes cliente↔servidor; tudo que vem do cliente é validado no servidor (`ModNetwork`). |
 | `client/ColonyBridgeClient` | Entrada só do cliente: liga o botão "Config" da lista de mods à tela de config do NeoForge. |
 | `client/ClientSetup`, `ClientPayloadHandler` | Registro das telas/renderers e tratamento dos pacotes no cliente. |
-| `client/ui/StatusColors` | Cor de cada estado da ponte e resultado de pedido (telas e monitores). O resto do design system está no TC Core. |
-| `client/jei/*` | Arrastar itens do JEI para o filtro (JEI opcional). |
+| `client/ui/StatusColors` | Cor de cada estado da ponte, resultado de pedido e linha do Abastecedor (telas e monitores). O resto do design system está no TC Core. |
+| `client/jei/*` | Arrastar itens do JEI para as listas e os preferidos (JEI opcional). |

@@ -7,6 +7,9 @@ import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
+import org.tinycore.colonybridge.network.TargetListPayload;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.network.WarehouseContentsPayload;
 
 /**
@@ -45,6 +48,18 @@ public final class ClientPayloadHandler {
                 && player.containerMenu instanceof ColonySupplyMenu menu
                 && menu.containerId == payload.containerId()) {
             menu.setSnapshot(payload.snapshot());
+        }
+    }
+
+    /** Linhas de uma lista (Abastecedor ou filtro da Ponte) para a tela aberta, se ela ainda é a mesma. */
+    public static void onTargetList(TargetListPayload payload) {
+        var player = Minecraft.getInstance().player;
+        TargetListKind[] kinds = TargetListKind.values();
+        if (player != null
+                && player.containerMenu instanceof TargetListMenu menu
+                && player.containerMenu.containerId == payload.containerId()
+                && payload.kind() >= 0 && payload.kind() < kinds.length) {
+            menu.targetLists().accept(kinds[payload.kind()], payload.lines());
         }
     }
 }

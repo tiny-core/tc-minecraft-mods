@@ -10,6 +10,8 @@ import org.tinycore.colonybridge.logic.target.TargetList;
 import java.util.Arrays;
 
 /**
+ * <b>Formato antigo</b> (só lido para migrar para as listas de {@code TargetList}, ver {@link #exportTo}).
+ * <p>
  * As duas listas do bloco de abastecimento, guardadas num vetor só de {@link #SIZE} posições:
  * <ul>
  *   <li>0 a {@link #KEEP_SLOTS}-1 — <b>manter no armazém</b>: se houver menos que a quantidade alvo,

@@ -27,6 +27,8 @@ public final class TargetList {
 
     private final TargetListKind kind;
     private final List<TargetLine> lines = new ArrayList<>();
+    /** Muda a cada edição: a tela só recebe a lista de novo quando ele muda ({@code TargetListSync}). */
+    private int version;
 
     public TargetList(TargetListKind kind) {
         this.kind = kind;
@@ -49,28 +51,42 @@ public final class TargetList {
         return lines.isEmpty();
     }
 
+    /** Contador de edições (compare com o último enviado; o valor em si não significa nada). */
+    public int version() {
+        return version;
+    }
+
+    /** Devolve {@code changed} e conta uma versão nova quando algo mudou. */
+    private boolean touched(boolean changed) {
+        if (changed) {
+            version++;
+        }
+        return changed;
+    }
+
     /** @return false se a lista está cheia ou não aceita o tipo de alvo */
     public boolean add(TargetLine line, int maxLines) {
         TargetLine clean = line.sanitized(kind);
-        return clean != null && ListEdits.add(lines, clean, Math.min(maxLines, HARD_MAX_LINES));
+        return touched(clean != null && ListEdits.add(lines, clean, Math.min(maxLines, HARD_MAX_LINES)));
     }
 
     /** @return false se o índice não existe ou a lista não aceita o tipo de alvo */
     public boolean set(int index, TargetLine line) {
         TargetLine clean = line.sanitized(kind);
-        return clean != null && ListEdits.set(lines, index, clean);
+        return touched(clean != null && ListEdits.set(lines, index, clean));
     }
 
     public boolean remove(int index) {
-        return ListEdits.remove(lines, index);
+        return touched(ListEdits.remove(lines, index));
     }
 
     /** Corta as linhas que passam do limite atual da config. */
     public boolean trim(int maxLines) {
-        return ListEdits.trim(lines, Math.min(maxLines, HARD_MAX_LINES));
+        return touched(ListEdits.trim(lines, Math.min(maxLines, HARD_MAX_LINES)));
     }
 
     public void clear() {
+        touched(!lines.isEmpty());
         lines.clear();
     }
 
@@ -88,6 +104,7 @@ public final class TargetList {
 
     /** Lê do NBT, descartando linhas inválidas e passando pelas regras da lista (NBT pode ter sido editado). */
     public void load(CompoundTag tag, HolderLookup.Provider registries) {
+        version++;
         lines.clear();
         ListTag list = tag.getList("lines", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size() && lines.size() < HARD_MAX_LINES; i++) {

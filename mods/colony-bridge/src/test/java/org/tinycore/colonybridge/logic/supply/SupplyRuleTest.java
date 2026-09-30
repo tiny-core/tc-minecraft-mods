@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.logic.supply;
 
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
@@ -42,5 +43,22 @@ class SupplyRuleTest {
     void surplusDoesNothingAtOrBelowTarget() {
         assertEquals(0, SupplyRule.surplus(64, 64, false, 1000));
         assertEquals(0, SupplyRule.surplus(10, 64, false, 1000));
+    }
+
+    @Test
+    void allocateTakesFromFirstSourceThenNext() {
+        assertArrayEquals(new long[]{30, 10, 0}, SupplyRule.allocate(40, new long[]{30, 20, 5}));
+    }
+
+    @Test
+    void allocateNeverTakesMoreThanAvailable() {
+        assertArrayEquals(new long[]{3, 2}, SupplyRule.allocate(100, new long[]{3, 2}));
+    }
+
+    @Test
+    void allocateIgnoresNegativeAndZeroWanted() {
+        assertArrayEquals(new long[]{0, 4}, SupplyRule.allocate(4, new long[]{-7, 9}));
+        assertArrayEquals(new long[]{0, 0}, SupplyRule.allocate(0, new long[]{5, 5}));
+        assertArrayEquals(new long[]{0}, SupplyRule.allocate(-3, new long[]{5}));
     }
 }

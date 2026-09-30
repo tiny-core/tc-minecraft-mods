@@ -1,7 +1,6 @@
 package org.tinycore.colonybridge.menu.supply;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
@@ -11,34 +10,45 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
-import org.tinycore.colonybridge.block.supply.StockList;
+import org.tinycore.colonybridge.logic.target.TargetList;
+import org.tinycore.colonybridge.logic.target.TargetListHost;
+import org.tinycore.colonybridge.logic.target.TargetListKind;
+import org.tinycore.colonybridge.menu.TargetListEditor;
+import org.tinycore.colonybridge.menu.TargetListMenu;
+import org.tinycore.colonybridge.menu.TargetListSync;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
 
+import java.util.List;
+
 /**
- * Menu do bloco de abastecimento. Slots 0..17 são as linhas "manter no armazém", 18..35 as de
- * "excedente para o ME" e o resto é o inventário do jogador. Todos sempre visíveis (a tela não tem abas).
+ * Menu do Abastecedor. As duas listas (Manter e Excedente) não são slots: a tela as desenha como listas de
+ * linhas e cada edição vai por pacote ({@code TargetEditPayload}); os slots do menu são só o inventário do
+ * jogador (para pegar itens e soltá-los nos ícones das linhas).
  * <p>
- * Igual à tela da ponte, o servidor envia um {@link SupplySnapshot} no máximo 1×/s e só quando muda.
+ * Estende {@link AbstractGhostMenu} sem ghost slots, só para reaproveitar o inventário padrão das telas do mod.
+ * O servidor envia um {@link SupplySnapshot} no máximo 1×/s e só quando muda, e as linhas das listas quando
+ * elas mudam ({@link TargetListSync}).
  */
-public class ColonySupplyMenu extends AbstractGhostMenu {
+public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMenu {
 
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
-    /** Posições usadas também pela {@code ColonySupplyScreen} para desenhar o fundo dos slots. */
-    public static final int LIST_X = 20; // 9 colunas centralizadas na janela de 202 px
-    public static final int KEEP_Y = 44;
-    public static final int SURPLUS_Y = 95;
-    public static final int INVENTORY_Y = 146;
-    public static final int HOTBAR_Y = 204;
+    /** Posições usadas também pela {@code ColonySupplyScreen}. */
+    public static final int INVENTORY_X = 20; // 9 colunas centralizadas na janela de 202 px
+    public static final int INVENTORY_Y = 179;
+    public static final int HOTBAR_Y = 237;
 
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */
     private final @Nullable ColonySupplyBlockEntity supply;
     private final ContainerLevelAccess access;
     private final Player player;
+    private final TargetListSync lists = new TargetListSync(TargetListKind.KEEP, TargetListKind.SURPLUS);
+    /** Lista da aba aberta (servidor: vem da tela), destino do shift-clique. */
+    private TargetListKind activeList = TargetListKind.KEEP;
 
     private @Nullable SupplySnapshot lastSent;
     private int ticksUntilSync;
@@ -46,32 +56,21 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
     private SupplySnapshot snapshot = SupplySnapshot.EMPTY;
 
     public ColonySupplyMenu(int containerId, Inventory inventory, ColonySupplyBlockEntity supply) {
-        super(ModMenus.COLONY_SUPPLY.get(), containerId, supply.getStock().items(), supply::setChanged);
+        super(ModMenus.COLONY_SUPPLY.get(), containerId, List.of(), supply::setChanged);
         this.pos = supply.getBlockPos();
         this.supply = supply;
         this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
         this.player = inventory.player;
-        addSlots(inventory);
+        addPlayerInventory(inventory, INVENTORY_X, INVENTORY_Y, HOTBAR_Y, () -> true);
     }
 
     public ColonySupplyMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf extraData) {
-        super(ModMenus.COLONY_SUPPLY.get(), containerId,
-                NonNullList.withSize(StockList.SIZE, ItemStack.EMPTY), () -> {});
+        super(ModMenus.COLONY_SUPPLY.get(), containerId, List.of(), () -> {});
         this.pos = extraData.readBlockPos();
         this.supply = null;
         this.access = ContainerLevelAccess.NULL;
         this.player = inventory.player;
-        addSlots(inventory);
-    }
-
-    private void addSlots(Inventory inventory) {
-        for (int i = 0; i < StockList.SIZE; i++) {
-            // Cada seção tem duas fileiras de 9: posição dentro da seção → coluna e fileira.
-            int inSection = StockList.isKeep(i) ? i : i - StockList.KEEP_SLOTS;
-            int sectionY = StockList.isKeep(i) ? KEEP_Y : SURPLUS_Y;
-            addGhostSlot(i, LIST_X + (inSection % 9) * 18, sectionY + (inSection / 9) * 18, () -> true);
-        }
-        addPlayerInventory(inventory, LIST_X, INVENTORY_Y, HOTBAR_Y, () -> true);
+        addPlayerInventory(inventory, INVENTORY_X, INVENTORY_Y, HOTBAR_Y, () -> true);
     }
 
     @Override
@@ -79,18 +78,16 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
         return supply == null || supply.canConfigure(player);
     }
 
-    /** Linha preenchida agora: já começa com uma quantidade alvo útil, senão ela ficaria em zero (inativa). */
+    /** Shift-clique no inventário: vira uma linha nova na lista da aba aberta. Nunca move o item. */
     @Override
-    protected void onGhostSet(int slot, ItemStack stack) {
-        if (supply == null) {
-            return;
+    public ItemStack quickMoveStack(Player player, int index) {
+        if (supply != null && index >= 0 && index < slots.size() && canEditGhosts(player)) {
+            TargetList list = supply.targetList(activeList);
+            if (list != null && TargetListEditor.addStack(list, slots.get(index).getItem())) {
+                supply.onTargetListChanged(activeList);
+            }
         }
-        if (stack.isEmpty()) {
-            supply.setAmount(slot, 0);
-        } else if (supply.getStock().amount(slot) <= 0) {
-            supply.setAmount(slot, StockList.DEFAULT_AMOUNT);
-        }
-        requestSync();
+        return ItemStack.EMPTY;
     }
 
     // ---------------------------------------------------------------- sincronização
@@ -101,6 +98,7 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
         if (supply == null || !(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
+        lists.sendChanged(serverPlayer, containerId, supply);
         if (--ticksUntilSync > 0) {
             return;
         }
@@ -115,6 +113,23 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
 
     public void requestSync() {
         ticksUntilSync = 0;
+    }
+
+    @Override
+    public TargetListSync targetLists() {
+        return lists;
+    }
+
+    @Override
+    public @Nullable TargetListHost listHost() {
+        return supply;
+    }
+
+    @Override
+    public void setActiveList(TargetListKind kind) {
+        if (kind == TargetListKind.KEEP || kind == TargetListKind.SURPLUS) {
+            activeList = kind;
+        }
     }
 
     /** Só no servidor: o bloco desta tela (null no cliente). */

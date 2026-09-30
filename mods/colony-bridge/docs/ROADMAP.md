@@ -184,7 +184,10 @@ Fase 11 e o Pattern Encoder da Fase 12 também). A regra atual (uma Ponte por re
 um ghost slot, uma caixa de texto e a quantidade.
 
 Etapas: **1 feita** (modelo `logic/target/`, parser, regras por lista, migração, `listMaxLines`, testes) ·
-2 lógica do Abastecedor e do filtro · 3 widget de lista, telas, pacotes e JEI · 4 monitores · 5 documentação.
+**2 feita** (lógica do Abastecedor por linha com tag/mod, filtro com `TargetMatcher`, migração no load) ·
+**3 feita** (`client/list/TargetListWidget`, telas, `TargetEditPayload`/`TargetListPayload`, JEI) ·
+**4 feita** (monitor mostra linhas de tag/mod com ícone alternando) · **5 feita** (documentação).
+**Falta:** teste no ATM10.
 
 Decidido com o autor (2026-09-30): até 32 linhas por lista (config, teto 64); `@mod` só no Excedente e no
 filtro; aba "Preferidos" continua em grade; botão **"Adicionar linha" em cima da lista**; ícone é um slot
