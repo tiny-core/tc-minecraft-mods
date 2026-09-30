@@ -1,13 +1,16 @@
 package org.tinycore.colonybridge.client;
 
 import net.minecraft.client.Minecraft;
+import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
+import org.tinycore.colonybridge.network.TabletPanelPayload;
 import org.tinycore.colonybridge.network.TargetListPayload;
+import org.tinycore.colonybridge.menu.tablet.TabletPanelMenu;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.network.WarehouseContentsPayload;
@@ -60,6 +63,16 @@ public final class ClientPayloadHandler {
                 && player.containerMenu.containerId == payload.containerId()
                 && payload.kind() >= 0 && payload.kind() < kinds.length) {
             menu.targetLists().accept(kinds[payload.kind()], payload.lines());
+        }
+    }
+
+    /** Dados do painel para a aba de painel do tablet, se ela ainda é a tela aberta. */
+    public static void onTabletPanel(TabletPanelPayload payload) {
+        var player = Minecraft.getInstance().player;
+        if (player != null
+                && player.containerMenu instanceof TabletPanelMenu menu
+                && menu.containerId == payload.containerId()) {
+            menu.setData(MonitorData.load(payload.data(), player.registryAccess()));
         }
     }
 }

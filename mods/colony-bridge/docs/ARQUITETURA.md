@@ -129,6 +129,8 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `menu/tablet/TabletView`, `TabletMenu` | Abas disponíveis e aba aberta, enviadas com a abertura da tela; menus que aceitam o tablet. |
 | `network/TabletOpenPayload` | Pedido de troca de aba (só o número; o servidor refaz as checagens). |
 | `client/tablet/TabletTabBar` | Barra de abas acima da janela das telas abertas pelo tablet. |
+| `menu/tablet/TabletPanelMenu`, `network/TabletPanelPayload` | Aba de painel: menu sem slots que manda o `monitorData()` do bloco 1×/s, só quando muda. |
+| `client/tablet/TabletPanelScreen`, `client/render/MonitorGui` | Tela do painel: desenha `MonitorPanels` numa interface (mesmo `MonitorCanvas`, sem inverter o y dos itens), com paginação. |
 
 ## Infraestrutura
 

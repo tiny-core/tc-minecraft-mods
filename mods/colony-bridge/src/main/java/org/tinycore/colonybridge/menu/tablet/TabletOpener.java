@@ -9,11 +9,13 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
+import org.tinycore.colonybridge.block.monitor.MonitorSource;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.item.ColonyTabletItem;
 import org.tinycore.colonybridge.item.TabletEnergy;
@@ -41,11 +43,13 @@ import java.util.Map;
  */
 public final class TabletOpener {
 
-    /** Tipo de bloco por trás de cada aba de tela de bloco. */
+    /** Tipo de bloco por trás de cada aba (tela do bloco ou painel dos dados dele). */
     private static final Map<TabletTab, ColonyBlockType> BLOCK_TABS = new EnumMap<>(Map.of(
             TabletTab.TERMINAL, ColonyBlockType.TERMINAL,
             TabletTab.BRIDGE, ColonyBlockType.BRIDGE,
-            TabletTab.SUPPLY, ColonyBlockType.SUPPLY));
+            TabletTab.SUPPLY, ColonyBlockType.SUPPLY,
+            TabletTab.BRIDGE_PANEL, ColonyBlockType.BRIDGE,
+            TabletTab.SUPPLY_PANEL, ColonyBlockType.SUPPLY));
 
     private TabletOpener() {}
 
@@ -79,9 +83,19 @@ public final class TabletOpener {
             return;
         }
         TabletAccess access = new TabletAccess(be, hand, link.colony(), new TabletView(available, tab));
-        if (be.getBlockState().getBlock() instanceof AbstractBridgeBlock<?> block) {
+        if ((tab == TabletTab.BRIDGE_PANEL || tab == TabletTab.SUPPLY_PANEL) && be instanceof MonitorSource source) {
+            openPanel(player, tab, source, access);
+        } else if (be.getBlockState().getBlock() instanceof AbstractBridgeBlock<?> block) {
             block.openRemote(player, be, access);
         }
+    }
+
+    /** Aba de painel: menu próprio sem slots, com os dados do monitor do bloco. */
+    private static void openPanel(ServerPlayer player, TabletTab tab, MonitorSource source, TabletAccess access) {
+        Component title = Component.translatable("gui.tccolonybridge.tablet.tab." + tab.name().toLowerCase());
+        player.openMenu(new SimpleMenuProvider(
+                (containerId, inventory, p) -> new TabletPanelMenu(containerId, inventory, source, access), title),
+                buf -> TabletView.write(buf, access.tabletView()));
     }
 
     /** Mão que segura um tablet (a principal primeiro), ou null. */

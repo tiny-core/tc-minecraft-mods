@@ -10,8 +10,8 @@ public enum TabletTab {
     TERMINAL(true),
     BRIDGE(true),
     SUPPLY(true),
-    BRIDGE_PANEL(false),
-    SUPPLY_PANEL(false),
+    BRIDGE_PANEL(true),
+    SUPPLY_PANEL(true),
     CHUNK_LOADER(false);
 
     private static final TabletTab[] VALUES = values();

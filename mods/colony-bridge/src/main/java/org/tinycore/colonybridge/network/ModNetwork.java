@@ -33,7 +33,7 @@ import org.tinycore.core.block.RedstoneMode;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "10";
+    private static final String PROTOCOL_VERSION = "11";
 
     private ModNetwork() {}
 
@@ -55,6 +55,8 @@ public final class ModNetwork {
                 ModNetwork::onSupplyConfig);
         registrar.playToServer(TargetEditPayload.TYPE, TargetEditPayload.STREAM_CODEC, ModNetwork::onTargetEdit);
         registrar.playToServer(TabletOpenPayload.TYPE, TabletOpenPayload.STREAM_CODEC, ModNetwork::onTabletOpen);
+        registrar.playToClient(TabletPanelPayload.TYPE, TabletPanelPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.onTabletPanel(payload));
         registrar.playToClient(TargetListPayload.TYPE, TargetListPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.onTargetList(payload));
         registrar.playToClient(WarehouseContentsPayload.TYPE, WarehouseContentsPayload.STREAM_CODEC,

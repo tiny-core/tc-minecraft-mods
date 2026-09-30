@@ -37,19 +37,26 @@ final class MonitorCanvas implements Painter {
     private final Font font;
     private final ItemRenderer items;
     private final Level level;
+    /** No mundo a matriz inverte o y (para ficar "para baixo"); numa tela de interface o y já é para baixo. */
+    private final boolean yFlipped;
 
-    MonitorCanvas(PoseStack pose, MultiBufferSource buffers, Font font, ItemRenderer items, Level level) {
+    /**
+     * @param yFlipped true no mundo ({@link MonitorRenderer}); false numa tela de interface ({@link MonitorGui})
+     */
+    MonitorCanvas(PoseStack pose, MultiBufferSource buffers, Font font, ItemRenderer items, Level level,
+                  boolean yFlipped) {
         this.pose = pose;
         this.buffers = buffers;
         this.font = font;
         this.items = items;
         this.level = level;
+        this.yFlipped = yFlipped;
     }
 
     /**
      * Ícone de item (como no inventário) com {@code size} pixels, canto superior esquerdo em (x, y).
-     * O modelo do item é "achatado" em profundidade para ficar colado na tela; a escala y volta a ser
-     * positiva porque modelos de item são desenhados com y para cima.
+     * O modelo do item é "achatado" em profundidade para ficar colado na tela. Modelos de item são desenhados com
+     * y para cima: no mundo (matriz com y invertido) a escala y é negativa para desfazer a inversão.
      */
     void item(ItemStack stack, float x, float y, float size, int layer) {
         if (stack.isEmpty()) {
@@ -57,7 +64,7 @@ final class MonitorCanvas implements Painter {
         }
         pose.pushPose();
         pose.translate(x + size / 2f, y + size / 2f, layer * LAYER_STEP + 1f);
-        pose.scale(size, -size, 0.01f);
+        pose.scale(size, yFlipped ? -size : size, 0.01f);
         items.renderStatic(stack, ItemDisplayContext.GUI, LIGHT, OverlayTexture.NO_OVERLAY, pose, buffers, level, 0);
         pose.popPose();
     }

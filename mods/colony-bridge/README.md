@@ -178,6 +178,9 @@ que estão no mundo, com uma barra de abas em cima da janela.
 - **Abrir:** clique direito com o tablet. Abre o Terminal; sem ele, a Ponte; sem ela, o Abastecedor. As abas de
   blocos ausentes ou em chunk descarregado ficam desativadas (o tablet **nunca carrega chunk**). Funciona em
   qualquer distância e dimensão.
+- **Painéis:** as abas "Painel da Ponte" e "Painel do Abastecedor" mostram o mesmo que um Monitor da Colônia de
+  5 × 3 blocos ligado ao bloco (sem precisar de monitor). As listas trocam de página a cada 10 s; clique na metade
+  direita do painel avança, na esquerda volta.
 - A tela fecha sozinha (com o motivo na barra de ação) se o tablet sair da mão, a bateria acabar, o bloco sumir
   ou o jogador perder a permissão na colônia. Com uma tela aberta, gasta `tabletUsePerTick` FE por tick
   (descontados a cada segundo).

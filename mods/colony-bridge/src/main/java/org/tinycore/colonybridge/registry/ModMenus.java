@@ -9,6 +9,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
+import org.tinycore.colonybridge.menu.tablet.TabletPanelMenu;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 
 /**
@@ -29,6 +30,10 @@ public final class ModMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<WarehouseTerminalMenu>> WAREHOUSE_TERMINAL =
             MENUS.register("warehouse_terminal", () -> IMenuTypeExtension.create(WarehouseTerminalMenu::new));
+
+    /** Aba de painel do tablet (dados do monitor de um bloco, sem monitor). */
+    public static final DeferredHolder<MenuType<?>, MenuType<TabletPanelMenu>> TABLET_PANEL =
+            MENUS.register("tablet_panel", () -> IMenuTypeExtension.create(TabletPanelMenu::new));
 
     private ModMenus() {}
 

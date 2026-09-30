@@ -253,8 +253,14 @@ Como fazer:
 - Chunks = os reivindicados pela colônia (via `integration/`), atualizados quando a colônia cresce.
 - Energia AE da rede ME por chunk por tick (config); sem energia → solta os chunks.
 - Liga/desliga na tela e por redstone; um por colônia (Fase 8).
+- **Tempo depois do último jogador (pedido do autor, 2026-09-30):** quando o último jogador registrado na colônia
+  (membro com permissão) sai do servidor, começa uma contagem — padrão **12 h**, config
+  `chunkLoaderOfflineHours` (0 = solta assim que o último sai) — e, no fim, os chunks são soltos. Qualquer membro
+  que entre de novo zera a contagem e os chunks voltam a ser carregados. Contar em **tempo real** (horário salvo
+  no bloco/`SavedData`), para a contagem sobreviver a reinícios do servidor. Mostrar no tablet e no monitor
+  "desliga em 3 h 20 min". Substitui a opção "só com um membro online" da proposta original.
 - Config de servidor: liga/desliga o bloco no servidor todo, máximo de chunks por loader, custo por
-  chunk, opção "só com um membro da colônia online".
+  chunk, `chunkLoaderOfflineHours` (contagem após o último membro sair).
 - Cuidado: o ATM10 tem FTB Chunks com limite de chunks forçados por jogador; este bloco passa por
   cima desse limite. Por isso o limite próprio e a opção do admin.
 - Monitor e tablet mostram chunks carregados e consumo; tablet também liga/desliga.
