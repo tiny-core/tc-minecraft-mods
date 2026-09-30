@@ -249,7 +249,7 @@ Como fazer:
 
 > **11a/11b feitas (2026-09-30):** bloco, regras (`LoaderRule`, `ChunkSelection`, testadas), tickets com validação,
 > energia 32 AE/t por chunk, contagem de 12 h em tempo real, tolerância de 30 s, tela e aba do tablet.
-> **Falta:** teste no ATM10 e 11c (painel no Monitor da Colônia / aba de painel do tablet), se o autor quiser.
+> **11c feita:** display na face do próprio bloco (pedido do autor: no bloco, não no monitor). **Falta:** teste no ATM10.
 
 **Objetivo:** manter carregados os chunks reivindicados pela colônia, pagando energia por chunk.
 

@@ -280,5 +280,13 @@
   "tccolonybridge.configuration.chunkLoaderRefreshTicks": "Releitura das reivindicações (ticks)",
   "tccolonybridge.configuration.chunkLoaderRefreshTicks.tooltip": "De quanto em quanto tempo o loader relê os chunks reivindicados pela colônia.",
   "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds": "Tolerância ao acordar (s)",
-  "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds.tooltip": "Segundos em que a área carrega sem energia ME quando um membro volta, para a rede ME ligar."
+  "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds.tooltip": "Segundos em que a área carrega sem energia ME quando um membro volta, para a rede ME ligar.",
+  "gui.tccolonybridge.loader.face.title": "CHUNK LOADER",
+  "gui.tccolonybridge.loader.face.chunks": "chunks",
+  "gui.tccolonybridge.loader.face.disabled_by_admin": "Desligado (admin)",
+  "gui.tccolonybridge.loader.face.off": "Desligado",
+  "gui.tccolonybridge.loader.face.no_colony": "Sem colônia",
+  "gui.tccolonybridge.loader.face.loading": "Carregando",
+  "gui.tccolonybridge.loader.face.no_power": "Sem energia",
+  "gui.tccolonybridge.loader.face.sleeping": "Área solta"
 }

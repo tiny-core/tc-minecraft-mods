@@ -280,5 +280,13 @@
   "tccolonybridge.configuration.chunkLoaderRefreshTicks": "Claims refresh (ticks)",
   "tccolonybridge.configuration.chunkLoaderRefreshTicks.tooltip": "How often the loader re-reads the colony's claimed chunks.",
   "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds": "Wake grace (seconds)",
-  "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds.tooltip": "Seconds the area loads without ME energy when a member returns, so the ME network can start."
+  "tccolonybridge.configuration.chunkLoaderWakeGraceSeconds.tooltip": "Seconds the area loads without ME energy when a member returns, so the ME network can start.",
+  "gui.tccolonybridge.loader.face.title": "CHUNK LOADER",
+  "gui.tccolonybridge.loader.face.chunks": "chunks",
+  "gui.tccolonybridge.loader.face.disabled_by_admin": "Disabled (admin)",
+  "gui.tccolonybridge.loader.face.off": "Off",
+  "gui.tccolonybridge.loader.face.no_colony": "No colony",
+  "gui.tccolonybridge.loader.face.loading": "Loading",
+  "gui.tccolonybridge.loader.face.no_power": "No energy",
+  "gui.tccolonybridge.loader.face.sleeping": "Released"
 }

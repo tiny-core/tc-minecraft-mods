@@ -143,6 +143,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/loader/LoaderEvents` | Jogador entrou/saiu → acorda os loaders registrados para conferir membros na hora. |
 | `menu/loader/ChunkLoaderMenu`, `ChunkLoaderSnapshot`, `network/ChunkLoader*Payload` | Tela sem slots: foto 1×/s quando muda; botões liga/desliga e redstone. |
 | `client/loader/ChunkLoaderScreen` | Tela: situação, cartões (chunks, energia, "solta em"), barra lateral. |
+| `logic/loader/LoaderDisplay`, `client/render/ChunkLoaderRenderer` | Display na face do bloco: resumo sincronizado pelo update tag só quando muda; desenhado com o `MonitorCanvas`. |
 | `integration/ColonyAccess` (`claimedChunksAt`, `colonyCenterAt`, `memberOnlineAt`) | Reivindicações da colônia (`IColonyManager.getClaimData`), centro e membros online. |
 
 ## Infraestrutura
