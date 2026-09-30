@@ -13,6 +13,7 @@ import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.BridgeNetwork;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.logic.terminal.TerminalLink;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 import org.tinycore.colonybridge.registry.ModItems;
@@ -83,6 +84,11 @@ public class WarehouseTerminalBlockEntity extends AbstractBridgeBlockEntity {
     @Override
     protected void afterCycle(ServerLevel level) {
         syncVisualState(level, AbstractBridgeBlock.STATUS);
+    }
+
+    @Override
+    public ColonyBlockType colonyBlockType() {
+        return ColonyBlockType.TERMINAL;
     }
 
     @Override

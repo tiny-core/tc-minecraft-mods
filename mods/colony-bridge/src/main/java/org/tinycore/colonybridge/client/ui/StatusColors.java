@@ -15,7 +15,7 @@ public final class StatusColors {
             case IDLE -> UiColors.SUCCESS;
             case STARTING, PAUSED -> UiColors.WARNING;
             case OFFLINE, INVALID_CABLE -> UiColors.TEXT_MUTED;
-            case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE, DUPLICATE_BRIDGE, NO_BRIDGE -> UiColors.DANGER;
+            case NO_COLONY, NO_PERMISSION, NO_WAREHOUSE, DUPLICATE_BRIDGE, NO_BRIDGE, DUPLICATE_IN_COLONY -> UiColors.DANGER;
         };
     }
 

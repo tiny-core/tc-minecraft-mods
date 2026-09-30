@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
@@ -36,6 +37,11 @@ public class WarehouseTerminalBlock extends AbstractBridgeBlock<WarehouseTermina
     @Override
     protected BlockEntityType<WarehouseTerminalBlockEntity> blockEntityType() {
         return ModBlockEntities.WAREHOUSE_TERMINAL.get();
+    }
+
+    @Override
+    protected ColonyBlockType colonyBlockType() {
+        return ColonyBlockType.TERMINAL;
     }
 
     @Override

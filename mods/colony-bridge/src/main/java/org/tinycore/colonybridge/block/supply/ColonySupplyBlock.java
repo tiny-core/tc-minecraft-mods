@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 
@@ -31,6 +32,11 @@ public class ColonySupplyBlock extends AbstractBridgeBlock<ColonySupplyBlockEnti
     @Override
     protected BlockEntityType<ColonySupplyBlockEntity> blockEntityType() {
         return ModBlockEntities.COLONY_SUPPLY.get();
+    }
+
+    @Override
+    protected ColonyBlockType colonyBlockType() {
+        return ColonyBlockType.SUPPLY;
     }
 
     @Override

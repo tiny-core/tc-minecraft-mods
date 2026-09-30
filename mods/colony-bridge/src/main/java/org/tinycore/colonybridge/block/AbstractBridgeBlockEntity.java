@@ -26,9 +26,11 @@ import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.CableRules;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.core.block.RedstoneMode;
 
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.function.DoubleSupplier;
 
@@ -39,7 +41,9 @@ import java.util.function.DoubleSupplier;
  *   <li>nó da grid do AE2 e seu ciclo de vida;</li>
  *   <li>dono do bloco e checagem de permissão na colônia;</li>
  *   <li>regra de conexão do cabo ({@link CableRules}: só por baixo, só cabo comum);</li>
- *   <li>contagem de ticks, pausa por redstone e o esqueleto do ciclo.</li>
+ *   <li>contagem de ticks, pausa por redstone e o esqueleto do ciclo;</li>
+ *   <li>vaga "um de cada tipo por colônia" ({@link ColonySlots}): ocupada a cada ciclo e solta quando o
+ *       bloco é removido ({@link #releaseColonySlot}, chamado pelo {@code onRemove} do bloco).</li>
  * </ul>
  * O que cada bloco faz de fato entra em {@link #runCycle}; o estado fica na subclasse
  * ({@link #getStatus}/{@link #setStatus}), porque cada uma guarda o seu de um jeito.
@@ -57,6 +61,8 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
     private boolean cableAllowed;
     /** Um vizinho mudou: reavaliar o cabo no próximo tick (fora do evento de vizinhança do AE2). */
     private boolean cableCheckPending = true;
+    /** Colônia cuja vaga este bloco ocupa (salva no NBT para soltar a vaga mesmo se a colônia sumir). */
+    private @Nullable String claimedColony;
 
     protected AbstractBridgeBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state,
                                         ItemLike visual, DoubleSupplier idlePowerUsage) {
@@ -88,6 +94,9 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
     protected abstract RedstoneMode redstoneMode();
 
     public abstract BridgeStatus getStatus();
+
+    /** Tipo do bloco na regra "um de cada tipo por colônia". */
+    public abstract ColonyBlockType colonyBlockType();
 
     /** Registra o estado do ciclo (a subclasse decide onde guardar). */
     protected abstract void setStatus(BridgeStatus status);
@@ -144,7 +153,9 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
             return;
         }
         refreshCableConnection(); // rede de segurança caso algum evento de vizinhança tenha escapado
-        if (!cableAllowed) {
+        if (!holdsColonySlot(serverLevel)) {
+            setStatus(BridgeStatus.DUPLICATE_IN_COLONY);
+        } else if (!cableAllowed) {
             setStatus(BridgeStatus.INVALID_CABLE);
         } else if (!redstoneMode().allows(serverLevel.hasNeighborSignal(worldPosition))) {
             setStatus(BridgeStatus.PAUSED);
@@ -154,6 +165,49 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
             setStatus(BridgeStatus.OFFLINE);
         }
         afterCycle(serverLevel);
+    }
+
+    // ---------------------------------------------------------------- um por colônia
+
+    /**
+     * Ocupa (ou confirma) a vaga da colônia onde o bloco está. Fora de colônia não há vaga: true, e o ciclo
+     * segue para dar {@code NO_COLONY}. Se a borda da colônia mudou e o bloco passou para outra, a vaga da
+     * antiga é solta. Roda antes da checagem da rede para um bloco sem energia não perder a vaga.
+     * Também chamado ao colocar o bloco, para dois blocos colocados no mesmo instante não passarem juntos.
+     */
+    boolean holdsColonySlot(ServerLevel serverLevel) {
+        String colony = ColonyAccess.colonyKeyAt(serverLevel, worldPosition);
+        if (claimedColony != null && !claimedColony.equals(colony)) {
+            ColonySlots.release(serverLevel, claimedColony, colonyBlockType(), worldPosition);
+            setClaimedColony(null);
+        }
+        if (colony == null) {
+            return true;
+        }
+        if (!ColonySlots.claim(serverLevel, colony, colonyBlockType(), worldPosition)) {
+            return false;
+        }
+        setClaimedColony(colony);
+        return true;
+    }
+
+    /**
+     * O bloco foi removido do mundo (quebrado, explodido, trocado por comando): solta a vaga da colônia.
+     * Chamado pelo {@code onRemove} do bloco, que não roda quando o chunk só descarrega; por isso a vaga
+     * não é solta em {@link #setRemoved}.
+     */
+    public void releaseColonySlot(ServerLevel serverLevel) {
+        if (claimedColony != null) {
+            ColonySlots.release(serverLevel, claimedColony, colonyBlockType(), worldPosition);
+            claimedColony = null;
+        }
+    }
+
+    private void setClaimedColony(@Nullable String colony) {
+        if (!Objects.equals(claimedColony, colony)) {
+            claimedColony = colony;
+            setChanged();
+        }
     }
 
     /** Faz o próximo tick já rodar um ciclo (ex.: o jogador mudou uma configuração na tela). */
@@ -236,6 +290,9 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
         if (owner != null) {
             tag.putUUID("owner", owner);
         }
+        if (claimedColony != null) {
+            tag.putString("colonySlot", claimedColony);
+        }
     }
 
     @Override
@@ -243,6 +300,7 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
         super.loadAdditional(tag, registries);
         mainNode.loadFromNBT(tag);
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
+        claimedColony = tag.contains("colonySlot") ? tag.getString("colonySlot") : null;
     }
 
     private enum NodeListener implements IGridNodeListener<AbstractBridgeBlockEntity> {

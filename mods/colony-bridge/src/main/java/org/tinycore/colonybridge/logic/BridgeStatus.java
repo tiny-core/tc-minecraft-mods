@@ -17,7 +17,12 @@ public enum BridgeStatus {
     /** Terminal: nenhuma Ponte ativa desta colônia na rede ME. */
     NO_BRIDGE,
     IDLE,
-    WORKING;
+    WORKING,
+    /**
+     * Já existe outro bloco deste tipo na colônia (só um é permitido). No fim da lista porque o número
+     * do estado é salvo nos monitores.
+     */
+    DUPLICATE_IN_COLONY;
 
     /** Mensagem completa, mostrada na barra de ação. */
     public String translationKey() {

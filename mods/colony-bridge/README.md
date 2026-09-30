@@ -33,8 +33,7 @@ A cada ciclo (`cycleTicks`, 5 s por padrão):
      ciclo seguinte a ponte tenta o próximo candidato. `tagCrafting = false` desliga tudo isso.
 
 Um pedido já entregue não é atendido de novo durante `redeliveryCooldownTicks`, mesmo depois de reiniciar
-o servidor. Várias pontes na mesma colônia (ex.: redes ME diferentes) podem coexistir: elas compartilham um
-registro salvo no mundo e nunca atendem o mesmo pedido.
+o servidor.
 
 ### Tela da ponte
 Clique direito abre a tela (para quem tem permissão na colônia; fora de colônia, só o dono). Barras de botões
@@ -63,9 +62,17 @@ Pedidos por tag respeitam o filtro: se o item bloqueado não serve, a ponte proc
 Quem não tem permissão só vê o estado na barra de ação. O próprio bloco também muda de visual: offline (sem rede ME),
 erro (sem colônia, permissão ou armazém), ocioso e trabalhando.
 
+### Um de cada por colônia
+- Cada colônia tem **no máximo uma** Ponte, um Abastecedor e um Terminal. Colocar um segundo é recusado, com a
+  posição do que já existe. Fora de uma colônia não há limite (o bloco fica parado em "Sem colônia").
+- Um segundo bloco que exista mesmo assim (mundo antigo, borda da colônia mudou) para com "Duplicado na
+  colônia" até o outro ser removido.
+- A vaga é solta quando o bloco sai do mundo de qualquer jeito (quebrado, explodido, `/setblock`). Se o bloco
+  sumiu sem aviso (edição do mundo), a vaga é liberada assim que alguém tenta colocar outro e o chunk do antigo
+  está carregado.
+
 ### Regras da rede ME
 - **Só uma Ponte por rede.** Com duas ou mais, todas param com "2+ Pontes na rede" até sobrar uma.
-- Abastecedores e Terminais podem ser quantos quiser.
 - Todos os blocos que se ligam à rede consomem energia parada (`bridgeIdlePower`, `supplyIdlePower`,
   `terminalIdlePower`) e ocupam um canal; mover itens pela rede gasta energia como no próprio AE2. Os
   Monitores não se ligam à rede e não consomem.

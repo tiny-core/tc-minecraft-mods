@@ -15,6 +15,7 @@ import org.tinycore.colonybridge.block.monitor.MonitorSource;
 import org.tinycore.colonybridge.block.monitor.StockLine;
 import org.tinycore.colonybridge.block.monitor.SupplyContent;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.logic.supply.SupplyLogic;
 import org.tinycore.colonybridge.menu.supply.SupplySnapshot;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
@@ -50,6 +51,11 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
     @Override
     protected void runCycle(ServerLevel level, IGrid grid) {
         logic.runCycle(level, grid);
+    }
+
+    @Override
+    public ColonyBlockType colonyBlockType() {
+        return ColonyBlockType.SUPPLY;
     }
 
     @Override

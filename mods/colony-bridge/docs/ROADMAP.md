@@ -164,6 +164,9 @@ Nenhuma fase começa sem o plano curto aprovado pelo autor.
 
 ## Fase 8 — Um bloco de cada tipo por colônia
 
+> **Feita (2026-09-30):** `ColonyBlockRegistry` + `ColonySlots` + `ColonySlotRule` (testada); recusa na
+> colocação, estado "Duplicado na colônia", vaga solta no `onRemove`, registro velho descartado.
+
 **Objetivo:** Ponte, Abastecedor e Terminal passam a ser **únicos por colônia** (o Chunk Loader da
 Fase 11 e o Pattern Encoder da Fase 12 também). A regra atual (uma Ponte por rede ME, Terminal exige a Ponte na mesma rede) continua.
 

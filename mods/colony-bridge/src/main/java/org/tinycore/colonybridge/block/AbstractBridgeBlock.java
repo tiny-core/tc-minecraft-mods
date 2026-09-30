@@ -5,6 +5,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -31,6 +32,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 
 import java.util.List;
 
@@ -41,7 +43,9 @@ import java.util.List;
  *   <li>frente virada para quem colocou ({@link #FACING}; os modelos são feitos com a frente para o norte e o
  *       blockstate gira o modelo);</li>
  *   <li>estado visual no blockstate ({@link #STATUS}, atualizado pelo block entity);</li>
- *   <li>recusar a colocação em colônia onde o jogador não tem permissão e gravar o dono;</li>
+ *   <li>recusar a colocação em colônia onde o jogador não tem permissão ou que já tem um bloco deste tipo
+ *       ({@link ColonySlots}), e gravar o dono;</li>
+ *   <li>soltar a vaga da colônia quando o bloco sai do mundo ({@link #onRemove});</li>
  *   <li>ticker só no servidor, que chama {@link AbstractBridgeBlockEntity#serverTick()};</li>
  *   <li>avisar o block entity quando um vizinho muda (cabo trocado embaixo);</li>
  *   <li>clique direito: abre a tela para quem pode configurar, senão mostra o estado.</li>
@@ -72,6 +76,9 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
 
     /** Tipo registrado do block entity deste bloco (em {@code ModBlockEntities}). */
     protected abstract BlockEntityType<E> blockEntityType();
+
+    /** Tipo na regra "um de cada tipo por colônia" (o mesmo do block entity). */
+    protected abstract ColonyBlockType colonyBlockType();
 
     /** Nome usado nas chaves de tradução do tooltip ({@code tooltip.tccolonybridge.<nome>.line1/2}). */
     protected abstract String tooltipName();
@@ -139,13 +146,44 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
             return placed;
         }
         Player player = context.getPlayer();
-        if (ColonyAccess.canPlaceBridge(level, context.getClickedPos(), player == null ? null : player.getUUID())) {
+        BlockPos pos = context.getClickedPos();
+        if (!ColonyAccess.canPlaceBridge(level, pos, player == null ? null : player.getUUID())) {
+            if (player != null) {
+                player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
+            }
+            return null;
+        }
+        BlockPos other = occupantAt((ServerLevel) level, pos);
+        if (other == null) {
             return placed;
         }
         if (player != null) {
-            player.displayClientMessage(Component.translatable("message.tccolonybridge.no_permission"), true);
+            player.displayClientMessage(Component.translatable("message.tccolonybridge.already_in_colony",
+                    getName(), other.getX(), other.getY(), other.getZ()), true);
         }
         return null;
+    }
+
+    /** Outro bloco deste tipo na colônia da posição, ou null (fora de colônia não há limite). */
+    private @Nullable BlockPos occupantAt(ServerLevel level, BlockPos pos) {
+        String colony = ColonyAccess.colonyKeyAt(level, pos);
+        return colony == null ? null : ColonySlots.occupant(level, colony, colonyBlockType(), pos);
+    }
+
+    /**
+     * O bloco saiu do mundo ou foi trocado por outro (quebra, explosão, {@code /setblock}): solta a vaga da
+     * colônia. Não roda quando o chunk só descarrega, nem quando muda só o estado deste bloco (visual/frente).
+     * O {@code super} é quem remove o block entity, por isso a vaga é solta antes.
+     */
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (!state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
+            E be = entityAt(level, pos);
+            if (be != null) {
+                be.releaseColonySlot(serverLevel);
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
     @Override
@@ -155,6 +193,9 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
         E be = entityAt(level, pos);
         if (!level.isClientSide && placer instanceof Player player && be != null) {
             be.setOwner(player);
+        }
+        if (level instanceof ServerLevel serverLevel && be != null) {
+            be.holdsColonySlot(serverLevel); // ocupa a vaga já, sem esperar o primeiro ciclo
         }
     }
 

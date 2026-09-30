@@ -22,6 +22,9 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `block/AbstractBridgeBlockEntity` | Nó da grid do AE2 e seu ciclo de vida, regra do cabo, redstone, dono/permissão, chama `runCycle` a cada `cycleTicks`. |
 | `block/BridgeVisualState` | Os 4 visuais do blockstate (offline / erro / ocioso / trabalhando). |
 | `logic/BridgeStatus` | Estado mostrado ao jogador (sem colônia, sem permissão, trabalhando...). |
+| `block/ColonySlots` | Regra "um de cada tipo por colônia" no mundo: confere o bloco registrado (sem carregar chunk) e descarta registro velho. |
+| `logic/colony/ColonyBlockRegistry` | `SavedData`: posição do bloco de cada tipo em cada colônia (também servirá ao Tablet). |
+| `logic/colony/ColonySlotRule`, `ColonyBlockType` | Regra pura (testada) de quem fica com a vaga; tipos com vaga única. |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
 | `logic/warehouse/WarehouseSnapshot` | Conteúdo dos racks lido uma vez por ciclo da ponte (+ entregas do ciclo). |
@@ -40,7 +43,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/bridge/StockSearch` | Acha na rede os itens que servem para o pedido (pode juntar vários de uma tag). |
 | `logic/bridge/BridgeCycle` | Dados de um ciclo (grid, colônia, racks, estoque, o que já saiu neste ciclo). |
 | `logic/bridge/RequestCrafter` | *Craftar o quê e quanto:* item exato ou escolhido para pedido por tag; reserva no ledger. |
-| `logic/bridge/DeliveryLedger` | Registro salvo no mundo: pedido já entregue (cooldown) ou em craft, e por qual ponte. Coordena várias pontes. |
+| `logic/bridge/DeliveryLedger` | Registro salvo no mundo: pedido já entregue (cooldown) ou em craft, e por qual ponte. |
 | `logic/bridge/CycleReport`, `RequestLine`, `RequestOutcome` | Resultado de cada pedido no último ciclo (vai para a tela e os monitores). |
 | `logic/crafting/CraftingTracker` | Cálculo do plano no AE2 e envio do job com a ponte como dona; espera após falha, blacklist. |
 | `logic/crafting/CraftLinks` | `ICraftingRequester` da ponte: vínculos dos crafts com os pedidos (salvos no NBT) e recebimento do resultado. |

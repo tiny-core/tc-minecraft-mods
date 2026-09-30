@@ -19,6 +19,7 @@ import org.tinycore.colonybridge.block.monitor.MonitorData;
 import org.tinycore.colonybridge.block.monitor.MonitorLine;
 import org.tinycore.colonybridge.block.monitor.MonitorSource;
 import org.tinycore.colonybridge.logic.BridgeStatus;
+import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.logic.bridge.BridgeLogic;
 import org.tinycore.colonybridge.logic.bridge.CraftDelivery;
 import org.tinycore.colonybridge.logic.crafting.CraftLinks;
@@ -77,6 +78,11 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
             return;
         }
         logic.runCycle(level, grid);
+    }
+
+    @Override
+    public ColonyBlockType colonyBlockType() {
+        return ColonyBlockType.BRIDGE;
     }
 
     @Override
