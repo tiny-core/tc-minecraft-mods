@@ -290,11 +290,58 @@ Como fazer:
   próprio não viram padrão de bancada; ficam listadas como "sem receita suportada".
 - Fase 1 só bancada; processamento (fornalha) fica para depois.
 
-## Sugestões ainda sem fase
+# Ordem combinada depois das Fases 8–11 (2026-09-30)
 
-- **Abastecedor com auto-craft:** "manter" pede craft ao AE2 do que falta (pendência da Fase 7).
-- **Lista de compras:** aba na Ponte/Tablet com o que a colônia pede e a rede não tem nem sabe craftar.
+Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só começa com o anterior testado no ATM10.
+
+## Passo 1 — Teste de ponta a ponta e correções
+
+- Checklist de 75 itens (artifact "Teste ATM10 · Colony Bridge"): Fases 2 a 11, todos os blocos, multiplayer.
+- Corrigir o que o relatório apontar antes de qualquer feature nova.
+
+## Passo 2 — Dívida técnica
+
+- **JEI:** migrar `TerminalRecipeTransfer.transferRecipe` e `getClickableIngredientUnderMouse` /
+  `createClickableIngredient` (marcados para remoção) para a API nova — quebram numa atualização do JEI no ATM10.
+- **`SupplyLogic` usa `IColony` do MineColonies** fora de `integration/` (fere a regra do projeto): levar para o
+  `ColonyAccess`.
+- **`TargetListWidget` (395 linhas):** separar desenho de tratamento de cliques.
+- Infraestrutura dos monitores para o core, quando o mod de reatores começar.
+
+## Passo 3 — Abastecedor com auto-craft
+
+- Linha "manter" pede craft ao AE2 do que falta quando a rede não tem o item (pendência da Fase 7).
+- Reaproveitar `CraftingTracker`/`CraftLinks` da Ponte (requester, resultado direto no armazém), teto por ciclo e
+  espera após falha. Tag: craftar o candidato escolhido como na Fase 6a.
+
+## Passo 4 — Fase 12 (Pattern Encoder) + lista de compras
+
+- Fase 12 como descrita acima.
+- **Lista de compras:** aba no tablet (e na tela do Pattern Encoder) com o que a colônia pede e a rede não tem nem
+  sabe craftar, com o motivo (sem receita, sem material, filtrado). Dados já existem no ciclo da Ponte
+  (`CycleReport`). Botão "criar padrão" leva ao Pattern Encoder.
+
+## Passo 5 — Avisos
+
+- Mensagem no chat / barra de ação, configurável por jogador, quando algo trava: armazém cheio, rede ME sem
+  energia, Chunk Loader soltou a área, craft falhando repetido, bateria do tablet baixa.
+- Com limite de frequência (um aviso por motivo a cada N minutos) e só para membros da colônia.
+
+## Passo 6 — Guia no jogo, arte e publicação
+
+- **Guia com GuideMe** (o sistema do guia do AE2, já no ATM10 e em `libs/`): páginas por bloco com receita,
+  imagens e explicação.
+- Modelos e texturas no Blockbench (Ponte, Abastecedor, Terminal, Chunk Loader, Tablet — ver `GUIA-BLOCKBENCH.md`).
+- Publicação (CurseForge/Modrinth): licença, página em PT/EN, ícone.
+
+## Depois (qualidade de uso, sem ordem)
+
 - **Copiar configuração** entre blocos (como o Memory Card do AE2) ou exportar/importar lista como texto.
-- **Autocompletar** na caixa de texto: ids e tags do item colocado no slot (clique alterna as tags dele).
+- **Autocompletar** ids e tags na caixa de texto das listas (o clique direito que alterna as tags do item já existe).
 - Busca do Terminal com `#tag` além de `@mod`.
-- Fase 2 pendente: modelos e texturas no Blockbench.
+- Tablet: atalho de teclado e slot do Curios.
+
+## Descartado por enquanto
+
+- Tablet ligado a várias colônias e blocos liberados por pesquisa do MineColonies: muitos casos de teste e risco
+  de quebra entre versões do MineColonies para pouco ganho agora.
