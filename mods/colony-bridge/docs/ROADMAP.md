@@ -219,7 +219,7 @@ clique direito no ícone alterna entre o item e as tags dele. Quantidade 0 = lin
 Etapas: **10a feita** (item, ligação por colônia, bateria FE, carregador na aba Geral da Ponte, receita) ·
 **10b feita** (`MenuAccess` nos menus, `TabletOpener`, barra de abas, gasto de bateria) ·
 **10c feita** (abas de painel com `MonitorGui`; falta teste no ATM10) ·
-10d aba do Chunk Loader (com a Fase 11). Decidido (2026-09-30): alcance ilimitado também entre dimensões (chunk do
+**10d feita** (aba do Chunk Loader, junto com a Fase 11). Decidido (2026-09-30): alcance ilimitado também entre dimensões (chunk do
 bloco carregado); 100.000 FE, 5 FE/t aberto, carga 1.000 FE/t. **Depois da fase:** atalho de teclado e slot do
 Curios para abrir o tablet.
 
@@ -246,6 +246,10 @@ Como fazer:
 - Gasto de bateria: por abertura e/ou por ação (config).
 
 ## Fase 11 — TC Colony Chunk Loader
+
+> **11a/11b feitas (2026-09-30):** bloco, regras (`LoaderRule`, `ChunkSelection`, testadas), tickets com validação,
+> energia 32 AE/t por chunk, contagem de 12 h em tempo real, tolerância de 30 s, tela e aba do tablet.
+> **Falta:** teste no ATM10 e 11c (painel no Monitor da Colônia / aba de painel do tablet), se o autor quiser.
 
 **Objetivo:** manter carregados os chunks reivindicados pela colônia, pagando energia por chunk.
 

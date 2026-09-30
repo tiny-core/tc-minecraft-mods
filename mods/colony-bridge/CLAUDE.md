@@ -11,6 +11,7 @@ Estado: Ponte (entrega/craft dos pedidos, craft por tag com preferências por po
 Abastecedor (manter estoque / devolver excedente), Monitores (multibloco mostrando Ponte ou Abastecedor) e
 Terminal do Armazém (ver/tirar/guardar/craftar com itens dos racks; exige a Ponte da colônia na mesma rede ME).
 Ponte, Abastecedor e Terminal: **um de cada por colônia** (`logic/colony/ColonyBlockRegistry`, `block/ColonySlots`).
+Tablet (`item/ColonyTabletItem`, telas remotas via `menu/access/`) e Chunk Loader (`block/loader/`, `logic/loader/`).
 Filtro da Ponte e listas do Abastecedor: linhas de item/`#tag`/`@mod` (`logic/target/`, tela em `client/list/`).
 
 Roadmap: `docs/ROADMAP.md` (ler **só** quando a tarefa for sobre planejamento ou feature nova).

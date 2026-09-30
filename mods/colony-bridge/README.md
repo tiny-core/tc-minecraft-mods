@@ -171,6 +171,30 @@ IRI     I = Interface ME (AE2)
 O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é um JSON comum
 (`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
+## TC Chunk Loader da Colônia
+Mantém carregados os chunks **reivindicados pela colônia**, gastando energia da rede ME. Um por colônia, cabo ME
+comum por baixo, um canal.
+
+- Carrega os `chunkLoaderMaxChunks` (padrão 144) mais perto da prefeitura; a lista é relida a cada
+  `chunkLoaderRefreshTicks` (a colônia cresce). Gasta `chunkLoaderPowerPerChunk` AE/t por chunk (padrão **32**,
+  144 chunks ≈ 4.600 AE/t). Sem energia, solta a área.
+- **Depois do último membro:** quando nenhum membro da colônia está online, começa uma contagem de
+  `chunkLoaderOfflineHours` (padrão 12 h, **tempo real**, sobrevive a reinícios; 0 = solta na hora; aceita frações,
+  ex.: 0.05 = 3 min para testar). No fim, a área é solta. Um membro entrando zera a contagem.
+- O chunk do próprio bloco fica sempre carregado enquanto ele está ligado, para perceber quando um membro volta.
+  Ao voltar, a área carrega por `chunkLoaderWakeGraceSeconds` (30 s) mesmo sem energia, para a rede ME ligar —
+  **deixe o controlador e a energia da rede ME dentro da colônia**.
+- Tela (no bloco e pela aba do tablet): situação, chunks, consumo, "solta em 3 h 20 min", liga/desliga e redstone.
+- Admin: `chunkLoaderEnabled = false` solta tudo no servidor. Atenção: o loader **passa por cima** do limite de
+  chunks forçados do FTB Chunks. Ao iniciar o servidor, chunks de loaders que não existem mais são soltos.
+- Conferir no jogo: `/forceload query` não mostra estes chunks (são tickets de mod); use F3 ou o próprio contador da tela.
+
+```
+OEO     O = Obsidiana chorona   E = Olho do Ender
+PCP     P = Processador de Engenharia (AE2)   C = Célula de energia densa (AE2)
+OEO
+```
+
 ## TC Tablet da Colônia
 Acesso de qualquer lugar aos blocos de uma colônia: abre **as mesmas telas** do Terminal, da Ponte e do Abastecedor
 que estão no mundo, com uma barra de abas em cima da janela.
@@ -178,6 +202,7 @@ que estão no mundo, com uma barra de abas em cima da janela.
 - **Abrir:** clique direito com o tablet. Abre o Terminal; sem ele, a Ponte; sem ela, o Abastecedor. As abas de
   blocos ausentes ou em chunk descarregado ficam desativadas (o tablet **nunca carrega chunk**). Funciona em
   qualquer distância e dimensão.
+- **Chunk Loader:** aba com a mesma tela do bloco (situação, contagem, liga/desliga).
 - **Painéis:** as abas "Painel da Ponte" e "Painel do Abastecedor" mostram o mesmo que um Monitor da Colônia de
   5 × 3 blocos ligado ao bloco (sem precisar de monitor). As listas trocam de página a cada 10 s; clique na metade
   direita do painel avança, na esquerda volta.

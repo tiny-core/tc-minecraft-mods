@@ -9,7 +9,9 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
+import org.tinycore.colonybridge.block.loader.ColonyChunkLoaderBlockEntity;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
+import org.tinycore.colonybridge.menu.loader.ChunkLoaderMenu;
 import org.tinycore.colonybridge.client.ClientPayloadHandler;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetListEditor;
@@ -33,7 +35,7 @@ import org.tinycore.core.block.RedstoneMode;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "11";
+    private static final String PROTOCOL_VERSION = "12";
 
     private ModNetwork() {}
 
@@ -55,6 +57,10 @@ public final class ModNetwork {
                 ModNetwork::onSupplyConfig);
         registrar.playToServer(TargetEditPayload.TYPE, TargetEditPayload.STREAM_CODEC, ModNetwork::onTargetEdit);
         registrar.playToServer(TabletOpenPayload.TYPE, TabletOpenPayload.STREAM_CODEC, ModNetwork::onTabletOpen);
+        registrar.playToServer(ChunkLoaderActionPayload.TYPE, ChunkLoaderActionPayload.STREAM_CODEC,
+                ModNetwork::onChunkLoaderAction);
+        registrar.playToClient(ChunkLoaderSnapshotPayload.TYPE, ChunkLoaderSnapshotPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.onChunkLoaderSnapshot(payload));
         registrar.playToClient(TabletPanelPayload.TYPE, TabletPanelPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.onTabletPanel(payload));
         registrar.playToClient(TargetListPayload.TYPE, TargetListPayload.STREAM_CODEC,
@@ -139,6 +145,21 @@ public final class ModNetwork {
         TargetListEditor.apply(listMenu.listHost(), payload, menu.getCarried());
     }
 
+    /** Botões do Chunk Loader (liga/desliga, redstone); ação desconhecida é ignorada. */
+    private static void onChunkLoaderAction(ChunkLoaderActionPayload payload, IPayloadContext context) {
+        ChunkLoaderMenu menu = validMenu(context, payload.containerId(), ChunkLoaderMenu.class);
+        ColonyChunkLoaderBlockEntity loader = menu == null ? null : menu.getLoader();
+        if (loader == null) {
+            return;
+        }
+        if (payload.action() == ChunkLoaderActionPayload.TOGGLE) {
+            loader.toggle();
+        } else if (payload.action() == ChunkLoaderActionPayload.REDSTONE) {
+            loader.cycleRedstone();
+        }
+        menu.requestSync();
+    }
+
     /**
      * Troca de aba do tablet. O {@link TabletOpener} confere tudo de novo (tablet na mão, bateria, bloco
      * disponível, permissão); do cliente só vem o número da aba.
@@ -187,6 +208,9 @@ public final class ModNetwork {
         }
         if (menu instanceof ColonySupplyMenu supply) {
             return supply.getSupply();
+        }
+        if (menu instanceof ChunkLoaderMenu loader) {
+            return loader.getLoader();
         }
         return null;
     }

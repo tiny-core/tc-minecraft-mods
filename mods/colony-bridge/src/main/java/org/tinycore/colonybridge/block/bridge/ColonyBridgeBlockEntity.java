@@ -142,7 +142,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
     }
 
     @Override
-    public void dropContents(ServerLevel serverLevel) {
+    public void onBroken(ServerLevel serverLevel) {
         charger.drop(serverLevel, getBlockPos());
     }
 

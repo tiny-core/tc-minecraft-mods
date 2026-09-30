@@ -132,6 +132,19 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `menu/tablet/TabletPanelMenu`, `network/TabletPanelPayload` | Aba de painel: menu sem slots que manda o `monitorData()` do bloco 1×/s, só quando muda. |
 | `client/tablet/TabletPanelScreen`, `client/render/MonitorGui` | Tela do painel: desenha `MonitorPanels` numa interface (mesmo `MonitorCanvas`, sem inverter o y dos itens), com paginação. |
 
+## TC Chunk Loader da Colônia (`loader/`) — mantém a área da colônia carregada
+
+| Classe | Responsabilidade |
+|---|---|
+| `block/loader/ColonyChunkLoaderBlock`, `ColonyChunkLoaderBlockEntity` | Bloco e lógica: a cada 1 s vê membros online, decide a situação, força/solta só a diferença de chunks e ajusta o consumo parado do nó ME (energia por chunk). |
+| `logic/loader/LoaderRule`, `LoaderState` | Regra pura (testada): situação (carregando, contagem, sem energia, dormindo, desligado) e tempo restante em tempo real. |
+| `logic/loader/ChunkSelection` | Regra pura (testada): os N chunks mais perto do centro da colônia, em ordem estável. |
+| `logic/loader/ChunkTickets` | `TicketController` do NeoForge: força/solta chunks; ao iniciar o servidor descarta tickets de loaders que não estão no registro. |
+| `logic/loader/LoaderEvents` | Jogador entrou/saiu → acorda os loaders registrados para conferir membros na hora. |
+| `menu/loader/ChunkLoaderMenu`, `ChunkLoaderSnapshot`, `network/ChunkLoader*Payload` | Tela sem slots: foto 1×/s quando muda; botões liga/desliga e redstone. |
+| `client/loader/ChunkLoaderScreen` | Tela: situação, cartões (chunks, energia, "solta em"), barra lateral. |
+| `integration/ColonyAccess` (`claimedChunksAt`, `colonyCenterAt`, `memberOnlineAt`) | Reivindicações da colônia (`IColonyManager.getClaimData`), centro e membros online. |
+
 ## Infraestrutura
 
 | Classe | Responsabilidade |

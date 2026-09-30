@@ -7,12 +7,15 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.slf4j.Logger;
 import org.tinycore.colonybridge.network.ModNetwork;
 import org.tinycore.colonybridge.registry.ModCreativeTabs;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.colonybridge.item.TabletEnergy;
+import org.tinycore.colonybridge.logic.loader.ChunkTickets;
+import org.tinycore.colonybridge.logic.loader.LoaderEvents;
 import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModDataComponents;
 import org.tinycore.colonybridge.registry.ModItems;
@@ -38,6 +41,10 @@ public final class ColonyBridgeMod {
 
         modBus.addListener(this::registerCapabilities);
         modBus.addListener(ModNetwork::register);
+        modBus.addListener(ChunkTickets::register);
+        // Eventos do jogo (não do mod): jogador entrou/saiu acorda os Chunk Loaders.
+        NeoForge.EVENT_BUS.addListener(LoaderEvents::onLogin);
+        NeoForge.EVENT_BUS.addListener(LoaderEvents::onLogout);
     }
 
     /**
@@ -52,6 +59,15 @@ public final class ColonyBridgeMod {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.COLONY_SUPPLY.get(),
+                (be, ctx) -> be);
+        // O Terminal e o Chunk Loader também têm nó ME: sem esta capability o cabo não se liga a eles.
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                ModBlockEntities.WAREHOUSE_TERMINAL.get(),
+                (be, ctx) -> be);
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                ModBlockEntities.CHUNK_LOADER.get(),
                 (be, ctx) -> be);
         // Bateria do tablet como energia padrão do NeoForge: carregadores de outros mods também a enchem.
         event.registerItem(Capabilities.EnergyStorage.ITEM, (stack, ctx) -> TabletEnergy.storage(stack),

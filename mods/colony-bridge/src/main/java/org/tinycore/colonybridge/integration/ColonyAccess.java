@@ -14,6 +14,7 @@ import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.tileentities.AbstractTileEntityRack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -191,6 +192,48 @@ public final class ColonyAccess {
     public static String colonyNameAt(Level level, BlockPos pos) {
         IColony colony = findColony(level, pos);
         return colony == null ? "" : colonyName(colony);
+    }
+
+    /**
+     * Chunks reivindicados pela colônia nesta posição (formato {@code ChunkPos.asLong}), para o Chunk Loader.
+     * Lê o mapa de reivindicações do MineColonies da dimensão (inclui chunks não carregados, sem carregá-los) e
+     * fica com os que têm esta colônia como dona. Vazio fora de colônia.
+     */
+    public static List<Long> claimedChunksAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        if (colony == null) {
+            return List.of();
+        }
+        List<Long> chunks = new ArrayList<>();
+        IColonyManager.getInstance().getClaimData(colony.getDimension()).forEach((chunk, claim) -> {
+            if (claim != null && claim.getOwningColony() == colony.getID()) {
+                chunks.add(chunk.toLong());
+            }
+        });
+        return chunks;
+    }
+
+    /** Centro da colônia nesta posição (bloco da prefeitura), ou null fora de colônia. */
+    public static @Nullable BlockPos colonyCenterAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        return colony == null ? null : colony.getCenter();
+    }
+
+    /**
+     * true se algum membro da colônia desta posição (dono, oficiais, amigos... quem o MineColonies considera
+     * membro) está online no servidor. Percorre só a lista de jogadores online.
+     */
+    public static boolean memberOnlineAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        if (colony == null || level.getServer() == null) {
+            return false;
+        }
+        for (Player player : level.getServer().getPlayerList().getPlayers()) {
+            if (colony.getPermissions().isColonyMember(player)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

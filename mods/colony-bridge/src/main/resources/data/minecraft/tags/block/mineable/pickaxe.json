@@ -4,6 +4,7 @@
     "tccolonybridge:colony_bridge",
     "tccolonybridge:colony_monitor",
     "tccolonybridge:colony_supply",
-    "tccolonybridge:warehouse_terminal"
+    "tccolonybridge:warehouse_terminal",
+    "tccolonybridge:colony_chunk_loader"
   ]
 }

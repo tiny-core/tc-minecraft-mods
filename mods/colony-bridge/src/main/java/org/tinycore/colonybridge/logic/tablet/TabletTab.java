@@ -12,7 +12,7 @@ public enum TabletTab {
     SUPPLY(true),
     BRIDGE_PANEL(true),
     SUPPLY_PANEL(true),
-    CHUNK_LOADER(false);
+    CHUNK_LOADER(true);
 
     private static final TabletTab[] VALUES = values();
 

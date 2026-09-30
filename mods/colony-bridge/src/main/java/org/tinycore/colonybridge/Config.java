@@ -93,6 +93,32 @@ public final class Config {
             .comment("FE por tick que o carregador da Ponte põe no tablet (a energia sai da rede ME, convertida do AE).")
             .defineInRange("tabletChargeRate", 1_000, 1, 1_000_000);
 
+    public static final ModConfigSpec.BooleanValue CHUNK_LOADER_ENABLED = B
+            .comment("Liga o TC Colony Chunk Loader no servidor. false = todos os loaders soltam os chunks e não carregam nada.")
+            .define("chunkLoaderEnabled", true);
+
+    public static final ModConfigSpec.IntValue CHUNK_LOADER_MAX_CHUNKS = B
+            .comment("Máximo de chunks que um Chunk Loader carrega (os mais perto do centro da colônia primeiro).",
+                    "Atenção: o loader passa por cima do limite de chunks forçados do FTB Chunks.")
+            .defineInRange("chunkLoaderMaxChunks", 144, 1, 1024);
+
+    public static final ModConfigSpec.DoubleValue CHUNK_LOADER_POWER_PER_CHUNK = B
+            .comment("Energia AE por tick que o Chunk Loader gasta por chunk carregado (inclui o chunk do próprio bloco).")
+            .defineInRange("chunkLoaderPowerPerChunk", 32.0, 0.0, 100_000.0);
+
+    public static final ModConfigSpec.DoubleValue CHUNK_LOADER_OFFLINE_HOURS = B
+            .comment("Horas (tempo real) que a área continua carregada depois que o último membro da colônia sai.",
+                    "0 = solta assim que o último sai. Aceita frações (0.05 = 3 minutos).")
+            .defineInRange("chunkLoaderOfflineHours", 12.0, 0.0, 720.0);
+
+    public static final ModConfigSpec.IntValue CHUNK_LOADER_REFRESH_TICKS = B
+            .comment("A cada quantos ticks o Chunk Loader relê os chunks reivindicados pela colônia (ela cresce).")
+            .defineInRange("chunkLoaderRefreshTicks", 1200, 100, 72_000);
+
+    public static final ModConfigSpec.IntValue CHUNK_LOADER_WAKE_GRACE_SECONDS = B
+            .comment("Segundos que o loader carrega a área sem energia quando um membro volta, para a rede ME ligar.")
+            .defineInRange("chunkLoaderWakeGraceSeconds", 30, 0, 600);
+
     public static final ModConfigSpec.IntValue MONITOR_MAX_WIDTH = B
             .comment("Largura máxima (em blocos) de uma tela formada por monitores.")
             .defineInRange("monitorMaxWidth", 8, 1, 16);

@@ -45,8 +45,9 @@ class TabletTabsTest {
     }
 
     @Test
-    void notImplementedTabIsNeverAvailable() {
-        assertFalse(TabletTabs.isAvailable(mask(TabletTab.CHUNK_LOADER), TabletTab.CHUNK_LOADER));
+    void tabOutsideTheMaskIsUnavailable() {
+        assertFalse(TabletTabs.isAvailable(mask(TabletTab.TERMINAL), TabletTab.CHUNK_LOADER));
+        assertTrue(TabletTabs.isAvailable(mask(TabletTab.CHUNK_LOADER), TabletTab.CHUNK_LOADER));
     }
 
     @Test

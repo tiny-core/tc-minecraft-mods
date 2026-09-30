@@ -11,5 +11,6 @@ package org.tinycore.colonybridge.logic.colony;
 public enum ColonyBlockType {
     BRIDGE,
     SUPPLY,
-    TERMINAL
+    TERMINAL,
+    CHUNK_LOADER
 }

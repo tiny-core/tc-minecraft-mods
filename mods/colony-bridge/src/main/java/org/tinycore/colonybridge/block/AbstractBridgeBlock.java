@@ -189,7 +189,7 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
             E be = entityAt(level, pos);
             if (be != null) {
                 be.releaseColonySlot(serverLevel);
-                be.dropContents(serverLevel);
+                be.onBroken(serverLevel);
             }
         }
         super.onRemove(state, level, pos, newState, movedByPiston);

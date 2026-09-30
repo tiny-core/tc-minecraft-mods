@@ -203,8 +203,11 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
         }
     }
 
-    /** O bloco saiu do mundo: derruba o que ele guarda de itens de verdade (ex.: tablet no carregador da Ponte). */
-    public void dropContents(ServerLevel serverLevel) {
+    /**
+     * O bloco saiu do mundo (quebrado, explodido, trocado): derruba itens guardados (tablet no carregador da Ponte),
+     * solta chunks (Chunk Loader) etc. Não roda quando o chunk só descarrega.
+     */
+    public void onBroken(ServerLevel serverLevel) {
     }
 
     private void setClaimedColony(@Nullable String colony) {

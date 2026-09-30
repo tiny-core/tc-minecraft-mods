@@ -60,6 +60,21 @@ public final class ColonyBlockRegistry extends SavedData {
         }
     }
 
+    /**
+     * Posições de todos os blocos de um tipo (chave da colônia → posição). Usado pelo Chunk Loader: validar tickets
+     * ao iniciar o servidor e acordar o loader quando um jogador entra.
+     */
+    public Map<String, BlockPos> holders(ColonyBlockType type) {
+        String suffix = "|" + type.name();
+        Map<String, BlockPos> found = new HashMap<>();
+        holders.forEach((key, pos) -> {
+            if (key.endsWith(suffix)) {
+                found.put(key.substring(0, key.length() - suffix.length()), BlockPos.of(pos));
+            }
+        });
+        return found;
+    }
+
     private static String key(String colony, ColonyBlockType type) {
         return colony + "|" + type.name();
     }

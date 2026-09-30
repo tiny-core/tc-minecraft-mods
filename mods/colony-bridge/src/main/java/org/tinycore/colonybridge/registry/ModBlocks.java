@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlock;
+import org.tinycore.colonybridge.block.loader.ColonyChunkLoaderBlock;
 import org.tinycore.colonybridge.block.monitor.MonitorBlock;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlock;
 import org.tinycore.colonybridge.block.terminal.WarehouseTerminalBlock;
@@ -41,6 +42,12 @@ public final class ModBlocks {
     public static final DeferredBlock<WarehouseTerminalBlock> WAREHOUSE_TERMINAL = BLOCKS.register("warehouse_terminal",
             () -> new WarehouseTerminalBlock(BlockBehaviour.Properties.of()
                     .strength(2.2f, 11f)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<ColonyChunkLoaderBlock> CHUNK_LOADER = BLOCKS.register("colony_chunk_loader",
+            () -> new ColonyChunkLoaderBlock(BlockBehaviour.Properties.of()
+                    .strength(3.5f, 1200f)
                     .sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()));
 

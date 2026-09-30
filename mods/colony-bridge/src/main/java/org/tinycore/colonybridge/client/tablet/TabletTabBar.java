@@ -2,7 +2,6 @@ package org.tinycore.colonybridge.client.tablet;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.logic.tablet.TabletTab;
@@ -76,7 +75,7 @@ public final class TabletTabBar {
             case BRIDGE -> new ItemStack(ModItems.COLONY_BRIDGE.get());
             case SUPPLY -> new ItemStack(ModItems.COLONY_SUPPLY.get());
             case BRIDGE_PANEL, SUPPLY_PANEL -> new ItemStack(ModItems.COLONY_MONITOR.get());
-            case CHUNK_LOADER -> new ItemStack(Items.ENDER_EYE);
+            case CHUNK_LOADER -> new ItemStack(ModItems.CHUNK_LOADER.get());
         };
     }
 }

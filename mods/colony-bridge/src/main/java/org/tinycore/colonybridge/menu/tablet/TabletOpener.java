@@ -49,7 +49,8 @@ public final class TabletOpener {
             TabletTab.BRIDGE, ColonyBlockType.BRIDGE,
             TabletTab.SUPPLY, ColonyBlockType.SUPPLY,
             TabletTab.BRIDGE_PANEL, ColonyBlockType.BRIDGE,
-            TabletTab.SUPPLY_PANEL, ColonyBlockType.SUPPLY));
+            TabletTab.SUPPLY_PANEL, ColonyBlockType.SUPPLY,
+            TabletTab.CHUNK_LOADER, ColonyBlockType.CHUNK_LOADER));
 
     private TabletOpener() {}
 

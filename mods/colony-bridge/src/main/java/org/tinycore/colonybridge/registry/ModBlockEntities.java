@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
+import org.tinycore.colonybridge.block.loader.ColonyChunkLoaderBlockEntity;
 import org.tinycore.colonybridge.block.monitor.MonitorBlockEntity;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.block.terminal.WarehouseTerminalBlockEntity;
@@ -39,6 +40,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WarehouseTerminalBlockEntity>> WAREHOUSE_TERMINAL =
             BLOCK_ENTITIES.register("warehouse_terminal",
                     () -> BlockEntityType.Builder.of(WarehouseTerminalBlockEntity::new, ModBlocks.WAREHOUSE_TERMINAL.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ColonyChunkLoaderBlockEntity>> CHUNK_LOADER =
+            BLOCK_ENTITIES.register("colony_chunk_loader",
+                    () -> BlockEntityType.Builder.of(ColonyChunkLoaderBlockEntity::new, ModBlocks.CHUNK_LOADER.get()).build(null));
 
     private ModBlockEntities() {}
 

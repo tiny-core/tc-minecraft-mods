@@ -12,6 +12,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
+import org.tinycore.colonybridge.client.loader.ChunkLoaderScreen;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
 import org.tinycore.colonybridge.client.terminal.WarehouseGrid;
 import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
@@ -63,6 +64,12 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(ColonySupplyScreen.class, new IGuiContainerHandler<>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(ColonySupplyScreen screen) {
+                return screen.extraAreas();
+            }
+        });
+        registration.addGuiContainerHandler(ChunkLoaderScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(ChunkLoaderScreen screen) {
                 return screen.extraAreas();
             }
         });
