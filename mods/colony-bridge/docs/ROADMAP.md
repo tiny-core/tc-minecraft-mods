@@ -217,7 +217,8 @@ clique direito no ícone alterna entre o item e as tags dele. Quantidade 0 = lin
 **Objetivo:** extensão portátil dos blocos da colônia, com **as mesmas funcionalidades** das telas deles.
 
 Etapas: **10a feita** (item, ligação por colônia, bateria FE, carregador na aba Geral da Ponte, receita) ·
-**10b feita** (`MenuAccess` nos menus, `TabletOpener`, barra de abas, gasto de bateria) · 10c painéis dos monitores ·
+**10b feita** (`MenuAccess` nos menus, `TabletOpener`, barra de abas, gasto de bateria) ·
+**10c feita** (abas de painel com `MonitorGui`; falta teste no ATM10) ·
 10d aba do Chunk Loader (com a Fase 11). Decidido (2026-09-30): alcance ilimitado também entre dimensões (chunk do
 bloco carregado); 100.000 FE, 5 FE/t aberto, carga 1.000 FE/t. **Depois da fase:** atalho de teclado e slot do
 Curios para abrir o tablet.
