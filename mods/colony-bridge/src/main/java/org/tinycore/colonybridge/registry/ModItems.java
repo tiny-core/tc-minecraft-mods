@@ -6,6 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.tinycore.colonybridge.ColonyBridgeMod;
+import org.tinycore.colonybridge.item.ColonyTabletItem;
 import org.tinycore.colonybridge.item.LinkCardItem;
 
 /** Itens do mod, incluindo os itens dos blocos (o que fica no inventário). */
@@ -24,6 +25,9 @@ public final class ModItems {
 
     public static final DeferredItem<BlockItem> WAREHOUSE_TERMINAL =
             ITEMS.registerSimpleBlockItem("warehouse_terminal", ModBlocks.WAREHOUSE_TERMINAL, new Item.Properties());
+
+    public static final DeferredItem<ColonyTabletItem> COLONY_TABLET =
+            ITEMS.registerItem("colony_tablet", ColonyTabletItem::new, new Item.Properties().stacksTo(1));
 
     public static final DeferredItem<LinkCardItem> LINK_CARD =
             ITEMS.registerItem("link_card", LinkCardItem::new, new Item.Properties().stacksTo(1));

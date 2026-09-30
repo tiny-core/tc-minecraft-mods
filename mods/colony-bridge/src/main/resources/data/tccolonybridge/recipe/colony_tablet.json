@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " G ",
+    "WEW",
+    " C "
+  ],
+  "key": {
+    "G": {
+      "item": "minecraft:glass_pane"
+    },
+    "W": {
+      "item": "ae2:wireless_receiver"
+    },
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "C": {
+      "item": "ae2:energy_cell"
+    }
+  },
+  "result": {
+    "id": "tccolonybridge:colony_tablet",
+    "count": 1
+  }
+}

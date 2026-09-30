@@ -23,6 +23,6 @@ public enum BridgeTab {
 
     /** true se a aba mostra o inventário do jogador (para pegar itens e clicar nos ghost slots). */
     public boolean showsInventory() {
-        return this == FILTER || this == PREFERRED;
+        return this == GENERAL || this == FILTER || this == PREFERRED;
     }
 }

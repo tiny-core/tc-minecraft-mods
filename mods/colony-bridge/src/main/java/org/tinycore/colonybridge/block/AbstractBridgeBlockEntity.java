@@ -203,6 +203,10 @@ public abstract class AbstractBridgeBlockEntity extends BlockEntity implements I
         }
     }
 
+    /** O bloco saiu do mundo: derruba o que ele guarda de itens de verdade (ex.: tablet no carregador da Ponte). */
+    public void dropContents(ServerLevel serverLevel) {
+    }
+
     private void setClaimedColony(@Nullable String colony) {
         if (!Objects.equals(claimedColony, colony)) {
             claimedColony = colony;

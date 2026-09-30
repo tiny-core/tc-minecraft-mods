@@ -171,6 +171,24 @@ IRI     I = Interface ME (AE2)
 O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é um JSON comum
 (`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
+## TC Tablet da Colônia (em desenvolvimento)
+Acesso de qualquer lugar aos blocos de uma colônia. Etapa atual (10a): ligação e bateria; as telas remotas chegam
+na próxima etapa.
+
+- **Ligar:** shift + clique direito numa Ponte (precisa de permissão para configurá-la). O tablet grava a
+  **colônia**, não a posição: mudar a Ponte de lugar não o desliga.
+- **Carregar:** aba **Geral** da Ponte tem um slot de carregador. Ele tira energia da rede ME (AE convertido em FE)
+  a `tabletChargeRate` FE/tick e também liga o tablet à colônia. Carregadores de FE de outros mods também servem.
+  Ao quebrar a Ponte, o tablet cai no chão.
+- A barra sob o ícone mostra a bateria (`tabletCapacity`, padrão 100.000 FE).
+
+```
+ G      G = Painel de vidro
+WEW     W = Receptor sem fio (AE2)   E = Processador de Engenharia (AE2)
+ C      C = Célula de energia (AE2)
+```
+Receita em `data/tccolonybridge/recipe/colony_tablet.json`. Modelo provisório (textura do mapa vanilla).
+
 ## Setup
 Este mod faz parte do workspace **TC Minecraft Mods** (ver o `README.md` da raiz: build, VS Code, testes).
 1. Copie para `mods/colony-bridge/libs/` os jars do seu ATM10 (ver `libs/LEIA-ME.txt`).

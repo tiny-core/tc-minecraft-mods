@@ -111,6 +111,19 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `item/LinkCardItem` | Cartão de ligação monitor → Ponte ou Abastecedor (valida dimensão, distância, permissão). |
 | `client/render/*` | Desenho no mundo: renderer, canvas, painel da Ponte (`MonitorPanels`) e do Abastecedor (`SupplyPanel`), lista paginada, animação. |
 
+## TC Tablet da Colônia (`tablet/`) — acesso remoto aos blocos
+
+| Classe | Responsabilidade |
+|---|---|
+| `item/ColonyTabletItem` | Item: shift + clique na Ponte liga à colônia; dica, barra de bateria; (10b) abre as telas. |
+| `item/TabletLink` | Colônia ligada (chave + nome), guardada como data component. |
+| `item/TabletEnergy` | Bateria no data component `TABLET_ENERGY` via `ComponentEnergyStorage` (também capability de energia). |
+| `registry/ModDataComponents` | Registro dos data components do mod (energia e ligação do tablet). |
+| `block/bridge/TabletCharger` | Slot do carregador na Ponte: só aceita o tablet, carrega a cada 10 ticks com energia da rede ME, liga à colônia, cai ao quebrar. |
+| `menu/bridge/ChargerSlot` | Slot do carregador na aba "Geral" da tela da Ponte. |
+| `integration/ae2/GridPower` | Tira energia da rede ME em FE (conversão e multiplicador do AE2). |
+| `logic/tablet/TabletCharge` | Regra pura (testada): quanto carregar por passo e largura da barra. |
+
 ## Infraestrutura
 
 | Classe | Responsabilidade |

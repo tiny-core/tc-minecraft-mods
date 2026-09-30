@@ -6,12 +6,14 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.block.bridge.CraftSettings;
 import org.tinycore.colonybridge.client.list.TargetListWidget;
 import org.tinycore.colonybridge.client.ui.StatusColors;
+import org.tinycore.colonybridge.item.TabletEnergy;
 import org.tinycore.colonybridge.logic.bridge.RequestCounts;
 import org.tinycore.colonybridge.logic.crafting.CraftPreference;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
@@ -25,6 +27,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.RedstoneIcons;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.UiFormat;
 
 import java.util.HashSet;
 import java.util.List;
@@ -227,7 +230,11 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.section." + tab.name().toLowerCase()),
                 x + PADDING, y + SECTION_Y, inner, ScreenStyle.TEXT);
         switch (tab) {
-            case GENERAL -> renderGeneral(g, snap.counts(), x + PADDING, y + CONTENT_Y);
+            case GENERAL -> {
+                renderGeneral(g, snap.counts(), x + PADDING, y + CONTENT_Y);
+                renderCharger(g, x, y);
+                renderSlots(g, x, y);
+            }
             case FILTER -> {
                 filterList.render(g, mouseX, mouseY);
                 renderSlots(g, x, y);
@@ -244,7 +251,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         }
     }
 
-    /** Resumo do último ciclo: quatro cartões (2×2) e o aviso de que os detalhes estão no monitor. */
+    /** Resumo do último ciclo: quatro cartões (2×2). Os detalhes ficam no monitor (dito na ajuda "?"). */
     private void renderGeneral(GuiGraphics g, RequestCounts counts, int x, int y) {
         int inner = WIDTH - PADDING * 2;
         int cardWidth = (inner - 4) / 2;
@@ -254,8 +261,32 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
         card(g, x, y + 32, cardWidth, "gui.tccolonybridge.count.crafting", counts.crafting(), ScreenStyle.INFO);
         card(g, x + cardWidth + 4, y + 32, cardWidth, "gui.tccolonybridge.count.pending", counts.pending(),
                 counts.pending() > 0 ? ScreenStyle.WARNING : ScreenStyle.TEXT_MUTED);
-        g.drawWordWrap(font, Component.translatable("gui.tccolonybridge.monitor_hint"), x, y + 70, inner,
-                ScreenStyle.TEXT_MUTED);
+    }
+
+    /**
+     * Carregador do tablet (aba "Geral"): título e barra de energia ao lado do slot. A energia é lida do item
+     * sincronizado no slot, então a barra anda sozinha enquanto carrega.
+     */
+    private void renderCharger(GuiGraphics g, int x, int y) {
+        int textX = x + ColonyBridgeMenu.CHARGER_X + 22;
+        int width = WIDTH - PADDING - (textX - x);
+        int top = y + ColonyBridgeMenu.CHARGER_Y;
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.charger"), textX, top, width,
+                ScreenStyle.TEXT);
+        ItemStack tablet = menu.slots.get(ColonyBridgeMenu.CHARGER_INDEX).getItem();
+        if (tablet.isEmpty()) {
+            ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.charger.empty"), textX,
+                    top + 10, width, ScreenStyle.TEXT_MUTED);
+            return;
+        }
+        int stored = TabletEnergy.stored(tablet);
+        int capacity = TabletEnergy.capacity();
+        String label = UiFormat.compact(stored) + " / " + UiFormat.compact(capacity) + " FE";
+        int barWidth = width - font.width(label) - 4;
+        ScreenStyle.inset(g, textX, top + 11, barWidth, 6, ScreenStyle.SLOT);
+        g.fill(textX + 1, top + 12, textX + 1 + (int) ((barWidth - 2) * Math.min(1.0, (double) stored / capacity)),
+                top + 16, ScreenStyle.INFO);
+        g.drawString(font, label, textX + barWidth + 4, top + 10, ScreenStyle.TEXT_MUTED, false);
     }
 
     private void card(GuiGraphics g, int x, int y, int width, String labelKey, int value, int color) {

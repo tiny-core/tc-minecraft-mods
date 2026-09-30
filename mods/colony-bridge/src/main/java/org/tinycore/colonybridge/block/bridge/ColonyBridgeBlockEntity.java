@@ -11,7 +11,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.Config;
+import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.BridgeNetwork;
+import org.tinycore.colonybridge.item.ColonyTabletItem;
 import org.tinycore.colonybridge.logic.terminal.TerminalLink;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
 import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
@@ -63,6 +65,8 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
     private final TargetList filter = new TargetList(TargetListKind.FILTER);
     private final PreferredItems preferred = new PreferredItems();
     private final BridgeStats stats = new BridgeStats();
+    /** Slot que carrega o tablet com energia da rede ME (e o liga a esta colônia). */
+    private final TabletCharger charger = new TabletCharger(this::setChanged, this::linkTablet);
     private BridgeSettings settings = BridgeSettings.DEFAULT;
     private CraftSettings craftSettings = CraftSettings.DEFAULT;
     /** Cache da lista de mods craftáveis para a aba "Mods" (só recalculada com a tela aberta). */
@@ -116,6 +120,34 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         if (stats.consumeDirty()) {
             setChanged(); // só marca para salvar quando houve entrega/craft no ciclo
         }
+    }
+
+    /** Além do ciclo da base, carrega o tablet (a cada poucos ticks, só com a rede ME ativa). */
+    @Override
+    public void serverTick() {
+        super.serverTick();
+        IGridNode node = getActionableNode();
+        charger.tick(node != null && node.isActive() ? node.getGrid() : null);
+    }
+
+    /** Tablet posto no carregador: liga à colônia desta Ponte (quem abre a tela já tem permissão nela). */
+    private void linkTablet(ItemStack stack) {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        String colony = ColonyAccess.colonyKeyAt(level, getBlockPos());
+        if (colony != null) {
+            ColonyTabletItem.link(stack, colony, ColonyAccess.colonyNameAt(level, getBlockPos()));
+        }
+    }
+
+    @Override
+    public void dropContents(ServerLevel serverLevel) {
+        charger.drop(serverLevel, getBlockPos());
+    }
+
+    public TabletCharger getCharger() {
+        return charger;
     }
 
     // ---------------------------------------------------------------- tela
@@ -238,6 +270,7 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         tag.put("preferred", preferred.save(registries));
         tag.put("craftLinks", craftLinks.save(registries));
         tag.put("stats", stats.save());
+        tag.put("charger", charger.save(registries));
     }
 
     @Override
@@ -257,5 +290,6 @@ public class ColonyBridgeBlockEntity extends AbstractBridgeBlockEntity implement
         preferred.load(tag.getCompound("preferred"), registries);
         craftLinks.load(CraftLinks.listFrom(tag, "craftLinks"), registries);
         stats.load(tag.getCompound("stats"));
+        charger.load(tag.getCompound("charger"), registries);
     }
 }

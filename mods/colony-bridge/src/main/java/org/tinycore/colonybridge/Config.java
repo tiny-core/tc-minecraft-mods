@@ -81,6 +81,18 @@ public final class Config {
                     "Baixar o valor corta as linhas do fim das listas existentes.")
             .defineInRange("listMaxLines", 32, 1, 64);
 
+    public static final ModConfigSpec.IntValue TABLET_CAPACITY = B
+            .comment("Bateria do TC Colony Tablet, em FE.")
+            .defineInRange("tabletCapacity", 100_000, 1_000, 10_000_000);
+
+    public static final ModConfigSpec.IntValue TABLET_USE_PER_TICK = B
+            .comment("FE que o tablet gasta por tick enquanto uma tela está aberta por ele (0 = não gasta).")
+            .defineInRange("tabletUsePerTick", 5, 0, 10_000);
+
+    public static final ModConfigSpec.IntValue TABLET_CHARGE_RATE = B
+            .comment("FE por tick que o carregador da Ponte põe no tablet (a energia sai da rede ME, convertida do AE).")
+            .defineInRange("tabletChargeRate", 1_000, 1, 1_000_000);
+
     public static final ModConfigSpec.IntValue MONITOR_MAX_WIDTH = B
             .comment("Largura máxima (em blocos) de uma tela formada por monitores.")
             .defineInRange("monitorMaxWidth", 8, 1, 16);

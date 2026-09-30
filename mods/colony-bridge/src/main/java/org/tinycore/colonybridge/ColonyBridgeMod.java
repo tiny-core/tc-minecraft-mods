@@ -6,12 +6,15 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import org.slf4j.Logger;
 import org.tinycore.colonybridge.network.ModNetwork;
 import org.tinycore.colonybridge.registry.ModCreativeTabs;
 import org.tinycore.colonybridge.registry.ModMenus;
+import org.tinycore.colonybridge.item.TabletEnergy;
 import org.tinycore.colonybridge.registry.ModBlocks;
+import org.tinycore.colonybridge.registry.ModDataComponents;
 import org.tinycore.colonybridge.registry.ModItems;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
 
@@ -27,6 +30,7 @@ public final class ColonyBridgeMod {
     public ColonyBridgeMod(IEventBus modBus, ModContainer container) {
         ModBlocks.register(modBus);
         ModItems.register(modBus);
+        ModDataComponents.register(modBus);
         ModBlockEntities.register(modBus);
         ModCreativeTabs.register(modBus);
         ModMenus.register(modBus);
@@ -49,5 +53,8 @@ public final class ColonyBridgeMod {
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.COLONY_SUPPLY.get(),
                 (be, ctx) -> be);
+        // Bateria do tablet como energia padrão do NeoForge: carregadores de outros mods também a enchem.
+        event.registerItem(Capabilities.EnergyStorage.ITEM, (stack, ctx) -> TabletEnergy.storage(stack),
+                ModItems.COLONY_TABLET.get());
     }
 }

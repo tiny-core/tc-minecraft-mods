@@ -8,6 +8,8 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
@@ -19,6 +21,7 @@ import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.menu.TargetListSync;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModBlocks;
+import org.tinycore.colonybridge.registry.ModItems;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
 
@@ -26,8 +29,8 @@ import org.tinycore.core.menu.AbstractGhostMenu;
  * "Container" da tela da ponte. No Minecraft toda tela ligada a um bloco tem duas metades:
  * o menu (existe no servidor <b>e</b> no cliente) e a {@code Screen} (só no cliente, em {@code client/}).
  * <p>
- * Slots: 0..17 são os ghost slots dos itens preferidos ({@link AbstractGhostMenu}) e depois o inventário do
- * jogador (só para pegar itens e clicar nos ghost slots / ícones da lista). O <b>filtro</b> não é slot: é uma
+ * Slots: 0..17 são os ghost slots dos itens preferidos ({@link AbstractGhostMenu}), 18 é o carregador do tablet
+ * ({@link ChargerSlot}, slot de verdade, só na aba "Geral") e depois o inventário do jogador (só para pegar itens e clicar nos ghost slots / ícones da lista). O <b>filtro</b> não é slot: é uma
  * lista de linhas ({@link TargetListMenu}) editada por pacote. No cliente os preferidos só aparecem na aba
  * deles ({@link BridgeTab}); o inventário, nas abas "Filtro" e "Preferidos".
  * <p>
@@ -46,6 +49,10 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
     public static final int HOTBAR_Y = 239;
 
     public static final int GHOST_COUNT = PreferredItems.SIZE;
+    /** Carregador do tablet: índice no menu e posição (aba "Geral"). */
+    public static final int CHARGER_INDEX = GHOST_COUNT;
+    public static final int CHARGER_X = 9;
+    public static final int CHARGER_Y = 131;
 
     private final BlockPos pos;
     /** Só no servidor: block entity e acesso ao mundo para validar distância. */
@@ -69,7 +76,7 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
         this.bridge = bridge;
         this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
         this.player = inventory.player;
-        addSlots(inventory);
+        addSlots(inventory, bridge.getCharger().handler());
     }
 
     /** Construtor do cliente: o servidor manda só a posição do bloco nos "dados extras" da abertura. */
@@ -80,13 +87,14 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
         this.bridge = null;
         this.access = ContainerLevelAccess.NULL;
         this.player = inventory.player;
-        addSlots(inventory);
+        addSlots(inventory, new ItemStackHandler(1)); // cópia vazia: o conteúdo vem sincronizado do servidor
     }
 
-    private void addSlots(Inventory inventory) {
+    private void addSlots(Inventory inventory, IItemHandler charger) {
         for (int i = 0; i < PreferredItems.SIZE; i++) {
             addGhostSlot(i, FILTER_X + (i % 9) * 18, FILTER_Y + (i / 9) * 18, () -> isVisible(BridgeTab.PREFERRED));
         }
+        addSlot(new ChargerSlot(charger, CHARGER_X, CHARGER_Y, () -> isVisible(BridgeTab.GENERAL)));
         addPlayerInventory(inventory, FILTER_X, INVENTORY_Y, HOTBAR_Y,
                 () -> bridge != null || tab.showsInventory());
     }
@@ -102,13 +110,35 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
         return tab == BridgeTab.PREFERRED ? GHOST_COUNT : 0;
     }
 
-    /** Na aba "Filtro", shift-clique no inventário vira uma linha nova do filtro. Nunca move o item. */
+    /**
+     * Shift-clique:
+     * <ul>
+     *   <li>no carregador → volta o tablet para o inventário;</li>
+     *   <li>num tablet do inventário, na aba "Geral" → vai para o carregador;</li>
+     *   <li>na aba "Filtro" → vira uma linha nova do filtro (nunca move o item);</li>
+     *   <li>na aba "Preferidos" → copia para o primeiro ghost slot livre ({@link AbstractGhostMenu}).</li>
+     * </ul>
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
+        if (index < 0 || index >= slots.size()) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = slots.get(index).getItem();
+        if (index == CHARGER_INDEX) {
+            moveItemStackTo(stack, CHARGER_INDEX + 1, slots.size(), true);
+            slots.get(index).setChanged();
+            return ItemStack.EMPTY;
+        }
+        if (tab == BridgeTab.GENERAL && index > CHARGER_INDEX && stack.is(ModItems.COLONY_TABLET.get())) {
+            moveItemStackTo(stack, CHARGER_INDEX, CHARGER_INDEX + 1, false);
+            slots.get(index).setChanged();
+            return ItemStack.EMPTY;
+        }
         if (tab != BridgeTab.FILTER || bridge == null) {
             return super.quickMoveStack(player, index);
         }
-        if (index >= GHOST_COUNT && index < slots.size() && canEditGhosts(player)
+        if (index > CHARGER_INDEX && canEditGhosts(player)
                 && TargetListEditor.addStack(bridge.getFilter(), slots.get(index).getItem())) {
             bridge.onTargetListChanged(TargetListKind.FILTER);
         }
