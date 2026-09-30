@@ -12,6 +12,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.tinycore.colonybridge.client.tablet.TabletTabBar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.terminal.ItemListing;
@@ -73,11 +74,14 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     @Override
     protected void init() {
         super.init();
+        int tabs = menu.tabletView() == null ? 0 : TabletTabBar.HEIGHT; // abas do tablet acima da janela
         int rows = Math.max(WarehouseTerminalMenu.MIN_ROWS, Math.min(WarehouseTerminalMenu.MAX_ROWS,
-                WarehouseTerminalMenu.MIN_ROWS + (height - SCREEN_MARGIN * 2 - HEIGHT) / 18));
+                WarehouseTerminalMenu.MIN_ROWS + (height - tabs - SCREEN_MARGIN * 2 - HEIGHT) / 18));
         extra = (rows - WarehouseTerminalMenu.MIN_ROWS) * 18;
-        topPos = (height - HEIGHT - extra) / 2 + extra; // janela inteira centralizada; slots continuam em topPos
+        // Janela inteira (com as abas) centralizada; slots continuam em topPos.
+        topPos = (height - tabs - HEIGHT - extra) / 2 + extra + tabs;
         int top = topPos - extra;
+        TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, top);
 
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));

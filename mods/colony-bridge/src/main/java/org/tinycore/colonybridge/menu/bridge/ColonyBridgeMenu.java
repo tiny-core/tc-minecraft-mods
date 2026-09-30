@@ -6,7 +6,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -19,8 +18,10 @@ import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetListEditor;
 import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.menu.TargetListSync;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
+import org.tinycore.colonybridge.menu.tablet.TabletMenu;
+import org.tinycore.colonybridge.menu.tablet.TabletView;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
-import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModItems;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
@@ -37,7 +38,7 @@ import org.tinycore.core.menu.AbstractGhostMenu;
  * O menu do servidor envia um {@link BridgeSnapshot} quando os dados mudam (checagem a cada
  * {@link #SNAPSHOT_INTERVAL_TICKS}); o do cliente guarda o último recebido para a tela desenhar.
  */
-public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMenu {
+public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMenu, TabletMenu {
 
     /** Frequência máxima de envio do snapshot: 1×/s. */
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
@@ -55,9 +56,11 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
     public static final int CHARGER_Y = 131;
 
     private final BlockPos pos;
-    /** Só no servidor: block entity e acesso ao mundo para validar distância. */
+    /** Só no servidor: o block entity. */
     private final @Nullable ColonyBridgeBlockEntity bridge;
-    private final ContainerLevelAccess access;
+    /** Por onde a tela foi aberta (bloco ou tablet): decide quando ela continua válida. */
+    private final MenuAccess access;
+    private final @Nullable TabletView tabletView;
     private final Player player;
 
     private @Nullable BridgeSnapshot lastSent;
@@ -69,12 +72,13 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
     private final TargetListSync lists = new TargetListSync(TargetListKind.FILTER);
 
     /** Construtor do servidor, chamado ao abrir a tela. */
-    public ColonyBridgeMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity bridge) {
+    public ColonyBridgeMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity bridge, MenuAccess access) {
         super(ModMenus.COLONY_BRIDGE.get(), containerId,
                 bridge.getPreferred().items(), bridge::setChanged);
         this.pos = bridge.getBlockPos();
         this.bridge = bridge;
-        this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
+        this.access = access;
+        this.tabletView = access.tabletView();
         this.player = inventory.player;
         addSlots(inventory, bridge.getCharger().handler());
     }
@@ -85,7 +89,8 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
                 NonNullList.withSize(GHOST_COUNT, ItemStack.EMPTY), () -> {});
         this.pos = extraData.readBlockPos();
         this.bridge = null;
-        this.access = ContainerLevelAccess.NULL;
+        this.access = MenuAccess.CLIENT;
+        this.tabletView = TabletView.read(extraData);
         this.player = inventory.player;
         addSlots(inventory, new ItemStackHandler(1)); // cópia vazia: o conteúdo vem sincronizado do servidor
     }
@@ -221,9 +226,15 @@ public class ColonyBridgeMenu extends AbstractGhostMenu implements TargetListMen
         this.tab = tab;
     }
 
-    /** Fecha a tela se o bloco sumiu ou o jogador se afastou mais de 8 blocos (validado no servidor). */
+    /** Fecha a tela quando o acesso deixa de valer (bloco sumiu, jogador longe, tablet sem bateria...). */
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ModBlocks.COLONY_BRIDGE.get());
+        return access.stillValid(player);
     }
+
+    @Override
+    public @Nullable TabletView tabletView() {
+        return tabletView;
+    }
+
 }

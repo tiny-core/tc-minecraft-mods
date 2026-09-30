@@ -9,6 +9,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.client.list.TargetListWidget;
+import org.tinycore.colonybridge.client.tablet.TabletTabBar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetLineView;
@@ -60,6 +61,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
     @Override
     protected void init() {
         super.init();
+        topPos += TabletTabBar.offset(menu.tabletView()); // abre espaço para as abas do tablet acima da janela
+        TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));

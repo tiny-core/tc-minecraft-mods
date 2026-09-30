@@ -1,6 +1,7 @@
 package org.tinycore.colonybridge.network;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -13,6 +14,8 @@ import org.tinycore.colonybridge.client.ClientPayloadHandler;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetListEditor;
 import org.tinycore.colonybridge.menu.TargetListMenu;
+import org.tinycore.colonybridge.menu.tablet.TabletOpener;
+import org.tinycore.colonybridge.logic.tablet.TabletTab;
 import org.tinycore.colonybridge.menu.bridge.BridgeTab;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
@@ -30,7 +33,7 @@ import org.tinycore.core.block.RedstoneMode;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "9";
+    private static final String PROTOCOL_VERSION = "10";
 
     private ModNetwork() {}
 
@@ -51,6 +54,7 @@ public final class ModNetwork {
         registrar.playToServer(SupplyConfigPayload.TYPE, SupplyConfigPayload.STREAM_CODEC,
                 ModNetwork::onSupplyConfig);
         registrar.playToServer(TargetEditPayload.TYPE, TargetEditPayload.STREAM_CODEC, ModNetwork::onTargetEdit);
+        registrar.playToServer(TabletOpenPayload.TYPE, TabletOpenPayload.STREAM_CODEC, ModNetwork::onTabletOpen);
         registrar.playToClient(TargetListPayload.TYPE, TargetListPayload.STREAM_CODEC,
                 (payload, context) -> ClientPayloadHandler.onTargetList(payload));
         registrar.playToClient(WarehouseContentsPayload.TYPE, WarehouseContentsPayload.STREAM_CODEC,
@@ -134,8 +138,23 @@ public final class ModNetwork {
     }
 
     /**
+     * Troca de aba do tablet. O {@link TabletOpener} confere tudo de novo (tablet na mão, bateria, bloco
+     * disponível, permissão); do cliente só vem o número da aba.
+     */
+    private static void onTabletOpen(TabletOpenPayload payload, IPayloadContext context) {
+        TabletTab tab = TabletTab.byId(payload.tab());
+        if (!(context.player() instanceof ServerPlayer player) || tab == null) {
+            return;
+        }
+        InteractionHand hand = TabletOpener.handWithTablet(player);
+        if (hand != null) {
+            TabletOpener.open(player, hand, tab);
+        }
+    }
+
+    /**
      * Pacote vindo do cliente = hostil até prova em contrário. Devolve o menu só se: é do tipo esperado,
-     * está aberto com esse id, o jogador está a até 8 blocos (stillValid), o bloco ainda existe e o
+     * está aberto com esse id, o acesso ainda vale (stillValid: perto do bloco, ou tablet válido), o bloco ainda existe e o
      * jogador tem permissão para configurá-lo. Caso contrário, null (pacote ignorado).
      */
     private static <T extends AbstractContainerMenu> @Nullable T validMenu(IPayloadContext context, int containerId,

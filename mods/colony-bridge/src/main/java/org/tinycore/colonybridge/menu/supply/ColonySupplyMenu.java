@@ -5,7 +5,6 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
@@ -16,8 +15,10 @@ import org.tinycore.colonybridge.logic.target.TargetListKind;
 import org.tinycore.colonybridge.menu.TargetListEditor;
 import org.tinycore.colonybridge.menu.TargetListMenu;
 import org.tinycore.colonybridge.menu.TargetListSync;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
+import org.tinycore.colonybridge.menu.tablet.TabletMenu;
+import org.tinycore.colonybridge.menu.tablet.TabletView;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
-import org.tinycore.colonybridge.registry.ModBlocks;
 import org.tinycore.colonybridge.registry.ModMenus;
 import org.tinycore.core.menu.AbstractGhostMenu;
 
@@ -32,7 +33,7 @@ import java.util.List;
  * O servidor envia um {@link SupplySnapshot} no máximo 1×/s e só quando muda, e as linhas das listas quando
  * elas mudam ({@link TargetListSync}).
  */
-public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMenu {
+public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMenu, TabletMenu {
 
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
@@ -42,9 +43,11 @@ public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMen
     public static final int HOTBAR_Y = 237;
 
     private final BlockPos pos;
-    /** Só no servidor: block entity e acesso ao mundo para validar distância. */
+    /** Só no servidor: o block entity. */
     private final @Nullable ColonySupplyBlockEntity supply;
-    private final ContainerLevelAccess access;
+    /** Por onde a tela foi aberta (bloco ou tablet): decide quando ela continua válida. */
+    private final MenuAccess access;
+    private final @Nullable TabletView tabletView;
     private final Player player;
     private final TargetListSync lists = new TargetListSync(TargetListKind.KEEP, TargetListKind.SURPLUS);
     /** Lista da aba aberta (servidor: vem da tela), destino do shift-clique. */
@@ -55,11 +58,12 @@ public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMen
     /** Só no cliente: último snapshot recebido. */
     private SupplySnapshot snapshot = SupplySnapshot.EMPTY;
 
-    public ColonySupplyMenu(int containerId, Inventory inventory, ColonySupplyBlockEntity supply) {
+    public ColonySupplyMenu(int containerId, Inventory inventory, ColonySupplyBlockEntity supply, MenuAccess access) {
         super(ModMenus.COLONY_SUPPLY.get(), containerId, List.of(), supply::setChanged);
         this.pos = supply.getBlockPos();
         this.supply = supply;
-        this.access = ContainerLevelAccess.create(inventory.player.level(), pos);
+        this.access = access;
+        this.tabletView = access.tabletView();
         this.player = inventory.player;
         addPlayerInventory(inventory, INVENTORY_X, INVENTORY_Y, HOTBAR_Y, () -> true);
     }
@@ -68,7 +72,8 @@ public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMen
         super(ModMenus.COLONY_SUPPLY.get(), containerId, List.of(), () -> {});
         this.pos = extraData.readBlockPos();
         this.supply = null;
-        this.access = ContainerLevelAccess.NULL;
+        this.access = MenuAccess.CLIENT;
+        this.tabletView = TabletView.read(extraData);
         this.player = inventory.player;
         addPlayerInventory(inventory, INVENTORY_X, INVENTORY_Y, HOTBAR_Y, () -> true);
     }
@@ -151,6 +156,12 @@ public class ColonySupplyMenu extends AbstractGhostMenu implements TargetListMen
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ModBlocks.COLONY_SUPPLY.get());
+        return access.stillValid(player);
     }
+
+    @Override
+    public @Nullable TabletView tabletView() {
+        return tabletView;
+    }
+
 }

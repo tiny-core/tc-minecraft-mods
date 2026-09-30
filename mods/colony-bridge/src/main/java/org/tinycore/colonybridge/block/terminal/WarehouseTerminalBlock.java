@@ -10,6 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
 import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
@@ -55,8 +56,9 @@ public class WarehouseTerminalBlock extends AbstractBridgeBlock<WarehouseTermina
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity be) {
-        return new WarehouseTerminalMenu(containerId, inventory, be);
+    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity be,
+                                               MenuAccess access) {
+        return new WarehouseTerminalMenu(containerId, inventory, be, access);
     }
 
     /** A tela do terminal mostra o nome da colônia no cabeçalho, então ele vai junto na abertura. */

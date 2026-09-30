@@ -6,6 +6,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.LivingEntity;
@@ -33,6 +34,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
+import org.tinycore.colonybridge.menu.tablet.TabletView;
 
 import java.util.List;
 
@@ -86,8 +89,13 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
     /** Título da tela. */
     protected abstract Component menuTitle();
 
-    /** Cria o menu (container) no servidor para o jogador que abriu a tela. */
-    protected abstract AbstractContainerMenu createMenu(int containerId, Inventory inventory, E blockEntity);
+    /**
+     * Cria o menu (container) no servidor para o jogador que abriu a tela.
+     *
+     * @param access por onde a tela foi aberta (clique no bloco ou tablet): decide quando ela continua válida
+     */
+    protected abstract AbstractContainerMenu createMenu(int containerId, Inventory inventory, E blockEntity,
+                                                        MenuAccess access);
 
     /** Declara quais propriedades o bloco tem; o Minecraft gera uma combinação de estado para cada valor. */
     @Override
@@ -227,10 +235,35 @@ public abstract class AbstractBridgeBlock<E extends AbstractBridgeBlockEntity> e
             player.displayClientMessage(Component.translatable(be.getStatus().translationKey()), true);
             return InteractionResult.CONSUME;
         }
-        player.openMenu(new SimpleMenuProvider(
-                (containerId, inventory, p) -> createMenu(containerId, inventory, be), menuTitle()),
-                buf -> writeMenuData(buf, be));
+        open((ServerPlayer) player, be, MenuAccess.block(be));
         return InteractionResult.CONSUME;
+    }
+
+    /**
+     * Abre a tela deste bloco pelo tablet. Quem chama ({@code TabletOpener}) já achou o bloco pelo registro da
+     * colônia e conferiu permissão e bateria.
+     *
+     * @return false se o block entity não é deste bloco
+     */
+    public boolean openRemote(ServerPlayer player, BlockEntity blockEntity, MenuAccess access) {
+        if (!entityClass.isInstance(blockEntity)) {
+            return false;
+        }
+        open(player, entityClass.cast(blockEntity), access);
+        return true;
+    }
+
+    /**
+     * {@code openMenu(provider, dados)} cria o menu no servidor e manda o cliente abrir o seu com os "dados extras":
+     * os do bloco ({@link #writeMenuData}) e, no fim, as abas do tablet ({@link TabletView}, ausente no clique).
+     */
+    private void open(ServerPlayer player, E be, MenuAccess access) {
+        player.openMenu(new SimpleMenuProvider(
+                (containerId, inventory, p) -> createMenu(containerId, inventory, be, access), menuTitle()),
+                buf -> {
+                    writeMenuData(buf, be);
+                    TabletView.write(buf, access.tabletView());
+                });
     }
 
     /** Block entity deste bloco na posição, ou null se não houver (ou for de outro tipo). */

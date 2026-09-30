@@ -123,6 +123,12 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `menu/bridge/ChargerSlot` | Slot do carregador na aba "Geral" da tela da Ponte. |
 | `integration/ae2/GridPower` | Tira energia da rede ME em FE (conversão e multiplicador do AE2). |
 | `logic/tablet/TabletCharge` | Regra pura (testada): quanto carregar por passo e largura da barra. |
+| `logic/tablet/TabletTab`, `TabletTabs` | Abas do tablet e regras puras (testadas): máscara de disponíveis, qual abrir, gasto por passo. |
+| `menu/access/MenuAccess`, `BlockAccess`, `TabletAccess` | "Por onde" a tela foi aberta e quando continua válida: perto do bloco, ou tablet na mão + ligação + bateria + bloco carregado + permissão. Todo pacote de tela passa por aqui (`stillValid`). |
+| `menu/tablet/TabletOpener` | Servidor: acha os blocos da colônia (registro da Fase 8, sem carregar chunk, qualquer dimensão), escolhe a aba e abre a tela do bloco com `TabletAccess`. |
+| `menu/tablet/TabletView`, `TabletMenu` | Abas disponíveis e aba aberta, enviadas com a abertura da tela; menus que aceitam o tablet. |
+| `network/TabletOpenPayload` | Pedido de troca de aba (só o número; o servidor refaz as checagens). |
+| `client/tablet/TabletTabBar` | Barra de abas acima da janela das telas abertas pelo tablet. |
 
 ## Infraestrutura
 

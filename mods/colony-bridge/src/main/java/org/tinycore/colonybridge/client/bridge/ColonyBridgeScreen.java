@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.BridgeSettings;
 import org.tinycore.colonybridge.block.bridge.CraftSettings;
 import org.tinycore.colonybridge.client.list.TargetListWidget;
+import org.tinycore.colonybridge.client.tablet.TabletTabBar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.item.TabletEnergy;
 import org.tinycore.colonybridge.logic.bridge.RequestCounts;
@@ -90,6 +91,8 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
     @Override
     protected void init() {
         super.init();
+        topPos += TabletTabBar.offset(menu.tabletView()); // abre espaço para as abas do tablet acima da janela
+        TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         if (modList == null) {
             modList = new ModListView(font);
         }

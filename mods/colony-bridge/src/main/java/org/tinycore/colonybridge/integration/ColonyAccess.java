@@ -13,6 +13,7 @@ import com.minecolonies.api.colony.requestsystem.requestable.Stack;
 import com.minecolonies.api.colony.requestsystem.token.IToken;
 import com.minecolonies.api.tileentities.AbstractTileEntityRack;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -44,6 +45,15 @@ public final class ColonyAccess {
      */
     public static String colonyKey(IColony colony) {
         return colony.getDimension().location() + "#" + colony.getID();
+    }
+
+    /**
+     * Dimensão de uma chave de colônia ({@link #colonyKey}: {@code dimensão#id}), ou null se a chave é inválida.
+     * Usada pelo tablet, que guarda só a chave e precisa achar o mundo da colônia.
+     */
+    public static @Nullable ResourceLocation dimensionOf(String colonyKey) {
+        int separator = colonyKey.lastIndexOf('#');
+        return separator <= 0 ? null : ResourceLocation.tryParse(colonyKey.substring(0, separator));
     }
 
     /**

@@ -230,7 +230,6 @@
   "tablet.tccolonybridge.no_colony": "Esta Ponte não está dentro de uma colônia",
   "tablet.tccolonybridge.linked": "Tablet ligado a %s",
   "tablet.tccolonybridge.not_linked": "Não ligado: shift + clique direito numa Ponte da Colônia",
-  "tablet.tccolonybridge.status": "%s · bateria %s / %s FE",
   "tablet.tccolonybridge.colony": "Colônia: %s",
   "tablet.tccolonybridge.energy": "Bateria: %s / %s FE",
   "tablet.tccolonybridge.hint": "Clique direito: os blocos da colônia, de qualquer lugar. Carregue na Ponte.",
@@ -241,5 +240,17 @@
   "tccolonybridge.configuration.tabletUsePerTick": "Gasto do tablet por tick",
   "tccolonybridge.configuration.tabletUsePerTick.tooltip": "FE que o tablet gasta por tick enquanto uma tela está aberta por ele (0 = não gasta).",
   "tccolonybridge.configuration.tabletChargeRate": "Carga do tablet",
-  "tccolonybridge.configuration.tabletChargeRate.tooltip": "FE por tick que o carregador da Ponte põe no tablet (sai da rede ME, convertido do AE)."
+  "tccolonybridge.configuration.tabletChargeRate.tooltip": "FE por tick que o carregador da Ponte põe no tablet (sai da rede ME, convertido do AE).",
+  "tablet.tccolonybridge.closed.no_tablet": "Tablet fechado: segure o tablet ligado a esta colônia",
+  "tablet.tccolonybridge.closed.block_gone": "Tablet fechado: o bloco sumiu ou o chunk dele não está carregado",
+  "tablet.tccolonybridge.closed.no_power": "Tablet sem bateria: carregue na Ponte da Colônia",
+  "tablet.tccolonybridge.nothing": "Nenhum bloco desta colônia disponível (ausente ou chunk descarregado)",
+  "tablet.tccolonybridge.unavailable": "Este bloco não está disponível (ausente ou chunk descarregado)",
+  "gui.tccolonybridge.tablet.tab.terminal": "Terminal do Armazém",
+  "gui.tccolonybridge.tablet.tab.bridge": "Ponte da Colônia",
+  "gui.tccolonybridge.tablet.tab.supply": "Abastecedor da Colônia",
+  "gui.tccolonybridge.tablet.tab.bridge_panel": "Painel da Ponte",
+  "gui.tccolonybridge.tablet.tab.supply_panel": "Painel do Abastecedor",
+  "gui.tccolonybridge.tablet.tab.chunk_loader": "Chunk Loader",
+  "gui.tccolonybridge.tablet.tab_unavailable": "%s — indisponível (ausente ou chunk descarregado)"
 }

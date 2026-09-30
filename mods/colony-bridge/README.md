@@ -171,9 +171,16 @@ IRI     I = Interface ME (AE2)
 O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é um JSON comum
 (`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
 
-## TC Tablet da Colônia (em desenvolvimento)
-Acesso de qualquer lugar aos blocos de uma colônia. Etapa atual (10a): ligação e bateria; as telas remotas chegam
-na próxima etapa.
+## TC Tablet da Colônia
+Acesso de qualquer lugar aos blocos de uma colônia: abre **as mesmas telas** do Terminal, da Ponte e do Abastecedor
+que estão no mundo, com uma barra de abas em cima da janela.
+
+- **Abrir:** clique direito com o tablet. Abre o Terminal; sem ele, a Ponte; sem ela, o Abastecedor. As abas de
+  blocos ausentes ou em chunk descarregado ficam desativadas (o tablet **nunca carrega chunk**). Funciona em
+  qualquer distância e dimensão.
+- A tela fecha sozinha (com o motivo na barra de ação) se o tablet sair da mão, a bateria acabar, o bloco sumir
+  ou o jogador perder a permissão na colônia. Com uma tela aberta, gasta `tabletUsePerTick` FE por tick
+  (descontados a cada segundo).
 
 - **Ligar:** shift + clique direito numa Ponte (precisa de permissão para configurá-la). O tablet grava a
   **colônia**, não a posição: mudar a Ponte de lugar não o desliga.

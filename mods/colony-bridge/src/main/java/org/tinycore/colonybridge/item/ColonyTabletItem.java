@@ -2,6 +2,7 @@ package org.tinycore.colonybridge.item;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -15,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.logic.tablet.TabletCharge;
+import org.tinycore.colonybridge.menu.tablet.TabletOpener;
 import org.tinycore.colonybridge.registry.ModDataComponents;
 
 import java.util.List;
@@ -25,8 +27,8 @@ import java.util.List;
  * <ul>
  *   <li><b>Ligar:</b> shift + clique direito numa Ponte grava a colônia dela ({@link TabletLink}); pôr o tablet
  *       no carregador da Ponte também liga. Só quem pode configurar a Ponte consegue ligar.</li>
- *   <li><b>Usar:</b> clique direito no ar (a abertura das telas vem na etapa 10b; por enquanto mostra a ligação
- *       e a bateria).</li>
+ *   <li><b>Usar:</b> clique direito no ar abre a tela do Terminal da colônia (ou a primeira disponível), com
+ *       abas para os outros blocos ({@code TabletOpener}).</li>
  * </ul>
  * A barra sob o ícone (a mesma da durabilidade) mostra a bateria.
  */
@@ -88,19 +90,23 @@ public class ColonyTabletItem extends Item {
 
     // ---------------------------------------------------------------- uso
 
-    /** Clique direito no ar. Etapa 10a: só informa a ligação e a bateria (as telas chegam na 10b). */
+    /** Clique direito no ar: abre a tela principal da colônia (Terminal; sem ele, a próxima disponível). */
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (!level.isClientSide) {
-            TabletLink link = link(stack);
-            Component message = link == null
-                    ? Component.translatable("tablet.tccolonybridge.not_linked").withStyle(ChatFormatting.YELLOW)
-                    : Component.translatable("tablet.tccolonybridge.status", link.colonyName(),
-                    TabletEnergy.stored(stack), TabletEnergy.capacity());
-            player.displayClientMessage(message, true);
+        if (player instanceof ServerPlayer serverPlayer) {
+            TabletOpener.open(serverPlayer, hand, null);
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide);
+    }
+
+    /**
+     * Só "re-equipar" (a animação da mão abaixando e subindo) quando o item muda de verdade. A bateria muda a cada
+     * segundo com a tela aberta, e sem isto a mão ficaria balançando atrás da tela.
+     */
+    @Override
+    public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+        return slotChanged || !oldStack.is(newStack.getItem());
     }
 
     // ---------------------------------------------------------------- dica e barra

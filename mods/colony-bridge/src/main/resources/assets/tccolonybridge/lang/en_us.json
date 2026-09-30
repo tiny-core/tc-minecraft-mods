@@ -230,7 +230,6 @@
   "tablet.tccolonybridge.no_colony": "This Bridge is not inside a colony",
   "tablet.tccolonybridge.linked": "Tablet linked to %s",
   "tablet.tccolonybridge.not_linked": "Not linked: shift + right-click a Colony Bridge",
-  "tablet.tccolonybridge.status": "%s · battery %s / %s FE",
   "tablet.tccolonybridge.colony": "Colony: %s",
   "tablet.tccolonybridge.energy": "Battery: %s / %s FE",
   "tablet.tccolonybridge.hint": "Right-click: the colony's blocks, from anywhere. Charge it in the Bridge.",
@@ -241,5 +240,17 @@
   "tccolonybridge.configuration.tabletUsePerTick": "Tablet use per tick",
   "tccolonybridge.configuration.tabletUsePerTick.tooltip": "FE the tablet spends per tick while a screen is open through it (0 = free).",
   "tccolonybridge.configuration.tabletChargeRate": "Tablet charge rate",
-  "tccolonybridge.configuration.tabletChargeRate.tooltip": "FE per tick the Bridge charger puts into the tablet (taken from the ME network, converted from AE)."
+  "tccolonybridge.configuration.tabletChargeRate.tooltip": "FE per tick the Bridge charger puts into the tablet (taken from the ME network, converted from AE).",
+  "tablet.tccolonybridge.closed.no_tablet": "Tablet closed: hold the tablet linked to this colony",
+  "tablet.tccolonybridge.closed.block_gone": "Tablet closed: the block is gone or its chunk is not loaded",
+  "tablet.tccolonybridge.closed.no_power": "Tablet out of battery: charge it in the Colony Bridge",
+  "tablet.tccolonybridge.nothing": "No block of this colony is available (missing or chunk not loaded)",
+  "tablet.tccolonybridge.unavailable": "This block is not available (missing or chunk not loaded)",
+  "gui.tccolonybridge.tablet.tab.terminal": "Warehouse Terminal",
+  "gui.tccolonybridge.tablet.tab.bridge": "Colony Bridge",
+  "gui.tccolonybridge.tablet.tab.supply": "Colony Supply",
+  "gui.tccolonybridge.tablet.tab.bridge_panel": "Bridge panel",
+  "gui.tccolonybridge.tablet.tab.supply_panel": "Supply panel",
+  "gui.tccolonybridge.tablet.tab.chunk_loader": "Chunk Loader",
+  "gui.tccolonybridge.tablet.tab_unavailable": "%s — unavailable (missing or chunk not loaded)"
 }

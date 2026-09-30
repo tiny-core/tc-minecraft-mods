@@ -8,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ClickType;
-import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -18,10 +17,13 @@ import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseItems;
-import org.tinycore.colonybridge.registry.ModBlocks;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
+import org.tinycore.colonybridge.menu.tablet.TabletMenu;
+import org.tinycore.colonybridge.menu.tablet.TabletView;
 import org.tinycore.colonybridge.registry.ModMenus;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Menu do Terminal do Armazém. Os itens do armazém <b>não</b> são slots (seriam milhares): a grade é
@@ -34,7 +36,7 @@ import java.util.List;
  * O armazém só é liberado com o terminal online (rede ativa + Ponte da colônia) e o jogador com permissão,
  * conferidos a cada uso ({@link #racks}); cada item movido gasta energia da rede ({@link #chargeItems}).
  */
-public class WarehouseTerminalMenu extends AbstractContainerMenu {
+public class WarehouseTerminalMenu extends AbstractContainerMenu implements TabletMenu {
 
     /**
      * Posições usadas também pela tela ({@code WarehouseTerminalScreen}), para a grade com {@link #MIN_ROWS}
@@ -62,7 +64,9 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     private static final int INVENTORY_END = INVENTORY_START + 36;
 
     private final BlockPos pos;
-    private final ContainerLevelAccess access;
+    /** Por onde a tela foi aberta (bloco ou tablet): decide quando ela continua válida. */
+    private final MenuAccess access;
+    private final @Nullable TabletView tabletView;
     private final Player player;
     private final String colonyName;
     private final TerminalCrafting crafting;
@@ -75,24 +79,28 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
     /** Quanto já saiu do resultado neste shift-clique (limita a um stack, como no AE2). */
     private int quickCrafted;
 
-    /** Servidor: criado quando o jogador abre o bloco. */
-    public WarehouseTerminalMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity terminal) {
+    /** Servidor: criado quando o jogador abre o bloco (ou pelo tablet: {@code access}). */
+    public WarehouseTerminalMenu(int containerId, Inventory inventory, WarehouseTerminalBlockEntity terminal,
+                                 MenuAccess access) {
         this(containerId, inventory, terminal.getBlockPos(),
-                ColonyAccess.colonyNameAt(inventory.player.level(), terminal.getBlockPos()),
-                ContainerLevelAccess.create(inventory.player.level(), terminal.getBlockPos()), terminal);
+                ColonyAccess.colonyNameAt(Objects.requireNonNull(terminal.getLevel()), terminal.getBlockPos()),
+                access, access.tabletView(), terminal);
     }
 
     /** Cliente: recebe a posição e o nome da colônia escritos por {@link #writeOpenData}. */
     public WarehouseTerminalMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf extraData) {
-        this(containerId, inventory, extraData.readBlockPos(), extraData.readUtf(64), ContainerLevelAccess.NULL, null);
+        this(containerId, inventory, extraData.readBlockPos(), extraData.readUtf(64), MenuAccess.CLIENT,
+                TabletView.read(extraData), null);
     }
 
     private WarehouseTerminalMenu(int containerId, Inventory inventory, BlockPos pos, String colonyName,
-                                  ContainerLevelAccess access, @Nullable WarehouseTerminalBlockEntity terminal) {
+                                  MenuAccess access, @Nullable TabletView tabletView,
+                                  @Nullable WarehouseTerminalBlockEntity terminal) {
         super(ModMenus.WAREHOUSE_TERMINAL.get(), containerId);
         this.pos = pos;
         this.player = inventory.player;
         this.access = access;
+        this.tabletView = tabletView;
         this.colonyName = colonyName;
         this.terminal = terminal;
         this.sync = terminal != null && player instanceof ServerPlayer serverPlayer
@@ -126,7 +134,9 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
         if (terminal == null || terminal.isRemoved() || !terminal.isOnline()) {
             return null;
         }
-        return ColonyAccess.accessibleRacks(player.level(), pos, player.getUUID());
+        // Mundo do bloco (não o do jogador): pelo tablet, o jogador pode estar em outra dimensão.
+        return terminal == null || terminal.getLevel() == null ? null
+                : ColonyAccess.accessibleRacks(terminal.getLevel(), pos, player.getUUID());
     }
 
     /** Cobra da rede a energia dos itens movidos (servidor; no cliente não faz nada). */
@@ -267,13 +277,19 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
         if (racks != null) {
             crafting.clearTo(racks);
         }
-        access.execute((level, blockPos) -> clearContainer(player, crafting.grid));
+        access.levelAccess().execute((level, blockPos) -> clearContainer(player, crafting.grid));
     }
 
     @Override
     public boolean stillValid(Player player) {
-        return stillValid(access, player, ModBlocks.WAREHOUSE_TERMINAL.get());
+        return access.stillValid(player);
     }
+
+    @Override
+    public @Nullable TabletView tabletView() {
+        return tabletView;
+    }
+
 
     public WarehouseView getView() {
         return view;

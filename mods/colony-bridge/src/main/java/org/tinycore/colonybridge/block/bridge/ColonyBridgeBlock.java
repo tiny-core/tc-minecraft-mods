@@ -9,6 +9,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
+import org.tinycore.colonybridge.menu.access.MenuAccess;
 import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
@@ -50,7 +51,8 @@ public class ColonyBridgeBlock extends AbstractBridgeBlock<ColonyBridgeBlockEnti
     }
 
     @Override
-    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity be) {
-        return new ColonyBridgeMenu(containerId, inventory, be);
+    protected AbstractContainerMenu createMenu(int containerId, Inventory inventory, ColonyBridgeBlockEntity be,
+                                               MenuAccess access) {
+        return new ColonyBridgeMenu(containerId, inventory, be, access);
     }
 }
