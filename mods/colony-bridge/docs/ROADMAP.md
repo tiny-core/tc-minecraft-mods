@@ -154,3 +154,115 @@ e menu base com os ghost slots (`AbstractGhostMenu`).
 O mod passou a morar em `tc_minecraft_mods/colony-bridge/` (depois `mods/colony-bridge/`), ao lado do **TC Core** (biblioteca comum,
 mod separado). Próximo candidato a ir para o core: a infraestrutura dos monitores, quando o mod de
 reatores do Mekanism precisar dela.
+
+---
+
+# Próximas fases (proposta de 2026-09-30)
+
+Ordem recomendada. A **8** vem antes das listas porque o tablet e o chunk loader dependem dela.
+Nenhuma fase começa sem o plano curto aprovado pelo autor.
+
+## Fase 8 — Um bloco de cada tipo por colônia
+
+**Objetivo:** Ponte, Abastecedor e Terminal passam a ser **únicos por colônia** (o Chunk Loader da
+Fase 11 e o Pattern Encoder da Fase 12 também). A regra atual (uma Ponte por rede ME, Terminal exige a Ponte na mesma rede) continua.
+
+- Registro por colônia em `SavedData` (como o `DeliveryLedger`): `colonyKey + tipo → dimensão + posição`.
+- Colocação: recusar com mensagem se a colônia já tem um bloco daquele tipo (checar no servidor).
+- Segunda cópia que exista mesmo assim (colônia mudou de borda, mundo editado, registro perdido):
+  fica em estado `DUPLICATE` e não trabalha. Entrada velha (bloco quebrado sem evento) é descartada
+  quando a posição está carregada e não tem mais o bloco.
+- **Muda uma decisão antiga:** hoje várias Pontes por colônia são permitidas (dica 3). Registrar em
+  `DECISOES.md`. O `DeliveryLedger` fica (também guarda as entregas); só a reserva entre pontes perde uso.
+
+## Fase 9 — Listas de itens e tags (Abastecedor e filtros)
+
+**Objetivo:** trocar as grades de ghost slots por **listas de linhas**, como o Mekanism: cada linha tem
+um ghost slot, uma caixa de texto e a quantidade.
+
+- Linha = `alvo` + `quantidade` (ou "tudo"). Alvo aceita:
+  - **item**: soltar item/JEI no slot preenche a caixa com o id (`minecraft:iron_ingot`), ou digitar o id;
+  - **tag**: digitar `#c:ingots/iron`; o slot fica alternando os ícones dos itens da tag (só no cliente);
+  - **mod** (só nos filtros): `@mekanism`, mesma sintaxe da busca do Terminal.
+- Validação no servidor: id/tag existe no registro, tamanho do texto limitado, número máximo de linhas
+  (config), quantidade limitada. Texto inválido: linha fica vermelha e é ignorada.
+- **Abastecedor:** duas abas, "Manter no armazém" e "Excedente para o ME", cada uma com sua lista.
+  Regras a decidir para tag: "manter 64 de `#c:ingots/iron`" conta a soma dos itens da tag no armazém e
+  repõe com o item que a rede ME tiver mais; o excedente devolve primeiro o item com mais sobra.
+  "Tudo" só faz sentido no excedente (= meta 0); em "manter" esvaziaria a rede ME no armazém.
+- **Filtros da Ponte:** a mesma lista (sem quantidade), aceitando item, tag e `@mod`.
+- Tags resolvidas uma vez e cacheadas (invalidar no reload de tags/datapack), nada de resolver por item
+  a cada ciclo.
+- Migração: `StockList` (layout 2) e `ItemFilter` (18 slots) viram listas no primeiro load.
+- **Monitores:** `SupplyContent`/`SupplyPanel` passam a mostrar linhas de tag (nome da tag, ícone
+  alternando) e o número de linhas deixa de ser fixo; limitar o que vai no pacote.
+- Regra pura (parser de alvo, soma por tag, escolha do item a repor) com JUnit.
+
+## Fase 10 — TC Colony Tablet
+
+**Objetivo:** extensão portátil dos blocos da colônia, com **as mesmas funcionalidades** das telas deles.
+
+Decidido com o autor (2026-09-30):
+- **Abas:** Terminal (principal), Ponte, Abastecedor, Chunk Loader e abas de **painéis** com as
+  informações que os monitores mostram (Ponte, Abastecedor). Aba de bloco que não existe no mundo, está
+  em chunk descarregado ou em outra dimensão fica desativada (com dica).
+- **Chunk Loader no tablet:** chunks carregados, energia gasta por tick e botão de ligar/desligar.
+- **Bateria** própria (FE). **Carrega num slot novo da Ponte**, usando energia da rede ME.
+- **Alcance ilimitado** por enquanto (mesma dimensão ou não: a decidir no plano). Addons de alcance
+  ficam para o futuro.
+- **Ligação (escolha do Claude):** shift + clique direito na Ponte grava a **colônia** (id + dimensão)
+  no tablet, não a posição. Os blocos são achados pelo registro da Fase 8, então trocar a Ponte de
+  lugar não quebra o tablet. Colocar o tablet no slot de carga também liga.
+
+Como fazer:
+- Reaproveitar os menus e telas dos blocos: separar "de onde vêm os dados" (bloco ou tablet) do menu,
+  para não duplicar tela. Hoje os menus são de bloco (`stillValid` por distância): criar a variante
+  "aberta pelo tablet" (válida enquanto o tablet está na mão, tem bateria e a ligação vale).
+- Painéis dos monitores: desenhar os mesmos componentes do `MonitorPanels` numa tela de GUI (o `Painter`
+  já desenha em interface e no mundo). Dados pelo mesmo snapshot, só enquanto a aba está aberta.
+- Segurança: a cada pacote, o servidor confere tablet na mão, bateria, ligação, permissão na colônia e
+  bloco carregado. **Nunca carregar chunk** para abrir a tela.
+- Gasto de bateria: por abertura e/ou por ação (config).
+
+## Fase 11 — TC Colony Chunk Loader
+
+**Objetivo:** manter carregados os chunks reivindicados pela colônia, pagando energia por chunk.
+
+- API oficial do NeoForge: `TicketController` (`RegisterTicketControllersEvent`), com callback de
+  validação ao reiniciar o servidor. Sem mixin.
+- Chunks = os reivindicados pela colônia (via `integration/`), atualizados quando a colônia cresce.
+- Energia AE da rede ME por chunk por tick (config); sem energia → solta os chunks.
+- Liga/desliga na tela e por redstone; um por colônia (Fase 8).
+- Config de servidor: liga/desliga o bloco no servidor todo, máximo de chunks por loader, custo por
+  chunk, opção "só com um membro da colônia online".
+- Cuidado: o ATM10 tem FTB Chunks com limite de chunks forçados por jogador; este bloco passa por
+  cima desse limite. Por isso o limite próprio e a opção do admin.
+- Monitor e tablet mostram chunks carregados e consumo; tablet também liga/desliga.
+
+## Fase 12 — TC Pattern Encoder (codificador de padrões)
+
+**Objetivo:** bloco que pega os pedidos da colônia que **não têm craft no AE2** e gera os padrões.
+
+- Tela: slot de **Blank Pattern** (do AE2), lista dos pedidos sem padrão com a receita encontrada e botão
+  "criar padrões", que consome 1 Blank Pattern por padrão. Slots de saída para o jogador levar os padrões
+  ao Pattern Provider / Molecular Assembler.
+- **Viabilidade confirmada na API do AE2** (`PatternDetailsHelper.encodeCraftingPattern`, e também
+  `encodeStonecuttingPattern` / `encodeSmithingTablePattern` / `encodeProcessingPattern`). Sem mixin.
+- Receita: procurar no `RecipeManager` receitas de bancada (`RecipeType.CRAFTING`) que produzam o item;
+  com várias, a mais barata (reaproveitar `CraftCost`). Pedido por tag: um candidato, como na Fase 6a.
+- **Excluir:** itens do Domum Ornamentum e da bancada do arquiteto (framed, blocos com textura de
+  material) — namespace `domum_ornamentum` e itens com componente de textura. Receitas de bancadas
+  especiais do MineColonies não são `CRAFTING`, então já ficam de fora.
+- Mesmas restrições dos outros blocos: um por colônia (Fase 8), na rede ME, permissão da colônia.
+- Riscos: receitas com NBT/componentes (ferramentas encantadas, poções) e receitas de mods com tipo
+  próprio não viram padrão de bancada; ficam listadas como "sem receita suportada".
+- Fase 1 só bancada; processamento (fornalha) fica para depois.
+
+## Sugestões ainda sem fase
+
+- **Abastecedor com auto-craft:** "manter" pede craft ao AE2 do que falta (pendência da Fase 7).
+- **Lista de compras:** aba na Ponte/Tablet com o que a colônia pede e a rede não tem nem sabe craftar.
+- **Copiar configuração** entre blocos (como o Memory Card do AE2) ou exportar/importar lista como texto.
+- **Autocompletar** na caixa de texto: ids e tags do item colocado no slot (clique alterna as tags dele).
+- Busca do Terminal com `#tag` além de `@mod`.
+- Fase 2 pendente: modelos e texturas no Blockbench.
