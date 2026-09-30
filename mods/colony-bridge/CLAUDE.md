@@ -9,7 +9,7 @@ estatísticas vêm de lá (`org.tinycore.core.*`).
 
 Estado: Ponte (entrega/craft dos pedidos, craft por tag com preferências por ponte, `ICraftingRequester`),
 Abastecedor (manter estoque / devolver excedente), Monitores (multibloco mostrando Ponte ou Abastecedor) e
-Terminal do Armazém (ver/tirar/guardar itens dos racks, sem rede ME).
+Terminal do Armazém (ver/tirar/guardar/craftar com itens dos racks; exige a Ponte da colônia na mesma rede ME).
 
 Roadmap: `docs/ROADMAP.md` (ler **só** quando a tarefa for sobre planejamento ou feature nova).
 Responsabilidade de cada classe: `docs/ARQUITETURA.md`. Guia de modelos: `docs/GUIA-BLOCKBENCH.md`.

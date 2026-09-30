@@ -36,18 +36,25 @@ import java.util.List;
  */
 public class WarehouseTerminalMenu extends AbstractContainerMenu {
 
-    /** Posições usadas também pela tela ({@code WarehouseTerminalScreen}). */
+    /**
+     * Posições usadas também pela tela ({@code WarehouseTerminalScreen}), para a grade com {@link #MIN_ROWS}
+     * linhas. A tela pode mostrar mais linhas: ela cresce <b>para cima</b> (cabeçalho e grade sobem), porque
+     * os slots do Minecraft têm posição fixa ({@code Slot.x/y} são {@code final}) e a parte de baixo não pode mudar.
+     */
     public static final int GRID_X = 9;
     public static final int GRID_Y = 48;
-    public static final int COLUMNS = 9;
-    public static final int ROWS = 5;
+    public static final int COLUMNS = 11;
+    public static final int MIN_ROWS = 2;
+    public static final int MAX_ROWS = 12;
     /** Bancada, no estilo do Crafting Terminal do AE2: grade à esquerda, botões, seta e resultado maior. */
-    public static final int CRAFT_X = 25;
-    public static final int CRAFT_Y = 160;
-    public static final int RESULT_X = 140;
+    public static final int CRAFT_X = 44;
+    public static final int CRAFT_Y = GRID_Y + MIN_ROWS * 18 + 22;
+    public static final int RESULT_X = 159;
     public static final int RESULT_Y = CRAFT_Y + 19;
-    public static final int INVENTORY_Y = 236;
-    public static final int HOTBAR_Y = 294;
+    /** Inventário (9 colunas) centralizado na janela, que é mais larga que ele. */
+    public static final int INVENTORY_X = 31;
+    public static final int INVENTORY_Y = CRAFT_Y + 76;
+    public static final int HOTBAR_Y = INVENTORY_Y + 58;
 
     /** Índices dos slots no menu. */
     public static final int RESULT_SLOT = TerminalCrafting.SIZE;
@@ -97,11 +104,11 @@ public class WarehouseTerminalMenu extends AbstractContainerMenu {
         addSlot(new TerminalResultSlot(this, crafting, player, RESULT_X, RESULT_Y));
         for (int row = 0; row < 3; row++) {
             for (int column = 0; column < 9; column++) {
-                addSlot(new Slot(inventory, column + row * 9 + 9, GRID_X + column * 18, INVENTORY_Y + row * 18));
+                addSlot(new Slot(inventory, column + row * 9 + 9, INVENTORY_X + column * 18, INVENTORY_Y + row * 18));
             }
         }
         for (int column = 0; column < 9; column++) {
-            addSlot(new Slot(inventory, column, GRID_X + column * 18, HOTBAR_Y));
+            addSlot(new Slot(inventory, column, INVENTORY_X + column * 18, HOTBAR_Y));
         }
     }
 

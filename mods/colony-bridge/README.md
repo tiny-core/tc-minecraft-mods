@@ -88,7 +88,8 @@ colônia — sem isso, a ponte entregaria e o abastecedor levaria de volta, num 
 ## Terminal do Armazém
 Terceiro bloco: uma tela como o terminal do AE2, mas para o **armazém da colônia**. Mostra todos os itens de
 todos os racks, somados por tipo, com busca (`@mod` filtra por mod; clique direito limpa) e ordem por
-quantidade ou nome (botão na barra lateral).
+quantidade ou nome (botão na barra lateral). A grade tem 11 colunas e ganha linhas conforme a altura da
+janela do jogo (de 2 a 12, como no AE2); R/U do JEI funcionam sobre os itens dela.
 
 **Restrições (para não ser "de graça"):** cabo ME comum por baixo (usa um canal), rede com energia e a
 **Ponte desta colônia ativa na mesma rede**. Sem isso a tela abre, mas mostra o motivo no cabeçalho ("Sem

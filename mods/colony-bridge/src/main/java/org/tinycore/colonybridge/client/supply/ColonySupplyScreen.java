@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu> {
 
-    private static final int WIDTH = 182;
+    private static final int WIDTH = 202;
     private static final int HEIGHT = 230;
     private static final int PADDING = 8;
 
@@ -114,9 +114,9 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         }
     }
 
-    /** Título de seção, como no terminal do AE2. */
+    /** Título de seção, como no terminal do AE2, alinhado com a borda dos slots (centralizados na janela). */
     private void section(GuiGraphics g, int x, int y, Component label) {
-        ScreenStyle.drawFitted(g, font, label, x + PADDING, y, WIDTH - PADDING * 2, ScreenStyle.TEXT);
+        ScreenStyle.drawFitted(g, font, label, x + ColonySupplyMenu.LIST_X - 1, y, WIDTH - PADDING * 2, ScreenStyle.TEXT);
     }
 
     /**

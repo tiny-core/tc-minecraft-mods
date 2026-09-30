@@ -37,11 +37,18 @@ import java.util.List;
  * direto para o inventário; com item no cursor, esquerdo guarda tudo e direito guarda um. Shift-clique no
  * inventário guarda o stack no armazém (isso é tratado pelo menu). A tela só manda o pedido; o servidor
  * decide e a grade se atualiza com o próximo pacote.
+ * <p>
+ * <b>Altura variável:</b> a grade tem de {@code MIN_ROWS} a {@code MAX_ROWS} linhas, conforme cabe na janela do
+ * jogo (como no AE2). Como os slots têm posição fixa, a parte de baixo (bancada e inventário) fica no lugar
+ * de sempre e as linhas extras crescem para cima: {@link #extra} pixels acima de {@code topPos}.
  */
 public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTerminalMenu> {
 
-    private static final int WIDTH = 186;
-    private static final int HEIGHT = 319;
+    private static final int WIDTH = 222;
+    /** Altura com a grade mínima; cada linha extra soma 18 px acima. */
+    private static final int HEIGHT = WarehouseTerminalMenu.HOTBAR_Y + 25;
+    /** Espaço livre deixado acima e abaixo da janela ao calcular quantas linhas cabem. */
+    private static final int SCREEN_MARGIN = 8;
     /** Botões pequenos ao lado da grade da bancada (▲ armazém, ▼ inventário), como no AE2. */
     private static final int SMALL_BUTTON = 9;
     private static final int PADDING = 8;
@@ -54,6 +61,8 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     private IconButton sortButton;
     private EditBox search;
     private WarehouseGrid grid;
+    /** Pixels acima de {@code topPos} ocupados pelas linhas extras da grade. */
+    private int extra;
 
     public WarehouseTerminalScreen(WarehouseTerminalMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -64,11 +73,17 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     @Override
     protected void init() {
         super.init();
+        int rows = Math.max(WarehouseTerminalMenu.MIN_ROWS, Math.min(WarehouseTerminalMenu.MAX_ROWS,
+                WarehouseTerminalMenu.MIN_ROWS + (height - SCREEN_MARGIN * 2 - HEIGHT) / 18));
+        extra = (rows - WarehouseTerminalMenu.MIN_ROWS) * 18;
+        topPos = (height - HEIGHT - extra) / 2 + extra; // janela inteira centralizada; slots continuam em topPos
+        int top = topPos - extra;
+
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.terminal"));
         sortButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleSort)));
-        toolbar.layout(leftPos, topPos, WIDTH);
+        toolbar.layout(leftPos, top, WIDTH);
         updateSortButton();
 
         int buttonsX = leftPos + WarehouseTerminalMenu.CRAFT_X + 57;
@@ -81,7 +96,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         toInventory.setTooltipText(Component.translatable("gui.tccolonybridge.terminal.grid_to_inventory"));
 
         String previous = search == null ? "" : search.getValue(); // mantém a busca ao redimensionar a janela
-        search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, topPos + SEARCH_Y + 2,
+        search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, top + SEARCH_Y + 2,
                 WIDTH - PADDING * 2 - 6, 10, Component.translatable("gui.tccolonybridge.terminal.search")));
         search.setBordered(false);
         search.setMaxLength(64);
@@ -89,8 +104,8 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         search.setHint(Component.translatable("gui.tccolonybridge.terminal.search").withColor(ScreenStyle.TEXT_MUTED));
         search.setValue(previous);
 
-        grid = new WarehouseGrid(leftPos + WarehouseTerminalMenu.GRID_X, topPos + WarehouseTerminalMenu.GRID_Y,
-                WarehouseTerminalMenu.COLUMNS, WarehouseTerminalMenu.ROWS);
+        grid = new WarehouseGrid(leftPos + WarehouseTerminalMenu.GRID_X, top + WarehouseTerminalMenu.GRID_Y,
+                WarehouseTerminalMenu.COLUMNS, rows);
     }
 
     private void sendGridAction(TerminalAction action) {
@@ -114,25 +129,27 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
+        int top = topPos - extra; // cabeçalho, busca e grade sobem junto com as linhas extras
         int inner = WIDTH - PADDING * 2;
         toolbar.render(g);
-        ScreenStyle.window(g, x, y, WIDTH, HEIGHT);
+        ScreenStyle.window(g, x, top, WIDTH, HEIGHT + extra);
         // Estado à direita (Online, Sem Ponte na rede, Offline...); o título usa o espaço que sobrar.
         BridgeStatus status = menu.getView().status();
         int statusWidth = ScreenStyle.drawFittedRight(g, font, Component.translatable(status.guiKey()),
-                x + WIDTH - PADDING, y + 7, inner / 2, ScreenStyle.TEXT);
-        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, y + 7, StatusColors.of(status));
-        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
-        ScreenStyle.drawFitted(g, font, Component.literal(menu.getColonyName()), x + PADDING, y + 19, inner,
+                x + WIDTH - PADDING, top + 7, inner / 2, ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + WIDTH - PADDING - statusWidth - 10, top + 7, StatusColors.of(status));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, top + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
+        ScreenStyle.drawFitted(g, font, Component.literal(menu.getColonyName()), x + PADDING, top + 19, inner,
                 ScreenStyle.INFO);
-        ScreenStyle.inset(g, x + PADDING, y + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
+        ScreenStyle.inset(g, x + PADDING, top + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
 
         grid.update(menu.getView(), search.getValue(), sort);
         grid.render(g, font, mouseX, mouseY);
 
         craftingPanel(g, x, y, inner);
-        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"), x + PADDING,
-                y + WarehouseTerminalMenu.INVENTORY_Y - 12, inner, ScreenStyle.TEXT);
+        ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"),
+                x + WarehouseTerminalMenu.INVENTORY_X - 1, y + WarehouseTerminalMenu.INVENTORY_Y - 12, inner,
+                ScreenStyle.TEXT);
         for (int i = 0; i < menu.slots.size(); i++) {
             Slot slot = menu.slots.get(i);
             if (i != WarehouseTerminalMenu.RESULT_SLOT) { // o resultado tem moldura própria
@@ -243,6 +260,21 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
 
     /** Áreas fora da janela ocupadas pela tela (a barra lateral), para o JEI não desenhar por cima. */
     public List<Rect2i> extraAreas() {
-        return List.of(toolbar.area());
+        return List.of(toolbar.area(), new Rect2i(leftPos, topPos - extra, imageWidth, extra));
+    }
+
+    /**
+     * A janela vai além de {@code topPos} para cima (linhas extras): clicar ali não é "fora da janela" (fora,
+     * o jogo jogaria no chão o item do cursor).
+     */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int button) {
+        return mouseX < guiLeft || mouseY < guiTop - extra
+                || mouseX >= guiLeft + imageWidth || mouseY >= guiTop + imageHeight;
+    }
+
+    /** Área da célula da grade sob o mouse e o item dela, para o JEI (teclas R/U); null fora da grade. */
+    public @Nullable WarehouseGrid.Hit gridHit(double mouseX, double mouseY) {
+        return grid.hitAt(mouseX, mouseY);
     }
 }

@@ -36,7 +36,7 @@ public class ColonyBridgeMenu extends AbstractGhostMenu {
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
     /** Posições (relativas à tela) usadas também pela {@code ColonyBridgeScreen} para desenhar o fundo. */
-    public static final int FILTER_X = 10;
+    public static final int FILTER_X = 20; // 9 colunas centralizadas na janela de 202 px
     public static final int FILTER_Y = 64;
     public static final int INVENTORY_Y = 116;
     public static final int HOTBAR_Y = 174;

@@ -42,7 +42,7 @@ import java.util.Set;
  */
 public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu> {
 
-    private static final int WIDTH = 182;
+    private static final int WIDTH = 202;
     private static final int HEIGHT = 200;
     private static final int PADDING = 8;
     private static final int TABS_Y = 31;
@@ -255,7 +255,8 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
             }
         }
         ScreenStyle.drawFitted(g, font, Component.translatable("gui.tccolonybridge.inventory"),
-                x + PADDING, y + ColonyBridgeMenu.INVENTORY_Y - 11, WIDTH - PADDING * 2, ScreenStyle.TEXT);
+                x + ColonyBridgeMenu.FILTER_X - 1, y + ColonyBridgeMenu.INVENTORY_Y - 11, WIDTH - PADDING * 2,
+                ScreenStyle.TEXT);
     }
 
     /** Título e inventário já são desenhados em renderBg; aqui não desenha nada. */

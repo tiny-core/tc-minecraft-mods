@@ -4,6 +4,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.logic.terminal.ItemListing;
 import org.tinycore.colonybridge.menu.terminal.WarehouseEntry;
@@ -20,7 +21,7 @@ import java.util.List;
  * A busca e a ordenação ({@link ItemListing}) só são refeitas quando algo muda — novo pacote do servidor
  * ({@link WarehouseView#version()}), texto da busca ou ordem —, nunca a cada frame.
  */
-final class WarehouseGrid {
+public final class WarehouseGrid {
 
     private static final int CELL = 18;
 
@@ -106,6 +107,20 @@ final class WarehouseGrid {
         int row = (int) (mouseY - y + 1) / CELL;
         int index = (firstRow + row) * columns + column;
         return index >= 0 && index < visible.size() ? visible.get(index) : null;
+    }
+
+    /** Uma célula ocupada da grade: o item e o canto da célula (16×16) na tela. */
+    public record Hit(ItemStack item, int x, int y) {}
+
+    /** Célula ocupada sob o mouse (para o JEI mostrar receita/usos), ou null. */
+    @Nullable Hit hitAt(double mouseX, double mouseY) {
+        WarehouseEntry entry = entryAt(mouseX, mouseY);
+        if (entry == null) {
+            return null;
+        }
+        int column = (int) (mouseX - x + 1) / CELL;
+        int row = (int) (mouseY - y + 1) / CELL;
+        return new Hit(entry.item(), x + column * CELL, y + row * CELL);
     }
 
     /** Roda do mouse: uma linha por passo. */

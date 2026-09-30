@@ -3,17 +3,21 @@ package org.tinycore.colonybridge.client.jei;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
+import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
+import mezz.jei.api.runtime.IClickableIngredient;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
+import org.tinycore.colonybridge.client.terminal.WarehouseGrid;
 import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Integração com o JEI: arrastar itens da lista do JEI para os ghost slots do filtro e o "+" das receitas
@@ -63,6 +67,19 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
             @Override
             public List<Rect2i> getGuiExtraAreas(WarehouseTerminalScreen screen) {
                 return screen.extraAreas();
+            }
+
+            /** Teclas R/U (receita/usos) sobre os itens da grade do armazém, que não são slots de verdade. */
+            @Override
+            public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(WarehouseTerminalScreen screen,
+                                                                                      double mouseX, double mouseY) {
+                WarehouseGrid.Hit hit = screen.gridHit(mouseX, mouseY);
+                if (hit == null) {
+                    return Optional.empty();
+                }
+                return registration.getJeiHelpers().getIngredientManager()
+                        .createClickableIngredient(VanillaTypes.ITEM_STACK, hit.item(), new Rect2i(hit.x(), hit.y(), 16, 16), false)
+                        .map(ingredient -> ingredient);
             }
         });
     }

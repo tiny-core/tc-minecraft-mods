@@ -28,7 +28,7 @@ public class ColonySupplyMenu extends AbstractGhostMenu {
     private static final int SNAPSHOT_INTERVAL_TICKS = 20;
 
     /** Posições usadas também pela {@code ColonySupplyScreen} para desenhar o fundo dos slots. */
-    public static final int LIST_X = 10;
+    public static final int LIST_X = 20; // 9 colunas centralizadas na janela de 202 px
     public static final int KEEP_Y = 44;
     public static final int SURPLUS_Y = 95;
     public static final int INVENTORY_Y = 146;
