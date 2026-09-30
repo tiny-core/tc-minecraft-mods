@@ -187,7 +187,7 @@ comum por baixo, um canal.
 - Tela (no bloco e pela aba do tablet): situação, chunks, consumo, "solta em 3 h 20 min", liga/desliga e redstone.
 - Admin: `chunkLoaderEnabled = false` solta tudo no servidor. Atenção: o loader **passa por cima** do limite de
   chunks forçados do FTB Chunks. Ao iniciar o servidor, chunks de loaders que não existem mais são soltos.
-- Conferir no jogo: `/forceload query` não mostra estes chunks (são tickets de mod); use F3 ou o próprio contador da tela.
+- Conferir no jogo: o `/forceload query` do vanilla provavelmente não lista estes chunks (são tickets de mod); use o contador da tela ou veja se plantações/cidadãos longe continuam trabalhando.
 
 ```
 OEO     O = Obsidiana chorona   E = Olho do Ender
