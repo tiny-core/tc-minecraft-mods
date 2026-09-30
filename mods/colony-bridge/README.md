@@ -185,8 +185,6 @@ comum por baixo, um canal.
   Ao voltar, a área carrega por `chunkLoaderWakeGraceSeconds` (30 s) mesmo sem energia, para a rede ME ligar —
   **deixe o controlador e a energia da rede ME dentro da colônia**.
 - Tela (no bloco e pela aba do tablet): situação, chunks, consumo, "solta em 3 h 20 min", liga/desliga e redstone.
-- **Display na face da frente** do próprio bloco (sem monitor): barra na cor da situação, chunks carregados, AE/t e,
-  na contagem, o tempo até soltar. Visível até 24 blocos.
 - Admin: `chunkLoaderEnabled = false` solta tudo no servidor. Atenção: o loader **passa por cima** do limite de
   chunks forçados do FTB Chunks. Ao iniciar o servidor, chunks de loaders que não existem mais são soltos.
 - Conferir no jogo: o `/forceload query` do vanilla provavelmente não lista estes chunks (são tickets de mod); use o contador da tela ou veja se plantações/cidadãos longe continuam trabalhando.

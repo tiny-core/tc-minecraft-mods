@@ -7,7 +7,6 @@ import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
-import org.tinycore.colonybridge.client.render.ChunkLoaderRenderer;
 import org.tinycore.colonybridge.client.render.MonitorRenderer;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
 import org.tinycore.colonybridge.client.loader.ChunkLoaderScreen;
@@ -40,6 +39,5 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.COLONY_MONITOR.get(), MonitorRenderer::new);
-        event.registerBlockEntityRenderer(ModBlockEntities.CHUNK_LOADER.get(), ChunkLoaderRenderer::new);
     }
 }

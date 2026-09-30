@@ -6,16 +6,10 @@ import it.unimi.dsi.fastutil.longs.LongList;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.Connection;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.AbstractBridgeBlock;
@@ -25,7 +19,6 @@ import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.logic.loader.ChunkSelection;
 import org.tinycore.colonybridge.logic.loader.ChunkTickets;
-import org.tinycore.colonybridge.logic.loader.LoaderDisplay;
 import org.tinycore.colonybridge.logic.loader.LoaderRule;
 import org.tinycore.colonybridge.logic.loader.LoaderState;
 import org.tinycore.colonybridge.menu.loader.ChunkLoaderSnapshot;
@@ -48,8 +41,6 @@ import org.tinycore.core.block.RedstoneMode;
  *       AE2, e sem energia o nó desliga e o próximo passo solta a área.</li>
  * </ol>
  * O chunk do próprio bloco fica carregado enquanto ele estiver ligado, para perceber quando um membro volta.
- * A face da frente mostra um resumo ({@link LoaderDisplay}, desenhado pelo {@code ChunkLoaderRenderer}), mandado
- * aos clientes só quando muda.
  * Quando isso acontece, a área é carregada com uma tolerância de {@code chunkLoaderWakeGraceSeconds} sem exigir
  * energia, porque a rede ME pode estar justamente na área que estava descarregada.
  */
@@ -74,8 +65,6 @@ public class ColonyChunkLoaderBlockEntity extends AbstractBridgeBlockEntity {
     private LoaderState state = LoaderState.OFF;
     private BridgeStatus status = BridgeStatus.STARTING;
     private String colonyName = "";
-    /** Servidor: último resumo mandado aos clientes. Cliente: o que a face do bloco desenha. */
-    private LoaderDisplay display = LoaderDisplay.EMPTY;
 
     public ColonyChunkLoaderBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CHUNK_LOADER.get(), pos, state, ModItems.CHUNK_LOADER.get(), () -> 0.0);
@@ -130,30 +119,6 @@ public class ColonyChunkLoaderBlockEntity extends AbstractBridgeBlockEntity {
             nextRefreshTick = tick + Config.CHUNK_LOADER_REFRESH_TICKS.get();
         }
         apply(serverLevel, desiredChunks());
-        syncDisplay(serverLevel);
-    }
-
-    /** Manda o resumo da face aos clientes só quando ele muda (o passo roda 1×/s, então no máximo 1×/s). */
-    private void syncDisplay(ServerLevel serverLevel) {
-        long minutes = state == LoaderState.COUNTDOWN ? remainingMillis(System.currentTimeMillis()) / 60_000 : 0;
-        LoaderDisplay current = new LoaderDisplay(state, forced.size(),
-                (int) Math.round(forced.size() * Config.CHUNK_LOADER_POWER_PER_CHUNK.get()), minutes);
-        if (!current.equals(display)) {
-            display = current;
-            serverLevel.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
-        }
-    }
-
-    /** Cliente: resumo para a face do bloco ({@code ChunkLoaderRenderer}). */
-    public LoaderDisplay getDisplay() {
-        return display;
-    }
-
-    /** Frente do bloco (onde fica o display). */
-    public Direction getFacing() {
-        BlockState blockState = getBlockState();
-        return blockState.hasProperty(AbstractBridgeBlock.FACING) ? blockState.getValue(AbstractBridgeBlock.FACING)
-                : Direction.NORTH;
     }
 
     private void startGrace(long tick) {
@@ -273,33 +238,6 @@ public class ColonyChunkLoaderBlockEntity extends AbstractBridgeBlockEntity {
     @Override
     protected void afterCycle(ServerLevel level) {
         syncVisualState(level, AbstractBridgeBlock.STATUS);
-    }
-
-    // ---------------------------------------------------------------- sincronização da face
-
-    /** Só o resumo da face vai ao cliente (nada de chunks, dono ou nó ME). */
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        tag.put("display", display.save());
-        return tag;
-    }
-
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    /** Cliente: lê só o resumo (o padrão leria o NBT inteiro do bloco, que não vem no pacote). */
-    @Override
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        display = LoaderDisplay.load(tag.getCompound("display"));
-    }
-
-    @Override
-    public void onDataPacket(Connection connection, ClientboundBlockEntityDataPacket packet,
-                             HolderLookup.Provider registries) {
-        handleUpdateTag(packet.getTag(), registries);
     }
 
     // ---------------------------------------------------------------- NBT

@@ -99,7 +99,7 @@ public class MonitorRenderer implements BlockEntityRenderer<MonitorBlockEntity> 
     }
 
     /** true se a câmera está atrás do plano da tela (não precisa desenhar). */
-    static boolean isBehind(BlockPos pos, Direction facing) {
+    private static boolean isBehind(BlockPos pos, Direction facing) {
         Vec3 camera = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition();
         double dx = camera.x - (pos.getX() + 0.5);
         double dz = camera.z - (pos.getZ() + 0.5);
