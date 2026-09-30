@@ -5,6 +5,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
+import org.tinycore.colonybridge.logic.target.TargetList;
 
 import java.util.Arrays;
 
@@ -92,6 +93,16 @@ public final class StockList {
                 amounts[target] = Math.max(0, Math.min(MAX_AMOUNT, saved[i]));
             }
         }
+    }
+
+    /**
+     * Migração para as listas de item/tag (Fase 9): as linhas "manter" vão para {@code keep} e as de
+     * excedente para {@code surplus}, na mesma ordem e com a mesma quantidade. Chamado ao ler um bloco salvo
+     * no formato de grade (já convertido para 18 + 18 por {@link #load}).
+     */
+    public void exportTo(TargetList keep, TargetList surplus) {
+        keep.importSlots(items, amounts, 0, KEEP_SLOTS);
+        surplus.importSlots(items, amounts, KEEP_SLOTS, SIZE);
     }
 
     /** Posição nova de uma linha do formato antigo: "manter" fica; "excedente" (9 a 17) vai para 18 a 26. */

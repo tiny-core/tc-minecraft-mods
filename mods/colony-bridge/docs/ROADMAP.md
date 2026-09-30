@@ -183,6 +183,14 @@ Fase 11 e o Pattern Encoder da Fase 12 também). A regra atual (uma Ponte por re
 **Objetivo:** trocar as grades de ghost slots por **listas de linhas**, como o Mekanism: cada linha tem
 um ghost slot, uma caixa de texto e a quantidade.
 
+Etapas: **1 feita** (modelo `logic/target/`, parser, regras por lista, migração, `listMaxLines`, testes) ·
+2 lógica do Abastecedor e do filtro · 3 widget de lista, telas, pacotes e JEI · 4 monitores · 5 documentação.
+
+Decidido com o autor (2026-09-30): até 32 linhas por lista (config, teto 64); `@mod` só no Excedente e no
+filtro; aba "Preferidos" continua em grade; botão **"Adicionar linha" em cima da lista**; ícone é um slot
+virtual (não um `Slot` do menu) e o clique manda um pacote — o servidor lê o item do cursor ele mesmo;
+clique direito no ícone alterna entre o item e as tags dele. Quantidade 0 = linha desligada (como hoje).
+
 - Linha = `alvo` + `quantidade` (ou "tudo"). Alvo aceita:
   - **item**: soltar item/JEI no slot preenche a caixa com o id (`minecraft:iron_ingot`), ou digitar o id;
   - **tag**: digitar `#c:ingots/iron`; o slot fica alternando os ícones dos itens da tag (só no cliente);

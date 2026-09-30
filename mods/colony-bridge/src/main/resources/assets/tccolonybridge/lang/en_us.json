@@ -112,6 +112,8 @@
   "tccolonybridge.configuration.statsBuckets.tooltip": "How many time slots statistics keep (288 × 5 min = 24 h). Changing it resets statistics.",
   "tccolonybridge.configuration.supplyMaxPerCycle": "Supply items per cycle",
   "tccolonybridge.configuration.supplyMaxPerCycle.tooltip": "Max items each Colony Supply line moves per cycle.",
+  "tccolonybridge.configuration.listMaxLines": "Lines per list",
+  "tccolonybridge.configuration.listMaxLines.tooltip": "Max lines in each list (Colony Supply Keep/Surplus, Bridge filter). Lowering it cuts the last lines of existing lists.",
   "tccolonybridge.configuration.monitorMaxWidth": "Monitor max width",
   "tccolonybridge.configuration.monitorMaxWidth.tooltip": "Max width (blocks) of a monitor screen.",
   "tccolonybridge.configuration.monitorMaxHeight": "Monitor max height",

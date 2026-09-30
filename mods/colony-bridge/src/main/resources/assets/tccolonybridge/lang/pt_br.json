@@ -112,6 +112,8 @@
   "tccolonybridge.configuration.statsBuckets.tooltip": "Quantos blocos de tempo as estatísticas guardam (288 × 5 min = 24 h). Mudar zera as estatísticas.",
   "tccolonybridge.configuration.supplyMaxPerCycle": "Itens do abastecedor por ciclo",
   "tccolonybridge.configuration.supplyMaxPerCycle.tooltip": "Máximo de itens que cada linha do Abastecedor move por ciclo.",
+  "tccolonybridge.configuration.listMaxLines": "Linhas por lista",
+  "tccolonybridge.configuration.listMaxLines.tooltip": "Máximo de linhas em cada lista (Manter e Excedente do Abastecedor, filtro da Ponte). Baixar o valor corta as últimas linhas das listas existentes.",
   "tccolonybridge.configuration.monitorMaxWidth": "Largura máxima do monitor",
   "tccolonybridge.configuration.monitorMaxWidth.tooltip": "Largura máxima (em blocos) de uma tela de monitores.",
   "tccolonybridge.configuration.monitorMaxHeight": "Altura máxima do monitor",

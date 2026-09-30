@@ -76,6 +76,11 @@ public final class Config {
             .comment("Máximo de itens que cada linha do bloco de abastecimento move por ciclo.")
             .defineInRange("supplyMaxPerCycle", 64, 1, 4096);
 
+    public static final ModConfigSpec.IntValue LIST_MAX_LINES = B
+            .comment("Máximo de linhas em cada lista (Manter e Excedente do Abastecedor, filtro da Ponte).",
+                    "Baixar o valor corta as linhas do fim das listas existentes.")
+            .defineInRange("listMaxLines", 32, 1, 64);
+
     public static final ModConfigSpec.IntValue MONITOR_MAX_WIDTH = B
             .comment("Largura máxima (em blocos) de uma tela formada por monitores.")
             .defineInRange("monitorMaxWidth", 8, 1, 16);

@@ -5,6 +5,7 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
+import org.tinycore.colonybridge.logic.target.TargetList;
 
 /**
  * Lista de itens do filtro da ponte ({@link #SIZE} posições, cada uma com 1 item "fantasma" ou vazia).
@@ -46,6 +47,11 @@ public final class ItemFilter {
     /** {@code ContainerHelper} é o utilitário do Minecraft que salva listas de itens em NBT (como baús). */
     public CompoundTag save(HolderLookup.Provider registries) {
         return ContainerHelper.saveAllItems(new CompoundTag(), items, registries);
+    }
+
+    /** Migração para a lista de item/tag/mod (Fase 9): cada slot com item vira uma linha, na mesma ordem. */
+    public void exportTo(TargetList filter) {
+        filter.importSlots(items, null, 0, SIZE);
     }
 
     public void load(CompoundTag tag, HolderLookup.Provider registries) {

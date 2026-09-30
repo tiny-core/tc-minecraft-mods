@@ -24,6 +24,9 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/BridgeStatus` | Estado mostrado ao jogador (sem colônia, sem permissão, trabalhando...). |
 | `block/ColonySlots` | Regra "um de cada tipo por colônia" no mundo: confere o bloco registrado (sem carregar chunk) e descarta registro velho. |
 | `logic/colony/ColonyBlockRegistry` | `SavedData`: posição do bloco de cada tipo em cada colônia (também servirá ao Tablet). |
+| `logic/target/TargetSpec`, `TargetKind` | Alvo de uma linha lido do texto (`id`, `#tag`, `@mod`); só sintaxe (regra pura, testada). |
+| `logic/target/TargetListKind` | Regras de cada lista (Manter / Excedente / Filtro): tipos aceitos, quantidade, "tudo" (testada). |
+| `logic/target/TargetLine`, `TargetList`, `ListEdits` | Linha (alvo + item modelo + quantidade) e lista com NBT, limites e migração das grades antigas (`importSlots`). |
 | `logic/colony/ColonySlotRule`, `ColonyBlockType` | Regra pura (testada) de quem fica com a vaga; tipos com vaga única. |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
