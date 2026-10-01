@@ -47,6 +47,7 @@ public final class CloudService {
     private final Map<String, EncodedItem> definitions = new HashMap<>();
     private final CloudListeners listeners = new CloudListeners();
     private final CloudInventory inventory;
+    private final ChannelMounts mounts = new ChannelMounts();
 
     private volatile ItemPolicy policy = ItemPolicy.OPEN;
     private CloudQuota quota = CloudQuota.UNLIMITED;
@@ -384,6 +385,10 @@ public final class CloudService {
 
     public @NotNull CloudInventory inventory() {
         return inventory;
+    }
+
+    public @NotNull ChannelMounts mounts() {
+        return mounts;
     }
 
     public @NotNull CloudListeners listeners() {

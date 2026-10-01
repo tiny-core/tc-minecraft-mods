@@ -4,6 +4,10 @@ apply from: rootProject.file('gradle/tc-mod.gradle')
 // O TC Core precisa estar configurado antes (usamos o sourceSet dele nas execuções de dev).
 evaluationDependsOn(':core')
 
+// Jars do ATM10 usados só nas execuções de dev (AE2 completo + GuideMe, de que ele depende). Padrão: os mesmos
+// que o Colony Bridge já usa; dá para apontar outra pasta com -Plibs_dir=/caminho.
+var libsDir = project.findProperty('libs_dir') ?: rootProject.file('mods/colony-bridge/libs')
+
 neoForge {
     runs {
         client {
@@ -23,6 +27,10 @@ neoForge {
     }
 }
 
+configurations {
+    runtimeClasspath.extendsFrom localRuntime
+}
+
 dependencies {
     // TC Core: biblioteca comum dos mods TC (mod separado em jogo).
     implementation project(':core')
@@ -30,4 +38,6 @@ dependencies {
     // AE2: compila contra a API publicada (usada a partir da fase 2: nó da grade e MEStorage).
     compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
     testImplementation "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
+
+    localRuntime fileTree(dir: libsDir, include: ['appliedenergistics2-*.jar', 'guideme-*.jar'])
 }
