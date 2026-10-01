@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudOp;
+import org.tinycore.cloud.item.EncodedItem;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -32,7 +33,7 @@ public final class JournalCodec {
     /** Teto de um quadro; acima disso é lixo (proteção contra ler um tamanho corrompido gigante). */
     static final int MAX_FRAME_BYTES = 8 * 1024 * 1024;
 
-    private static final byte BATCH = 1, ACK = 2, SAVE_MARK = 3, PENDING = 4, CLEAN_SHUTDOWN = 5;
+    private static final byte BATCH = 1, ACK = 2, SAVE_MARK = 3, PENDING = 4, CLEAN_SHUTDOWN = 5, ITEM_DEFINED = 6;
 
     private JournalCodec() {}
 
@@ -107,6 +108,14 @@ public final class JournalCodec {
                     out.writeByte(CLEAN_SHUTDOWN);
                     out.writeLong(time);
                 }
+                case JournalRecord.ItemDefined(EncodedItem item) -> {
+                    out.writeByte(ITEM_DEFINED);
+                    out.writeUTF(item.fingerprint());
+                    out.writeUTF(item.itemId());
+                    out.writeUTF(item.displayName());
+                    out.writeInt(item.bytes().length);
+                    out.write(item.bytes());
+                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -131,6 +140,16 @@ public final class JournalCodec {
             case SAVE_MARK -> new JournalRecord.SaveMark(in.readLong());
             case PENDING -> new JournalRecord.PendingCredits(readUuid(in), readAmounts(in));
             case CLEAN_SHUTDOWN -> new JournalRecord.CleanShutdown(in.readLong());
+            case ITEM_DEFINED -> {
+                String fingerprint = in.readUTF();
+                String itemId = in.readUTF();
+                String name = in.readUTF();
+                int length = in.readInt();
+                if (length < 0 || length > MAX_FRAME_BYTES) throw new IOException("tamanho de item inválido: " + length);
+                byte[] bytes = in.readNBytes(length);
+                if (bytes.length < length) throw new IOException("item cortado");
+                yield new JournalRecord.ItemDefined(new EncodedItem(fingerprint, itemId, name, bytes));
+            }
             default -> throw new IOException("tipo de registro desconhecido: " + type);
         };
     }

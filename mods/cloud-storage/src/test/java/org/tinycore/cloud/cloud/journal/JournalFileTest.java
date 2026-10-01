@@ -5,6 +5,7 @@ import org.junit.jupiter.api.io.TempDir;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudOp;
+import org.tinycore.cloud.item.EncodedItem;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -32,6 +33,7 @@ class JournalFileTest {
                 new JournalRecord.Ack(PLAYER, 3, 1),
                 new JournalRecord.SaveMark(123L),
                 new JournalRecord.PendingCredits(PLAYER, Map.of(KEY, 7L)),
+                new JournalRecord.ItemDefined(new EncodedItem("abc123", "minecraft:diamond", "Diamante", new byte[]{1, 2, 3})),
                 new JournalRecord.CleanShutdown(456L));
     }
 
@@ -39,7 +41,7 @@ class JournalFileTest {
     void idaEVolta() throws IOException {
         JournalFile file = new JournalFile(dir.resolve("tccloud/journal.bin"));
         file.append(sample().subList(0, 2), true);
-        file.append(sample().subList(2, 5), false);
+        file.append(sample().subList(2, 6), false);
         assertEquals(sample(), file.readAll());
     }
 
@@ -56,7 +58,7 @@ class JournalFileTest {
         try (RandomAccessFile raf = new RandomAccessFile(file.path().toFile(), "rw")) {
             raf.setLength(size - 3); // crash no meio da gravação do último quadro
         }
-        assertEquals(sample().subList(0, 4), file.readAll());
+        assertEquals(sample().subList(0, 5), file.readAll());
     }
 
     @Test

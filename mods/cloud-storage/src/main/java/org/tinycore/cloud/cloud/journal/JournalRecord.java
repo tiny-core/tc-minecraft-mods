@@ -3,6 +3,7 @@ package org.tinycore.cloud.cloud.journal;
 import org.jetbrains.annotations.NotNull;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.BalanceKey;
+import org.tinycore.cloud.item.EncodedItem;
 
 import java.util.Map;
 import java.util.UUID;
@@ -18,6 +19,12 @@ public sealed interface JournalRecord {
 
     /** Lote durável, ainda não confirmado pelo TCMine até aparecer um {@link Ack} correspondente. */
     record BatchWritten(@NotNull Batch batch) implements JournalRecord {}
+
+    /**
+     * Definição de um item (bytes, id, nome), gravada antes do primeiro lote que o usa. O TCMine precisa dela
+     * para registrar um item novo; reenviada junto dos lotes não confirmados após um crash.
+     */
+    record ItemDefined(@NotNull EncodedItem item) implements JournalRecord {}
 
     /** O TCMine confirmou (aplicou ou já tinha aplicado) o lote. */
     record Ack(@NotNull UUID playerUuid, long epoch, long seq) implements JournalRecord {}

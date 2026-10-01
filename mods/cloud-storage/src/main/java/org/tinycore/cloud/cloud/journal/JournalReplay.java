@@ -4,6 +4,7 @@ import org.jetbrains.annotations.NotNull;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudOp;
+import org.tinycore.cloud.item.EncodedItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,6 +22,7 @@ import java.util.UUID;
  *   <li>{@link #lastSealed()}: último (época, seq) gravado por jogador, que vai para o checkpoint;</li>
  *   <li>{@link #uncleanShutdown()} e {@link #doubtful()}: o servidor caiu sem parada limpa e o que pode
  *       ter se perdido por isso;</li>
+ *   <li>{@link #definitions()}: itens definidos no diário (para reenviar junto dos lotes);</li>
  *   <li>{@link #compacted()}: o mínimo que precisa continuar no arquivo.</li>
  * </ul>
  */
@@ -31,14 +33,17 @@ public final class JournalReplay {
     private final boolean uncleanShutdown;
     private final List<DoubtfulOperation> doubtful;
     private final Map<UUID, JournalRecord.PendingCredits> latestPending;
+    private final Map<String, EncodedItem> definitions;
 
     private JournalReplay(List<Batch> outbox, Map<UUID, SeqPosition> lastSealed, boolean uncleanShutdown,
-                          List<DoubtfulOperation> doubtful, Map<UUID, JournalRecord.PendingCredits> latestPending) {
+                          List<DoubtfulOperation> doubtful, Map<UUID, JournalRecord.PendingCredits> latestPending,
+                          Map<String, EncodedItem> definitions) {
         this.outbox = outbox;
         this.lastSealed = lastSealed;
         this.uncleanShutdown = uncleanShutdown;
         this.doubtful = doubtful;
         this.latestPending = latestPending;
+        this.definitions = definitions;
     }
 
     public static @NotNull JournalReplay of(@NotNull List<JournalRecord> records) {
@@ -47,6 +52,7 @@ public final class JournalReplay {
         Map<UUID, SeqPosition> lastSealed = new LinkedHashMap<>();
         Map<UUID, JournalRecord.PendingCredits> pending = new LinkedHashMap<>();
         List<Batch> sinceLastSave = new ArrayList<>();
+        Map<String, EncodedItem> definitions = new LinkedHashMap<>();
 
         for (JournalRecord record : records) {
             switch (record) {
@@ -63,6 +69,7 @@ public final class JournalReplay {
                 }
                 case JournalRecord.SaveMark ignored -> sinceLastSave.clear();
                 case JournalRecord.PendingCredits p -> pending.put(p.playerUuid(), p);
+                case JournalRecord.ItemDefined(EncodedItem item) -> definitions.put(item.fingerprint(), item);
                 case JournalRecord.CleanShutdown ignored -> {
                     sinceLastSave.clear();
                     pending.clear(); // parada limpa = tudo durável
@@ -73,7 +80,7 @@ public final class JournalReplay {
         boolean unclean = !records.isEmpty() && !(records.getLast() instanceof JournalRecord.CleanShutdown);
         List<DoubtfulOperation> doubtful = unclean ? doubtful(pending, sinceLastSave) : List.of();
         return new JournalReplay(List.copyOf(unacked.values()), Collections.unmodifiableMap(lastSealed),
-                unclean, doubtful, pending);
+                unclean, doubtful, pending, Collections.unmodifiableMap(definitions));
     }
 
     private static List<DoubtfulOperation> doubtful(Map<UUID, JournalRecord.PendingCredits> pending,
@@ -111,13 +118,22 @@ public final class JournalReplay {
         return doubtful;
     }
 
+    /** Itens definidos no diário, pela impressão digital. */
+    public @NotNull Map<String, EncodedItem> definitions() {
+        return definitions;
+    }
+
     /**
-     * Registros mínimos para continuar: lotes não confirmados (na ordem) e os créditos pendentes mais
-     * recentes. Usado com {@link JournalFile#rewrite} para o arquivo não crescer para sempre; só chamar
+     * Registros mínimos para continuar: definições usadas pelos lotes não confirmados, esses lotes (na ordem)
+     * e os créditos pendentes mais recentes. Usado com {@link JournalFile#rewrite} para o arquivo não crescer para sempre; só chamar
      * depois de reportar as operações em dúvida, porque a compactação as apaga.
      */
     public @NotNull List<JournalRecord> compacted() {
         List<JournalRecord> keep = new ArrayList<>();
+        Set<String> used = new HashSet<>();
+        outbox.forEach(b -> b.ops().forEach(op -> used.add(op.key().fingerprint())));
+        definitions.values().stream().filter(d -> used.contains(d.fingerprint()))
+                .forEach(d -> keep.add(new JournalRecord.ItemDefined(d)));
         outbox.forEach(b -> keep.add(new JournalRecord.BatchWritten(b)));
         latestPending.values().stream().filter(p -> !p.credits().isEmpty()).forEach(keep::add);
         return keep;

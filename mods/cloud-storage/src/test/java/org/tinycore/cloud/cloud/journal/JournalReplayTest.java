@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudOp;
+import org.tinycore.cloud.item.EncodedItem;
 
 import java.util.List;
 import java.util.Map;
@@ -64,12 +65,17 @@ class JournalReplayTest {
 
     @Test
     void compactacaoGuardaSoOQueAindaImporta() {
+        EncodedItem used = new EncodedItem("abc", "minecraft:diamond", "Diamante", new byte[]{1});
+        EncodedItem unused = new EncodedItem("zzz", "minecraft:dirt", "Terra", new byte[]{2});
         JournalReplay r = JournalReplay.of(List.of(
+                new JournalRecord.ItemDefined(used), new JournalRecord.ItemDefined(unused),
                 batch(1, 1, -1), new JournalRecord.Ack(PLAYER, 1, 1), batch(1, 2, -1),
                 new JournalRecord.SaveMark(0), new JournalRecord.PendingCredits(PLAYER, Map.of(KEY, 2L))));
         List<JournalRecord> kept = r.compacted();
-        assertEquals(2, kept.size());
-        assertEquals(2, ((JournalRecord.BatchWritten) kept.get(0)).batch().seq());
-        assertTrue(kept.get(1) instanceof JournalRecord.PendingCredits);
+        assertEquals(3, kept.size());
+        assertEquals(new JournalRecord.ItemDefined(used), kept.get(0), "definição usada vem antes do lote");
+        assertEquals(2, ((JournalRecord.BatchWritten) kept.get(1)).batch().seq());
+        assertTrue(kept.get(2) instanceof JournalRecord.PendingCredits);
+        assertEquals(2, r.definitions().size());
     }
 }
