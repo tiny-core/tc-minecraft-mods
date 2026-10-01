@@ -36,6 +36,10 @@ decisões em `docs/CLOUD-STORAGE.md` — ler antes de mexer em qualquer coisa de
   exibição que o servidor de jogo mandou.
 - **Restaurar backup de mundo com nuvem ligada abre um `CloudRollbackIncident`** (prévia de
   estorno) ANTES de religar o servidor. Estorno = linhas compensatórias no ledger.
+- **Backup a quente com nuvem ligada:** depois do `save-all flush`, rodar `tccloud checkpoint` pelo
+  RCON ANTES de copiar — senão o zip sai com o diário do mod atrasado em relação aos chunks.
+- **"Operações em dúvida" nunca são devolvidas automaticamente.** Depois de um crash o mod não sabe
+  se o mundo gravou o item; devolver às cegas duplica. Só o dono decide, pelo painel.
 ```
 
 ## 2. Domínio (`TCMine.Server.Domain/Cloud/`)
@@ -54,6 +58,7 @@ decisões em `docs/CLOUD-STORAGE.md` — ler antes de mexer em qualquer coisa de
 | `CloudItemRule` | `VaultId`, `Scope` (`Item`/`Mod`/`Tag`), `Pattern`, `Action` (`Allow`/`Block`), `Note`, `CreatedBy` | — |
 | `CloudSuspectItem` | `VaultId`, `ItemId`, `Reason`, `Count`, `FirstSeenAt`, `LastSeenAt`, `Status` (`Pending`/`Allowed`/`Blocked`) | decidir cria um `CloudItemRule` |
 | `CloudRollbackIncident` | `VaultId`, `ServerId`, `WorldId`, `Checkpoint` (JSON), `DetectedAt`, `Origin` (`Restore`/`Hello`), `Status` (`Open`/`Reverted`/`Accepted`), `ResolvedBy?` | aberto = servidor em somente leitura na nuvem |
+| `CloudDoubtfulOperation` | `VaultId`, `ServerId`, `PlayerUuid`, `ChannelId`, `ItemTypeId`, `Kind` (`PendingCredit`/`RecentDebit`), `Amount`, `OccurredAt`, `Status` (`Open`/`Refunded`/`Dismissed`), `ResolvedBy?` | reportadas pelo mod no boot após crash; devolver = linha no ledger (Source=Admin) |
 | `CloudAdminAuditEntry` | `ActorUserId`, `Action`, `TargetType`, `TargetId`, `Details` (JSON), `CreatedAt` | toda ação do painel |
 
 Mudanças em entidades existentes:
@@ -64,7 +69,8 @@ Mudanças em entidades existentes:
 
 Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_item_types`,
 `cloud_balances`, `cloud_leases`, `cloud_batches`, `cloud_ledger`, `cloud_quarantine`,
-`cloud_item_rules`, `cloud_suspect_items`, `cloud_rollback_incidents`, `cloud_admin_audit`.
+`cloud_item_rules`, `cloud_suspect_items`, `cloud_rollback_incidents`, `cloud_doubtful_operations`,
+`cloud_admin_audit`.
 Índices: `cloud_ledger(ChannelId, Id)`, `cloud_batches(ServerId, Epoch, Seq)`,
 `cloud_balances(ChannelId)`, `cloud_channels(VaultId, PlayerUuid)`.
 `Amount`/`Delta` como `bigint` e testados no `PostgresColumnLimitsTests`.
@@ -87,6 +93,7 @@ Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_it
 - `ReleaseLease`: só se `LastSeq` bate (todos os lotes chegaram); senão, `Releasing` até chegarem.
 - `CreateChannel` / `RenameChannel` / `DeleteEmptyChannel`: exigem lease do jogador neste servidor.
 - `ReportSuspects`: soma em `CloudSuspectItem`.
+- `ReportDoubtful`: grava `CloudDoubtfulOperation` (idempotente por servidor + época + seq).
 
 **Painel:**
 - Nuvens: `CreateVault`, `UpdateVaultSettings`, `AttachServer`/`DetachServer`,
@@ -100,6 +107,9 @@ Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_it
 - Incidentes: `PreviewRollback` (o que será estornado e onde o saldo ficaria negativo, porque os
   itens já foram para outro servidor), `RevertRollback` (lançamentos compensatórios, limitados a 0,
   com a diferença registrada), `AcceptRollback`.
+- Operações em dúvida: `ListDoubtful`, `RefundDoubtful` (exige lease livre), `DismissDoubtful`.
+- Integração com `CreateWorldBackup` (a quente): `tccloud checkpoint` via RCON entre o
+  `save-all flush` e a cópia.
 - Integração com `RestoreWorldBackup`: com a nuvem ligada, ao restaurar, ler
   `world/tccloud/checkpoint.json` do zip, abrir o incidente (`Origin=Restore`) e mostrar a prévia
   no mesmo diálogo da restauração.
@@ -120,7 +130,7 @@ Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_it
 - Contrato: DTOs em `TCMine.Contracts/Cloud` com `CloudProtocol.Current`. Versão divergente →
   `426` com mensagem clara (mesma lição do `Protocol` do launcher).
 - Endpoints: `hello`, `policy`, `leases/acquire`, `leases/heartbeat`, `leases/release`, `batches`,
-  `channels` (POST/PATCH/DELETE), `reports/suspects`.
+  `channels` (POST/PATCH/DELETE), `reports/suspects`, `reports/doubtful`.
 - `Background/`: um serviço que expira leases (`ExpiresAt < agora`) e, no arranque, **estende**
   todos os `Held` pelo TTL (a queda foi do TCMine, não do jogo).
 
@@ -134,13 +144,14 @@ Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_it
 | **Nuvem › Regras** | regras por item/mod/tag + fila de **suspeitos** com contagem e botões permitir/bloquear |
 | **Nuvem › Quarentena** | lotes com motivo, prévia do efeito, aplicar/descartar |
 | **Nuvem › Incidentes** | rollbacks detectados, prévia, reverter/aceitar |
+| **Nuvem › Em dúvida** | operações não confirmadas após crash (jogador, item, quantidade, horário), devolver/dispensar |
 | **Nuvem › Leases** | quem está segurando o quê, onde e desde quando, forçar liberação |
 | **Nuvem › Auditoria** | ledger + ações de admin, filtros, exportar CSV |
 | **Nuvem › Configurações** | TTL, cotas, tamanho máximo do item, ligar/desligar |
 
 Padrões do projeto: MudBlazor, feedback de progresso em toda ação assíncrona, confirmação em ação
 destrutiva (forçar liberação, descartar, ajustar), contadores de pendências (suspeitos, quarentena,
-incidentes) no menu.
+incidentes, em dúvida) no menu.
 
 ## 6. Fases (fatias pequenas, de dentro para fora)
 
