@@ -28,6 +28,7 @@ public final class PlayerCloudSession {
     private final PendingChanges pending = new PendingChanges();
     private final BatchSequencer sequencer;
     private boolean readOnly;
+    private long changeCount;
 
     /**
      * @param epoch    época do lease (o TCMine aumenta a cada acquire)
@@ -51,6 +52,7 @@ public final class PlayerCloudSession {
         if (accepted == 0 || simulate) return accepted;
         balances.apply(key, accepted);
         pending.credit(key, accepted);
+        changeCount++;
         return accepted;
     }
 
@@ -61,6 +63,7 @@ public final class PlayerCloudSession {
         if (taken == 0 || simulate) return taken;
         balances.apply(key, -taken);
         pending.debit(key, taken);
+        changeCount++;
         return taken;
     }
 
@@ -99,6 +102,11 @@ public final class PlayerCloudSession {
     /** Pode liberar o lease? Só sem nada pendente (depois de um {@link #onFlushedSave}). */
     public boolean isSettled() {
         return pending.isEmpty();
+    }
+
+    /** Aumenta a cada inserção/retirada aplicada: quem observa (diário, tela, AE2) sabe que algo mudou. */
+    public long changeCount() {
+        return changeCount;
     }
 
     public void setReadOnly(boolean readOnly) {
