@@ -1,0 +1,33 @@
+// TC Cloud Storage. Configuração comum de mod TC em ../gradle/tc-mod.gradle; aqui só o que é deste mod.
+apply from: rootProject.file('gradle/tc-mod.gradle')
+
+// O TC Core precisa estar configurado antes (usamos o sourceSet dele nas execuções de dev).
+evaluationDependsOn(':core')
+
+neoForge {
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+    }
+
+    mods {
+        // Em dev o core roda junto, como mod separado (igual no ATM10).
+        tccore {
+            sourceSet(project(':core').sourceSets.main)
+        }
+    }
+}
+
+dependencies {
+    // TC Core: biblioteca comum dos mods TC (mod separado em jogo).
+    implementation project(':core')
+
+    // AE2: compila contra a API publicada (usada a partir da fase 2: nó da grade e MEStorage).
+    compileOnly "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
+    testImplementation "org.appliedenergistics:appliedenergistics2:${ae2_version}:api"
+}

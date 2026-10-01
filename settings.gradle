@@ -15,7 +15,7 @@ rootProject.name = 'tc_minecraft_mods'
 // ':colony-bridge'), então os comandos não mudam: ./gradlew :colony-bridge:runClient.
 // Para criar um mod novo: pasta mods/<nome> com build.gradle + gradle.properties (ver README.md)
 // e o nome dele na lista abaixo.
-['core', 'colony-bridge'].each { name ->
+['core', 'colony-bridge', 'cloud-storage'].each { name ->
     include name
     project(":$name").projectDir = file("mods/$name")
 }

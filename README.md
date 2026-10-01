@@ -6,6 +6,7 @@ Workspace dos mods **TC** (tiny-core) para **NeoForge 1.21.1**, feitos para o mo
 |---|---|---|
 | `mods/core/` | **TC Core** (`tccore`) | Biblioteca comum: design system das telas, ghost slots, redstone, estatísticas. Obrigatório em jogo para os outros mods TC. |
 | `mods/colony-bridge/` | **TC Colony Bridge** (`tccolonybridge`) | Liga uma rede ME do AE2 aos pedidos do MineColonies (Ponte, Abastecedor, Monitores). |
+| `mods/cloud-storage/` | **TC Cloud Storage** (`tccloud`) | Itens guardados na nuvem do TCMine e vistos pela rede AE2; reencontrados em outro servidor do mesmo dono. **Em desenvolvimento (fase 1).** |
 
 Planejado: mod para gerenciar os reatores do Mekanism, no mesmo estilo.
 

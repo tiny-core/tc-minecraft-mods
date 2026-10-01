@@ -10,7 +10,8 @@ tc_minecraft_mods/
 ├── gradle/tc-mod.gradle     # configuração que todo mod TC repete (NeoForge, mods.toml, testes)
 ├── mods/
 │   ├── core/                # TC Core (tccore): biblioteca comum — mod separado em jogo
-│   └── colony-bridge/       # TC Colony Bridge (tccolonybridge): AE2 ↔ MineColonies
+│   ├── colony-bridge/       # TC Colony Bridge (tccolonybridge): AE2 ↔ MineColonies
+│   └── cloud-storage/       # TC Cloud Storage (tccloud): itens na nuvem do TCMine via AE2 (em desenvolvimento)
 ```
 Planejado: mod de reatores do Mekanism, no mesmo estilo (ver README.md, "Criar um mod novo").
 
