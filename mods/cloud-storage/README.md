@@ -4,8 +4,26 @@ Armazenamento de itens na nuvem do TCMine, visível para a rede ME do Applied En
 guarda itens num canal dele e os reencontra em outro servidor do **mesmo dono** (outro modpack, outro
 mundo). Itens de mods que o servidor novo não tem aparecem como incompatíveis e não podem ser retirados.
 
-**Estado: em desenvolvimento (fase 1 de 6).** Ainda não há nada para usar em jogo; o jar só carrega o
-núcleo de regras. Plano e fases: `docs/planos/tc-cloud-storage.md` na raiz do workspace.
+**Estado: em desenvolvimento (fase 2 de 6).** Funciona em jogo com uma "nuvem" de teste (arquivo local);
+a ligação com o TCMine vem na fase 4. Plano e fases: `docs/planos/tc-cloud-storage.md` na raiz do workspace.
+
+## Como usar (fase 2)
+1. Em `config/tccloud-common.toml`, ligue `devFileBackend = true` (a nuvem de teste fica em
+   `tccloud-dev-backend.json`, na pasta do jogo/servidor, e é a mesma para todos os mundos).
+2. Pegue o **TC Cloud Link** na aba criativa "TC Cloud Storage" e coloque-o ligado a uma rede AE2 (qualquer
+   lado). Só quem colocou abre a tela.
+3. Na tela: clique esquerdo tira um stack, direito tira 1; com item no cursor, esquerdo guarda tudo e direito
+   guarda 1; shift-clique no inventário guarda o stack. O botão `!` mostra os itens que não podem ser usados
+   neste servidor (apagados, com o motivo).
+4. Barra lateral: modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
+   (`+`/`-`).
+5. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
+   estão lá.
+
+Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag
+`#tccloud:never_transfer` ou com sinais de guardar dados no mundo.
+
+Admin: `/tccloud checkpoint` salva o mundo com flush e torna tudo durável (usado pelo backup do TCMine).
 
 ## Requisitos (quando estiver pronto)
 - NeoForge 1.21.1, AE2, TC Core.

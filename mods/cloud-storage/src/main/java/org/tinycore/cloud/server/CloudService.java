@@ -7,7 +7,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.Config;
 import org.tinycore.cloud.TcCloud;
-import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudQuota;
 import org.tinycore.cloud.cloud.PlayerCloudSession;
@@ -23,12 +22,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
- * O serviço da nuvem de UM servidor ligado: sessões dos jogadores, diário, fila de envio e ciclo de vida
- * (boot, login, tick, save, logout, parada). Plano §4 e §5. Itens (guardar/retirar/listar) ficam em
- * {@link CloudInventory}; os eventos do NeoForge chegam por {@link CloudServerEvents}.
+ * O serviço da nuvem de UM servidor ligado: diário, fila de envio, configuração da nuvem e ciclo de vida (boot,
+ * tick, save, logout, parada). Plano §4 e §5. Os jogadores e seus leases ficam em {@link PlayerLeases}; itens
+ * (guardar/retirar/listar) em {@link CloudInventory}; os eventos do NeoForge chegam por {@link CloudServerEvents}.
  *
  * <p>Tudo aqui roda na thread do servidor. Respostas do backend voltam para ela por {@code server::execute}.
  *
@@ -43,28 +43,31 @@ public final class CloudService {
     private final CloudBackend backend;
     private final JournalWriter writer;
     private final BatchOutbox outbox;
-    private final Map<UUID, PlayerCloud> players = new HashMap<>();
+    private final PlayerLeases leases;
     private final Map<String, EncodedItem> definitions = new HashMap<>();
     private final CloudListeners listeners = new CloudListeners();
-    private final CloudInventory inventory;
     private final ChannelMounts mounts = new ChannelMounts();
+    private final CloudInventory inventory;
 
     private volatile ItemPolicy policy = ItemPolicy.OPEN;
     private CloudQuota quota = CloudQuota.UNLIMITED;
     private int maxItemBytes = Config.MAX_ITEM_BYTES.get();
     private boolean helloDone;
+    private boolean helloInFlight;
+    private int helloRetryInTicks;
     private boolean stopping;
     /** Diário com problema ou backend mandou: nada entra nem sai em nenhum canal. */
     private @Nullable String globalReadOnly;
     private boolean flushRequested;
     private int ticksSinceFlush = Integer.MAX_VALUE / 2;
-    private int ticksToHeartbeat;
 
     private CloudService(MinecraftServer server, CloudBackend backend, Path folder, Checkpoint checkpoint) {
         this.server = server;
         this.backend = backend;
         this.writer = new JournalWriter(folder, checkpoint, Config.JOURNAL_COMPACT_KB.get() * 1024L);
         this.outbox = new BatchOutbox(backend, server, this::onBatchResult);
+        this.leases = new PlayerLeases(new PlayerLeases.Context(backend, server, outbox, listeners, () -> quota,
+                () -> helloDone, () -> globalReadOnly, definitions::putAll));
         this.inventory = new CloudInventory(this, server.registryAccess());
     }
 
@@ -82,8 +85,9 @@ public final class CloudService {
             return;
         }
         Path folder = server.getWorldPath(LevelResource.ROOT).resolve("tccloud");
-        Checkpoint checkpoint = Checkpoint.read(folder.resolve("checkpoint.json"));
-        boolean checkpointLost = checkpoint == null && folder.resolve("checkpoint.json").toFile().exists();
+        Path checkpointFile = folder.resolve("checkpoint.json");
+        Checkpoint checkpoint = Checkpoint.read(checkpointFile);
+        boolean checkpointLost = checkpoint == null && checkpointFile.toFile().exists();
         CloudService service = new CloudService(server, backend, folder, checkpoint != null ? checkpoint : Checkpoint.fresh());
         instance = service;
         TcCloud.LOG.info("Nuvem ligada: {}.", backend.describe());
@@ -91,10 +95,11 @@ public final class CloudService {
             // Sem o checkpoint não dá para detectar "mundo que voltou no tempo": melhor travar que arriscar.
             service.enterGlobalReadOnly("checkpoint ilegível");
         }
-        service.boot();
+        service.replayJournal();
     }
 
-    private void boot() {
+    /** Boot: reporta operações em dúvida, põe na fila os lotes não confirmados e compacta o diário. */
+    private void replayJournal() {
         try {
             JournalReplay replay = writer.replay();
             if (replay.uncleanShutdown() && !replay.doubtful().isEmpty()) {
@@ -110,16 +115,28 @@ public final class CloudService {
                 List<EncodedItem> defs = new ArrayList<>();
                 batch.ops().stream().filter(op -> op.delta() > 0)
                         .map(op -> replay.definitions().get(op.key().fingerprint()))
-                        .filter(java.util.Objects::nonNull).forEach(defs::add);
+                        .filter(Objects::nonNull).forEach(defs::add);
                 outbox.add(new JournalWriter.Outgoing(batch, defs));
             }
             writer.compactNow(replay);
         } catch (IOException e) {
             enterGlobalReadOnly("diário ilegível: " + e);
         }
+    }
+
+    /** Pede a configuração da nuvem; sem ela nenhum canal é entregue. Tenta de novo enquanto falhar. */
+    private void tickHello() {
+        if (helloDone || helloInFlight) return;
+        if (helloRetryInTicks > 0) {
+            helloRetryInTicks--;
+            return;
+        }
+        helloInFlight = true;
         backend.hello(writer.checkpoint()).whenCompleteAsync((reply, error) -> {
+            helloInFlight = false;
             if (error != null) {
-                TcCloud.LOG.warn("Nuvem: hello falhou ({}); tentando no próximo login.", error.toString());
+                TcCloud.LOG.warn("Nuvem: hello falhou ({}); tentando de novo.", error.toString());
+                helloRetryInTicks = Config.SEND_RETRY_SECONDS.get() * 20;
                 return;
             }
             policy = reply.policy();
@@ -139,12 +156,7 @@ public final class CloudService {
     void onShutdownSaved() {
         sealFlushed();
         outbox.drainBlocking(5000);
-        for (PlayerCloud pc : players.values()) {
-            PlayerCloudSession s = pc.session;
-            if (s != null && s.isSettled() && !outbox.hasPendingFor(pc.uuid)) {
-                backend.release(pc.uuid, s.epoch(), s.lastSeq());
-            }
-        }
+        leases.releaseAllSettled();
         try {
             writer.writeCleanShutdown();
         } catch (IOException e) {
@@ -161,71 +173,21 @@ public final class CloudService {
     // ------------------------------------------------------------------ jogadores
 
     void onLogin(@NotNull ServerPlayer player) {
-        PlayerCloud pc = players.get(player.getUUID());
-        if (pc != null) {
-            pc.releaseRequested = false; // voltou antes de liberar: continua com a mesma sessão
-            return;
-        }
-        players.put(player.getUUID(), new PlayerCloud(player.getUUID(), player.getGameProfile().getName()));
-        listeners.fire(player.getUUID());
+        leases.onLogin(player);
     }
 
     void onLogout(@NotNull ServerPlayer player) {
-        PlayerCloud pc = players.get(player.getUUID());
-        if (pc == null || stopping) return;
-        pc.releaseRequested = true;
-        flushRequested = true;
-        listeners.fire(pc.uuid);
-    }
-
-    private void tryAcquire(PlayerCloud pc) {
-        if (pc.acquireInFlight || pc.session != null || !helloDone || outbox.hasPendingFor(pc.uuid)) return;
-        if (pc.retryInTicks > 0) {
-            pc.retryInTicks--;
-            return;
-        }
-        pc.acquireInFlight = true;
-        backend.acquire(pc.uuid, pc.name).whenCompleteAsync((result, error) -> {
-            pc.acquireInFlight = false;
-            if (players.get(pc.uuid) != pc) return; // saiu e a entrada foi trocada
-            if (error != null) {
-                setStatus(pc, CloudStatus.UNAVAILABLE, null);
-                pc.retryInTicks = Config.SEND_RETRY_SECONDS.get() * 20;
-                return;
-            }
-            switch (result) {
-                case CloudBackend.LeaseResult.Busy busy -> {
-                    setStatus(pc, CloudStatus.BUSY, busy.holder());
-                    pc.retryInTicks = Config.SEND_RETRY_SECONDS.get() * 20;
-                }
-                case CloudBackend.LeaseResult.Granted granted -> openSession(pc, granted);
-            }
-        }, server);
-    }
-
-    private void openSession(PlayerCloud pc, CloudBackend.LeaseResult.Granted granted) {
-        Map<BalanceKey, Long> snapshot = new HashMap<>();
-        pc.channels.clear();
-        for (CloudBackend.ChannelSnapshot channel : granted.channels()) {
-            pc.channels.put(channel.id(), channel.name());
-            channel.amounts().forEach((fp, amount) -> snapshot.put(new BalanceKey(channel.id(), fp), amount));
-            definitions.putAll(channel.items());
-        }
-        pc.session = new PlayerCloudSession(pc.uuid, granted.epoch(), 0, pc.channels.keySet(), snapshot, quota);
-        boolean readOnly = granted.readOnly() || globalReadOnly != null;
-        pc.session.setReadOnly(readOnly);
-        setStatus(pc, readOnly ? CloudStatus.READ_ONLY : CloudStatus.ACTIVE, globalReadOnly);
+        if (stopping) return;
+        if (leases.onLogout(player)) flushRequested = true;
     }
 
     // ------------------------------------------------------------------ tick e saves
 
     void tick() {
-        for (PlayerCloud pc : players.values()) {
+        tickHello();
+        for (PlayerCloud pc : leases.all()) {
             PlayerCloudSession s = pc.session;
-            if (s == null) {
-                if (!pc.releaseRequested) tryAcquire(pc);
-                continue;
-            }
+            if (s == null) continue;
             persist(s.endOfTick());
             writePendingIfChanged(pc, s);
         }
@@ -237,13 +199,12 @@ public final class CloudService {
             server.saveEverything(true, true, false); // espera o IO terminar antes de voltar
             sealFlushed();
         }
-        releaseFinished();
-        heartbeat();
+        leases.tick();
     }
 
     /** Save do overworld (autosave, save-all ou o nosso save com flush). */
     void onWorldSave() {
-        for (PlayerCloud pc : players.values()) {
+        for (PlayerCloud pc : leases.all()) {
             if (pc.session != null) persist(pc.session.onWorldSave());
         }
         afterSeal();
@@ -251,7 +212,7 @@ public final class CloudService {
 
     /** Depois de um save com flush (o IO já terminou): todo crédito pendente vira durável. */
     void sealFlushed() {
-        for (PlayerCloud pc : players.values()) {
+        for (PlayerCloud pc : leases.all()) {
             if (pc.session != null) persist(pc.session.onFlushedSave());
         }
         afterSeal();
@@ -265,7 +226,7 @@ public final class CloudService {
 
     private void afterSeal() {
         try {
-            for (PlayerCloud pc : players.values()) {
+            for (PlayerCloud pc : leases.all()) {
                 if (pc.session != null) {
                     writer.writePending(pc.uuid, pc.session.pendingCredits());
                     pc.pendingWrittenAt = pc.session.changeCount();
@@ -305,81 +266,37 @@ public final class CloudService {
         if (result != CloudBackend.BatchResult.QUARANTINED) return;
         TcCloud.LOG.warn("Nuvem: lote {}/{} do jogador {} foi para a quarentena; canal travado.",
                 batch.epoch(), batch.seq(), batch.playerUuid());
-        PlayerCloud pc = players.get(batch.playerUuid());
-        if (pc != null && pc.session != null) {
-            pc.session.setReadOnly(true);
-            setStatus(pc, CloudStatus.READ_ONLY, "quarentena");
-        }
-    }
-
-    private void releaseFinished() {
-        players.values().removeIf(pc -> {
-            if (!pc.releaseRequested || pc.acquireInFlight) return false;
-            PlayerCloudSession s = pc.session;
-            if (s == null) return true; // nunca teve lease
-            if (!s.isSettled() || outbox.hasPendingFor(pc.uuid)) return false;
-            backend.release(pc.uuid, s.epoch(), s.lastSeq()).exceptionally(e -> {
-                TcCloud.LOG.debug("Nuvem: release de {} falhou ({}); o lease expira sozinho.", pc.uuid, e.toString());
-                return null;
-            });
-            listeners.fire(pc.uuid);
-            return true;
-        });
-    }
-
-    private void heartbeat() {
-        if (--ticksToHeartbeat > 0) return;
-        ticksToHeartbeat = Config.HEARTBEAT_SECONDS.get() * 20;
-        List<CloudBackend.HeldLease> held = new ArrayList<>();
-        players.values().forEach(pc -> {
-            if (pc.session != null) held.add(new CloudBackend.HeldLease(pc.uuid, pc.session.epoch()));
-        });
-        if (held.isEmpty()) return;
-        backend.heartbeat(held).exceptionally(e -> {
-            TcCloud.LOG.debug("Nuvem: heartbeat falhou: {}", e.toString());
-            return null;
-        });
+        leases.lockReadOnly(batch.playerUuid(), "quarentena");
     }
 
     private void enterGlobalReadOnly(String reason) {
         if (globalReadOnly == null) TcCloud.LOG.error("Nuvem em SOMENTE LEITURA neste servidor: {}", reason);
         globalReadOnly = reason;
-        for (PlayerCloud pc : players.values()) {
-            if (pc.session != null) {
-                pc.session.setReadOnly(true);
-                setStatus(pc, CloudStatus.READ_ONLY, reason);
-            }
-        }
-    }
-
-    private void setStatus(PlayerCloud pc, CloudStatus status, @Nullable String detail) {
-        pc.status = status;
-        pc.detail = detail;
-        listeners.fire(pc.uuid);
+        leases.lockReadOnly(null, reason);
     }
 
     // ------------------------------------------------------------------ consultas (blocos, tela, AE2)
 
     /** Situação do jogador (jogador desconhecido = ainda conectando). */
     public @NotNull CloudStatus status(@NotNull UUID player) {
-        PlayerCloud pc = players.get(player);
+        PlayerCloud pc = leases.get(player);
         return pc == null ? CloudStatus.CONNECTING : pc.status;
     }
 
     public @Nullable String statusDetail(@NotNull UUID player) {
-        PlayerCloud pc = players.get(player);
+        PlayerCloud pc = leases.get(player);
         return pc == null ? null : pc.detail;
     }
 
     /** Sessão ativa do jogador, ou {@code null} (sem lease, ou saindo). */
     public @Nullable PlayerCloudSession session(@NotNull UUID player) {
-        PlayerCloud pc = players.get(player);
+        PlayerCloud pc = leases.get(player);
         return pc == null || pc.releaseRequested ? null : pc.session;
     }
 
     /** Canal padrão do jogador (fase 2: o único). */
     public @Nullable UUID defaultChannel(@NotNull UUID player) {
-        PlayerCloud pc = players.get(player);
+        PlayerCloud pc = leases.get(player);
         return pc == null ? null : pc.defaultChannel();
     }
 
