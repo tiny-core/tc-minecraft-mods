@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic.terminal;
+package org.tinycore.core.grid;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -8,7 +8,7 @@ import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
 /**
- * Regra pura da grade do Terminal do Armazém: filtra pela busca e ordena. Genérica ({@code <T>}) para ser
+ * Regra pura de grades de itens (ex.: Terminal do Armazém do Colony Bridge, TC Cloud Link): filtra pela busca e ordena. Genérica ({@code <T>}) para ser
  * testada sem itens; a tela passa como ler o nome, o id do mod e a quantidade de cada entrada.
  * <p>
  * Busca como no AE2: texto comum procura no nome; começando com {@code @} procura no id do mod
@@ -39,7 +39,7 @@ public final class ItemListing {
      *
      * @param name   nome visível da entrada
      * @param modId  id do mod dono do item (ex.: "minecraft")
-     * @param amount quantidade no armazém
+     * @param amount quantidade da entrada
      */
     public static <T> List<T> filterAndSort(List<T> entries, String query, Sort sort, Function<T, String> name,
                                             Function<T, String> modId, ToLongFunction<T> amount) {

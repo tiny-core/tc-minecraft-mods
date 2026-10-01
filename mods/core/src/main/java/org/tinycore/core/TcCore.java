@@ -9,7 +9,8 @@ import org.slf4j.Logger;
  * blocos nem itens: só oferece código compartilhado, para cada mod não repetir o mesmo trabalho:
  * <ul>
  *   <li>{@code client.ui}: design system das telas (cores da marca, estilo, botões com ícone, barra lateral,
- *       gráfico de barras);</li>
+ *       gráfico de barras, grade de itens);</li>
+ *   <li>{@code grid}: busca/ordem e diferença de contagens das grades de itens;</li>
  *   <li>{@code menu}: ghost slots seguros contra duplicação;</li>
  *   <li>{@code block}: modo de redstone;</li>
  *   <li>{@code stats}: contadores numa janela de tempo (ring buffer).</li>

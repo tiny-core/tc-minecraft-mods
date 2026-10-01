@@ -15,21 +15,22 @@ import org.lwjgl.glfw.GLFW;
 import org.tinycore.colonybridge.client.tablet.TabletTabBar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.terminal.ItemListing;
 import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.menu.terminal.WarehouseEntry;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.network.WarehouseActionPayload;
 import org.tinycore.core.client.ui.IconButton;
+import org.tinycore.core.client.ui.ItemGrid;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.grid.ItemListing;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Tela do Terminal do Armazém (só cliente), com a estrutura do terminal do AE2 e as cores da marca:
- * busca, grade com todos os itens dos racks ({@link WarehouseGrid}), bancada 3×3 (como o Crafting Terminal)
+ * busca, grade com todos os itens dos racks ({@link ItemGrid}), bancada 3×3 (como o Crafting Terminal)
  * e o inventário embaixo. Os slots da bancada são do menu; aqui se desenha a estrutura do Crafting Terminal
  * do AE2 — painel afundado, grade, dois botões pequenos (▲ devolve ao armazém, ▼ manda para o inventário),
  * seta e o resultado numa moldura maior.
@@ -61,7 +62,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     private SideToolbar toolbar;
     private IconButton sortButton;
     private EditBox search;
-    private WarehouseGrid grid;
+    private ItemGrid<WarehouseEntry> grid;
     /** Pixels acima de {@code topPos} ocupados pelas linhas extras da grade. */
     private int extra;
 
@@ -108,8 +109,8 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         search.setHint(Component.translatable("gui.tccolonybridge.terminal.search").withColor(ScreenStyle.TEXT_MUTED));
         search.setValue(previous);
 
-        grid = new WarehouseGrid(leftPos + WarehouseTerminalMenu.GRID_X, top + WarehouseTerminalMenu.GRID_Y,
-                WarehouseTerminalMenu.COLUMNS, rows);
+        grid = new ItemGrid<>(leftPos + WarehouseTerminalMenu.GRID_X, top + WarehouseTerminalMenu.GRID_Y,
+                WarehouseTerminalMenu.COLUMNS, rows, new WarehouseEntryAdapter());
     }
 
     private void sendGridAction(TerminalAction action) {
@@ -147,7 +148,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
                 ScreenStyle.INFO);
         ScreenStyle.inset(g, x + PADDING, top + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
 
-        grid.update(menu.getView(), search.getValue(), sort);
+        grid.update(menu.getView().version(), menu.getView().entries(), search.getValue(), sort);
         grid.render(g, font, mouseX, mouseY);
 
         craftingPanel(g, x, y, inner);
@@ -278,7 +279,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     }
 
     /** Área da célula da grade sob o mouse e o item dela, para o JEI (teclas R/U); null fora da grade. */
-    public @Nullable WarehouseGrid.Hit gridHit(double mouseX, double mouseY) {
+    public @Nullable ItemGrid.Hit gridHit(double mouseX, double mouseY) {
         return grid.hitAt(mouseX, mouseY);
     }
 }

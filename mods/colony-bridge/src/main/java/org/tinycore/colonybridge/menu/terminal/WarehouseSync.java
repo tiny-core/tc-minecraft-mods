@@ -7,7 +7,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.logic.BridgeStatus;
-import org.tinycore.colonybridge.logic.terminal.CountDiff;
+import org.tinycore.core.grid.CountDiff;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseItems;
 import org.tinycore.colonybridge.network.WarehouseContentsPayload;
 

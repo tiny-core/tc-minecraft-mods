@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic.terminal;
+package org.tinycore.core.grid;
 
 import org.junit.jupiter.api.Test;
 

@@ -1,4 +1,4 @@
-package org.tinycore.colonybridge.logic.terminal;
+package org.tinycore.core.grid;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,17 +6,17 @@ import java.util.Map;
 import java.util.function.BiConsumer;
 
 /**
- * Regra pura da sincronização do Terminal do Armazém: o que mudou entre duas contagens
+ * Regra pura de sincronização de grades de itens (Terminal do Armazém, TC Cloud Link): o que mudou entre duas contagens
  * (tipo de item → quantidade). O servidor manda ao cliente só essas mudanças, não a lista inteira a cada vez.
  * <p>
  * Genérica no tipo da chave ({@code <K>} ≈ generic de C#) para ser testada sem itens do Minecraft. Os
- * mapas decidem o que é "a mesma chave" (no jogo: item + componentes, ver {@code WarehouseItems}).
+ * mapas decidem o que é "a mesma chave" (no jogo: item + componentes, ex.: {@code WarehouseItems} no Colony Bridge).
  */
 public final class CountDiff {
 
     private CountDiff() {}
 
-    /** Uma mudança: a chave passou a ter {@code count} (0 = saiu do armazém). */
+    /** Uma mudança: a chave passou a ter {@code count} (0 = a chave sumiu). */
     public record Change<K>(K key, long count) {}
 
     /**

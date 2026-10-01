@@ -14,8 +14,8 @@ import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.client.loader.ChunkLoaderScreen;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
-import org.tinycore.colonybridge.client.terminal.WarehouseGrid;
 import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
+import org.tinycore.core.client.ui.ItemGrid;
 
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +83,7 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
             @Override
             public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(WarehouseTerminalScreen screen,
                                                                                       double mouseX, double mouseY) {
-                WarehouseGrid.Hit hit = screen.gridHit(mouseX, mouseY);
+                ItemGrid.Hit hit = screen.gridHit(mouseX, mouseY);
                 if (hit == null) {
                     return Optional.empty();
                 }
