@@ -1,6 +1,6 @@
 # Plano — TC Cloud Storage (`tccloud`)
 
-> Estado: **fase 2 aguardando teste em jogo** (`mods/cloud-storage/`). Documento irmão (lado do servidor TCMine):
+> Estado: **fase 2 concluída** (`mods/cloud-storage/`); próxima: fase 3 (tabelas e API no TCMine). Documento irmão (lado do servidor TCMine):
 > [`tc-cloud-storage-tcmine.md`](tc-cloud-storage-tcmine.md).
 
 Mod NeoForge 1.21.1 que guarda itens do jogador **fora do mundo**, no banco do TCMine. A rede do
@@ -249,7 +249,7 @@ há divergência: o lote vai para a quarentena e o canal é congelado. Isso dete
 |---|---|---|
 | **0. Spike de riscos** ✅ | Respostas lendo o código do NeoForge 21.1.252 e do AE2 19.2.17 (§11) | feito em 2026-10-01 |
 | **1. Núcleo puro** ✅ | `mods/cloud-storage/`: `cloud/`, `cloud/journal/`, `item/`, `item/policy/` com JUnit (40 testes, incluindo `CrashSimulationTest`) | feito em 2026-10-01 |
-| **2. Mod com `FileCloudBackend`** 🧪 | TC Cloud Link, AE2, tela (grade no `tccore`), filtro compatível/incompatível, lease simulado, `/tccloud checkpoint` | código pronto em 2026-10-01; falta o teste do autor no ATM10 |
+| **2. Mod com `FileCloudBackend`** ✅ | TC Cloud Link, AE2, tela (grade no `tccore`), filtro compatível/incompatível, lease simulado, `/tccloud checkpoint` | testado pelo autor no ATM10 (singleplayer) em 2026-10-01 |
 | **3. TCMine: tabelas + API** | Ver documento do TCMine, fases A–B | testes de contrato no TCMine |
 | **4. Integração real** | `HttpCloudBackend`, chave por variável de ambiente, `hello`/checkpoint | dois servidores do mesmo dono trocando itens |
 | **5. Painel** | Políticas, suspeitos, quarentena, incidentes, auditoria (fases C–D do TCMine) | dono resolve tudo sem SQL |
