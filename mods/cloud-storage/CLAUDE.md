@@ -8,8 +8,8 @@ expõe isso à rede do AE2. Plano completo: `docs/planos/tc-cloud-storage.md` (r
 do TCMine: `docs/planos/tc-cloud-storage-tcmine.md`. **Ler o plano antes de mudar qualquer regra de
 `cloud/`.**
 
-Estado: **fase 2** — TC Cloud Link em jogo com o backend de desenvolvimento (arquivo local,
-`devFileBackend=true`). Um canal por jogador. Backend HTTP do TCMine: fase 4.
+Estado: **fase 4** — fala com o TCMine de verdade (`HttpCloudBackend`, API `/api/cloud/v1`); backend de
+desenvolvimento (arquivo local, `devFileBackend=true`) continua para testes sem o TCMine. Um canal por jogador.
 
 Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do GuideMe>` (padrão:
 `mods/colony-bridge/libs`). Ligar `devFileBackend = true` em `run/config/tccloud-common.toml`.
@@ -28,8 +28,12 @@ Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do
 - Todo item que entra passa pelo `TransferGuard` (via `CloudInventory`); o AE2 e a tela nunca chamam a
   `PlayerCloudSession` direto.
 - Config é `COMMON`, nunca `SERVER`.
-- URL e chave do TCMine só por variável de ambiente (`TCMINE_CLOUD_URL`, `TCMINE_CLOUD_KEY`); nunca em
-  config do tipo `SERVER` (é sincronizada para os clientes).
+- URL e chave do TCMine: variáveis de ambiente (`TCMINE_CLOUD_URL`, `TCMINE_CLOUD_KEY`) ou o
+  `tccloud-server.json` que o TCMine grava na pasta do servidor a cada start (`CloudCredentials`). Nunca em
+  config do mod. A chave nunca vai para log (`CloudCredentials.toString` mostra só o prefixo).
+- Com o TCMine, a nuvem só liga em `online-mode=true` (`CloudBackends`).
+- Formato do JSON em `CloudApiDto`, espelhando o TCMine; mudança quebrada = subir `HttpCloudBackend.PROTOCOL`
+  junto com o `CloudProtocol` do TCMine.
 
 ## Pacotes
 
@@ -39,7 +43,7 @@ Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do
 | `cloud/journal/` | `JournalFile` (quadros com CRC), `JournalCodec`, `JournalReplay` (outbox, em dúvida, compactação), `Checkpoint` (JSON) |
 | `item/` | `ItemCodec` (bytes ↔ `ItemStack`), `ItemCatalog` (caches), `TransferGuard` + probes, `CanonicalNbt`, `ItemFingerprint`, `WorldReferenceDetector`, `CloudItemTags` |
 | `item/policy/` | `ItemPolicy`, `ItemRule` |
-| `server/` | `CloudService` (ciclo de vida, diário, saves), `PlayerLeases`, `JournalWriter`, `BatchOutbox`, `CloudInventory` (guardar/retirar/listar), `ChannelMounts`, `CloudServerEvents`, `CloudCommands` |
-| `integration/tcmine/` | `CloudBackend` (interface), `FileCloudBackend` + `DevCloudState` (backend de desenvolvimento) |
+| `server/` | `CloudService` (ciclo de vida, diário, saves, política), `PlayerLeases`, `JournalWriter`, `BatchOutbox`, `CloudReports` + `DoubtfulOutbox` + `SuspectCollector` (relatórios ao dono), `CloudInventory` (guardar/retirar/listar), `ChannelMounts`, `CloudServerEvents`, `CloudCommands` |
+| `integration/tcmine/` | `CloudBackend` (interface), `HttpCloudBackend` + `CloudApiDto` + `CloudCredentials` (TCMine), `FileCloudBackend` + `DevCloudState` (desenvolvimento) |
 | `integration/ae2/` | `CloudLinkNode` (nó + `IStorageProvider`), `CloudMEStorage`, `Ae2CellProbe`, `Ae2Capabilities` |
 | `block/`, `menu/`, `network/`, `client/`, `registry/` | TC Cloud Link, tela (grade do core), pacotes, registros |

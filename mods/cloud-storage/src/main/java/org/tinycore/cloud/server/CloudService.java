@@ -48,6 +48,8 @@ public final class CloudService {
     private final CloudListeners listeners = new CloudListeners();
     private final ChannelMounts mounts = new ChannelMounts();
     private final CloudInventory inventory;
+    private final CloudReports reports;
+    private boolean policyRefreshInFlight;
 
     private volatile ItemPolicy policy = ItemPolicy.OPEN;
     private CloudQuota quota = CloudQuota.UNLIMITED;
@@ -67,7 +69,8 @@ public final class CloudService {
         this.writer = new JournalWriter(folder, checkpoint, Config.JOURNAL_COMPACT_KB.get() * 1024L);
         this.outbox = new BatchOutbox(backend, server, this::onBatchResult);
         this.leases = new PlayerLeases(new PlayerLeases.Context(backend, server, outbox, listeners, () -> quota,
-                () -> helloDone, () -> globalReadOnly, definitions::putAll));
+                () -> helloDone, () -> globalReadOnly, definitions::putAll, this::onHeartbeat));
+        this.reports = new CloudReports(backend, server, folder);
         this.inventory = new CloudInventory(this, server.registryAccess());
     }
 
@@ -103,12 +106,11 @@ public final class CloudService {
         try {
             JournalReplay replay = writer.replay();
             if (replay.uncleanShutdown() && !replay.doubtful().isEmpty()) {
-                TcCloud.LOG.warn("Nuvem: o servidor caiu sem parada limpa. Operações em dúvida (o dono decide):");
+                TcCloud.LOG.warn("Nuvem: o servidor caiu sem parada limpa. Operações em dúvida (o dono decide no painel):");
                 replay.doubtful().forEach(op -> TcCloud.LOG.warn("  {}", op));
-                backend.reportDoubtful(replay.doubtful()).exceptionally(e -> {
-                    TcCloud.LOG.warn("Nuvem: não consegui reportar as operações em dúvida: {}", e.toString());
-                    return null;
-                });
+                // ANTES da compactação, que apaga o que mostrava essas operações. Se gravar falhar, a
+                // compactação não roda (a exceção cai no catch) e o próximo boot tenta de novo.
+                reports.keepDoubtful(replay.doubtful());
             }
             definitions.putAll(replay.definitions());
             for (Batch batch : replay.outbox()) {
@@ -122,6 +124,30 @@ public final class CloudService {
         } catch (IOException e) {
             enterGlobalReadOnly("diário ilegível: " + e);
         }
+    }
+
+    /** Resposta do heartbeat: trava canais cujo lease se perdeu e busca a política se ela mudou. */
+    private void onHeartbeat(CloudBackend.HeartbeatReply reply) {
+        for (UUID lost : reply.lost()) {
+            TcCloud.LOG.warn("Nuvem: o lease de {} foi para outro servidor; canal travado aqui.", lost);
+            leases.lockReadOnly(lost, "outro servidor pegou os canais");
+        }
+        if (reply.policyVersion() == policy.version() || policyRefreshInFlight) return;
+        policyRefreshInFlight = true;
+        backend.policy().whenCompleteAsync((fresh, error) -> {
+            policyRefreshInFlight = false;
+            if (error != null) {
+                TcCloud.LOG.debug("Nuvem: não consegui buscar a política nova: {}", error.toString());
+                return;
+            }
+            policy = fresh;
+            TcCloud.LOG.info("Nuvem: política de itens atualizada (versão {}, {} regras).", fresh.version(), fresh.rules().size());
+        }, server);
+    }
+
+    /** O mod recusou um item por parecer guardar dados no mundo: vai para a fila de suspeitos do dono. */
+    void recordSuspect(@NotNull String itemId, @NotNull String evidence, boolean simulate) {
+        reports.recordSuspect(itemId, evidence, simulate);
     }
 
     /** Pede a configuração da nuvem; sem ela nenhum canal é entregue. Tenta de novo enquanto falhar. */
@@ -185,6 +211,7 @@ public final class CloudService {
 
     void tick() {
         tickHello();
+        reports.tick();
         for (PlayerCloud pc : leases.all()) {
             PlayerCloudSession s = pc.session;
             if (s == null) continue;

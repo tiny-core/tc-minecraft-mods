@@ -1,6 +1,6 @@
 # Plano — TC Cloud Storage (`tccloud`)
 
-> Estado: **fase 2 concluída** (`mods/cloud-storage/`); próxima: fase 3 (tabelas e API no TCMine). Documento irmão (lado do servidor TCMine):
+> Estado: **fase 4 concluída no código** (`mods/cloud-storage/` + TCMine `master`); falta o teste do autor com dois servidores reais. Documento irmão (lado do servidor TCMine):
 > [`tc-cloud-storage-tcmine.md`](tc-cloud-storage-tcmine.md).
 
 Mod NeoForge 1.21.1 que guarda itens do jogador **fora do mundo**, no banco do TCMine. A rede do
@@ -62,9 +62,11 @@ Novo mod em `mods/cloud-storage/` (modid `tccloud`), dependendo do `tccore` e do
 real) e `FileCloudBackend` (arquivo local, para desenvolver e testar sem o TCMine). Todo o resto do
 mod só conhece a interface.
 
-**Sem chave, sem nuvem.** A URL e a chave chegam por **variáveis de ambiente** do container
-(`TCMINE_CLOUD_URL`, `TCMINE_CLOUD_KEY`), injetadas pelo TCMine ao criar o servidor. Elas **não**
-ficam em arquivo de config. Motivos:
+**Sem chave, sem nuvem.** A URL e a chave chegam pelo arquivo `tccloud-server.json` que o TCMine grava
+na pasta do servidor a cada start (chave nova, a anterior para de valer) ou, para servidores fora do
+TCMine, pelas variáveis de ambiente `TCMINE_CLOUD_URL`/`TCMINE_CLOUD_KEY` (que valem primeiro). Arquivo e não
+só variável de ambiente porque o TCMine não recria containers (decisão de 2026-10-05). Elas **não** ficam em
+arquivo de config do mod. Motivos:
 - Uma config do tipo `SERVER` do NeoForge é **sincronizada para os clientes**: a chave vazaria para
   todo jogador.
 - Um arquivo de config acaba copiado para dentro do modpack ou de backups compartilhados.
@@ -250,9 +252,9 @@ há divergência: o lote vai para a quarentena e o canal é congelado. Isso dete
 | **0. Spike de riscos** ✅ | Respostas lendo o código do NeoForge 21.1.252 e do AE2 19.2.17 (§11) | feito em 2026-10-01 |
 | **1. Núcleo puro** ✅ | `mods/cloud-storage/`: `cloud/`, `cloud/journal/`, `item/`, `item/policy/` com JUnit (40 testes, incluindo `CrashSimulationTest`) | feito em 2026-10-01 |
 | **2. Mod com `FileCloudBackend`** ✅ | TC Cloud Link, AE2, tela (grade no `tccore`), filtro compatível/incompatível, lease simulado, `/tccloud checkpoint` | testado pelo autor no ATM10 (singleplayer) em 2026-10-01 |
-| **3. TCMine: tabelas + API** | Ver documento do TCMine, fases A–B | testes de contrato no TCMine |
-| **4. Integração real** | `HttpCloudBackend`, chave por variável de ambiente, `hello`/checkpoint | dois servidores do mesmo dono trocando itens |
-| **5. Painel** | Políticas, suspeitos, quarentena, incidentes, auditoria (fases C–D do TCMine) | dono resolve tudo sem SQL |
+| **3. TCMine: tabelas + API** ✅ | No repositório TCMine (`master`): domínio, API, painel, entrega da chave e governança — `docs/CLOUD-STORAGE.md` de lá | 733 testes no TCMine, CI verde |
+| **4. Integração real** ✅ | `HttpCloudBackend` (API `/api/cloud/v1` do TCMine), credenciais por `tccloud-server.json` ou variáveis de ambiente, `online-mode` obrigatório, política de itens com atualização pelo heartbeat, relatórios de suspeitos e de operações em dúvida | código e teste de ponta a ponta local (TCMine + servidor do mod: hello, chave, formato do JSON) em 2026-10-05; falta o autor testar dois servidores reais |
+| **5. Painel** ✅ | Feito junto da fase 3, no TCMine (fatias C e D) | dono resolve tudo sem SQL |
 | **6. Testes de caos** | `kill -9` no meio do jogo, logout + kill, TCMine fora do ar, dois servidores ao mesmo tempo, restaurar backup, cópia manual de mundo | nenhum cenário duplica; perdas listadas e reversíveis pelo painel |
 | Depois | Fluidos/químicos, canal compartilhado com amigos, ver canais no launcher | — |
 

@@ -31,8 +31,14 @@ public interface CloudBackend {
     /** Login: tenta segurar o canal do jogador neste servidor. */
     @NotNull CompletableFuture<LeaseResult> acquire(@NotNull UUID playerUuid, @NotNull String playerName);
 
-    /** Renova os leases deste servidor. */
-    @NotNull CompletableFuture<Void> heartbeat(@NotNull Collection<HeldLease> leases);
+    /**
+     * Renova os leases deste servidor. A resposta diz quais leases este servidor já não segura (outro servidor
+     * tomou) e a versão atual da política de itens (diferente da nossa = buscar com {@link #policy()}).
+     */
+    @NotNull CompletableFuture<HeartbeatReply> heartbeat(@NotNull Collection<HeldLease> leases);
+
+    /** Política de itens atual da nuvem (quando o heartbeat avisa que mudou). */
+    @NotNull CompletableFuture<ItemPolicy> policy();
 
     /**
      * Envia um lote já gravado no diário.
@@ -44,8 +50,15 @@ public interface CloudBackend {
     /** Libera o canal (depois que todos os lotes da época foram confirmados). */
     @NotNull CompletableFuture<Void> release(@NotNull UUID playerUuid, long epoch, long lastSeq);
 
-    /** Boot após crash: operações que podem ter se perdido, para o dono decidir. */
-    @NotNull CompletableFuture<Void> reportDoubtful(@NotNull List<DoubtfulOperation> operations);
+    /**
+     * Boot após crash: operações que podem ter se perdido, para o dono decidir.
+     *
+     * @param reportId id do relatório; reenviar o mesmo (após falha de rede) não duplica a fila do dono
+     */
+    @NotNull CompletableFuture<Void> reportDoubtful(@NotNull String reportId, @NotNull List<DoubtfulOperation> operations);
+
+    /** Itens recusados por parecerem guardar dados no mundo (fila de suspeitos do dono). */
+    @NotNull CompletableFuture<Void> reportSuspects(@NotNull List<SuspectReport> suspects);
 
     /** Nome para o log ("arquivo local", "TCMine em ..."). */
     @NotNull String describe();
@@ -56,6 +69,12 @@ public interface CloudBackend {
     /** Configuração da nuvem recebida no {@link #hello}. */
     record HelloReply(@NotNull ItemPolicy policy, @NotNull CloudQuota quota, int maxItemBytes, boolean readOnly,
                       @Nullable String readOnlyReason) {}
+
+    /** Resposta do heartbeat: jogadores cujo lease se perdeu e a versão atual da política. */
+    record HeartbeatReply(@NotNull List<UUID> lost, long policyVersion) {}
+
+    /** Um item suspeito: id, onde o sinal foi achado e quantas tentativas desde o último relatório. */
+    record SuspectReport(@NotNull String itemId, @NotNull String evidence, long attempts) {}
 
     /** Um lease que este servidor segura (para o heartbeat). */
     record HeldLease(@NotNull UUID playerUuid, long epoch) {}

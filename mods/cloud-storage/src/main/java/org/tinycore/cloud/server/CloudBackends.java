@@ -1,37 +1,51 @@
 package org.tinycore.cloud.server;
 
 import net.minecraft.server.MinecraftServer;
+import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.Config;
 import org.tinycore.cloud.TcCloud;
 import org.tinycore.cloud.integration.tcmine.CloudBackend;
+import org.tinycore.cloud.integration.tcmine.CloudCredentials;
 import org.tinycore.cloud.integration.tcmine.FileCloudBackend;
+import org.tinycore.cloud.integration.tcmine.HttpCloudBackend;
 
 /**
  * Escolhe o backend da nuvem ao ligar o servidor:
  * <ol>
- *   <li>variáveis de ambiente {@code TCMINE_CLOUD_URL}/{@code TCMINE_CLOUD_KEY} (servidor do TCMine): fase 4,
- *       ainda não implementado, então a nuvem fica desligada com aviso;</li>
+ *   <li>credenciais do TCMine ({@link CloudCredentials}: variáveis de ambiente ou {@code tccloud-server.json}) →
+ *       {@link HttpCloudBackend}; exige {@code online-mode}, senão o UUID do jogador não é verificado pela
+ *       Mojang e qualquer um entraria como outro jogador para levar os itens dele;</li>
  *   <li>{@code devFileBackend=true}: arquivo local de desenvolvimento;</li>
  *   <li>nenhum: nuvem desligada.</li>
  * </ol>
  */
 final class CloudBackends {
 
-    static final String ENV_URL = "TCMINE_CLOUD_URL";
-
     private CloudBackends() {}
 
     static @Nullable CloudBackend create(@NotNull MinecraftServer server) {
-        if (System.getenv(ENV_URL) != null) {
-            TcCloud.LOG.warn("Nuvem: {} definido, mas o backend do TCMine chega na fase 4. Nuvem desligada.", ENV_URL);
-            return null;
+        CloudCredentials credentials = CloudCredentials.find(System::getenv, server.getServerDirectory());
+        if (credentials != null) {
+            if (!server.usesAuthentication()) {
+                TcCloud.LOG.error("Nuvem DESLIGADA: o servidor está em online-mode=false. Sem a verificação da Mojang, "
+                        + "qualquer um poderia entrar com o nome de outro jogador e levar os itens dele.");
+                return null;
+            }
+            TcCloud.LOG.info("Nuvem: credenciais de {}.", credentials.source());
+            return new HttpCloudBackend(credentials, modVersion());
         }
         if (Config.DEV_FILE_BACKEND.get()) {
             return new FileCloudBackend(server.getServerDirectory().resolve("tccloud-dev-backend.json"),
                     () -> Config.DEV_LEASE_TTL_SECONDS.get() * 1000L);
         }
         return null;
+    }
+
+    private static String modVersion() {
+        return ModList.get().getModContainerById(TcCloud.MOD_ID)
+                .map(c -> c.getModInfo().getVersion().toString())
+                .orElse("?");
     }
 }

@@ -4,10 +4,23 @@ Armazenamento de itens na nuvem do TCMine, visível para a rede ME do Applied En
 guarda itens num canal dele e os reencontra em outro servidor do **mesmo dono** (outro modpack, outro
 mundo). Itens de mods que o servidor novo não tem aparecem como incompatíveis e não podem ser retirados.
 
-**Estado: em desenvolvimento (fase 2 de 6).** Funciona em jogo com uma "nuvem" de teste (arquivo local);
-a ligação com o TCMine vem na fase 4. Plano e fases: `docs/planos/tc-cloud-storage.md` na raiz do workspace.
+**Estado: em desenvolvimento (fase 4 de 6).** Fala com a nuvem do TCMine; também funciona com uma "nuvem" de
+teste (arquivo local). Plano e fases: `docs/planos/tc-cloud-storage.md` na raiz do workspace.
 
-## Como usar (fase 2)
+## Com o TCMine
+1. No painel do TCMine, em **Nuvem de itens**, crie uma nuvem e ligue a ela os servidores que devem
+   compartilhar os itens.
+2. Inicie (ou reinicie) o servidor pelo TCMine: ele grava `tccloud-server.json` na pasta do servidor com a URL e
+   uma chave nova. Ninguém copia chave nenhuma.
+3. O servidor precisa estar em `online-mode=true` (padrão). Em modo offline a nuvem não liga: sem a verificação
+   da Mojang, qualquer um entraria como outro jogador.
+
+Servidor fora do TCMine: defina `TCMINE_CLOUD_URL` e `TCMINE_CLOUD_KEY` no ambiente do processo.
+
+O que o dono vê e decide no painel: regras de item (e a fila de itens suspeitos que o mod recusou), lotes em
+quarentena, operações em dúvida depois de uma queda, mundos que voltaram no tempo e o histórico de tudo.
+
+## Sem o TCMine (testes)
 1. Em `config/tccloud-common.toml`, ligue `devFileBackend = true` (a nuvem de teste fica em
    `tccloud-dev-backend.json`, na pasta do jogo/servidor, e é a mesma para todos os mundos).
 2. Pegue o **TC Cloud Link** na aba criativa "TC Cloud Storage" e coloque-o ligado a uma rede AE2 (qualquer

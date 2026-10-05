@@ -68,12 +68,17 @@ public final class FileCloudBackend implements CloudBackend {
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> heartbeat(@NotNull Collection<HeldLease> leases) {
+    public @NotNull CompletableFuture<HeartbeatReply> heartbeat(@NotNull Collection<HeldLease> leases) {
         return mutate(() -> {
             long now = System.currentTimeMillis();
             leases.forEach(l -> state.heartbeat(l.playerUuid(), l.epoch(), holder, now));
-            return null;
+            return new HeartbeatReply(List.of(), ItemPolicy.OPEN.version());
         });
+    }
+
+    @Override
+    public @NotNull CompletableFuture<ItemPolicy> policy() {
+        return CompletableFuture.completedFuture(ItemPolicy.OPEN);
     }
 
     @Override
@@ -90,11 +95,19 @@ public final class FileCloudBackend implements CloudBackend {
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> reportDoubtful(@NotNull List<DoubtfulOperation> operations) {
+    public @NotNull CompletableFuture<Void> reportDoubtful(@NotNull String reportId,
+                                                           @NotNull List<DoubtfulOperation> operations) {
         return mutate(() -> {
-            operations.forEach(op -> state.addDoubtful(op.toString()));
+            operations.forEach(op -> state.addDoubtful(reportId + ": " + op));
             return null;
         });
+    }
+
+    @Override
+    public @NotNull CompletableFuture<Void> reportSuspects(@NotNull List<SuspectReport> suspects) {
+        suspects.forEach(s -> TcCloud.LOG.info("Nuvem (dev): item suspeito {} ({}), {} tentativa(s).",
+                s.itemId(), s.evidence(), s.attempts()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -50,6 +50,9 @@ public final class CloudInventory {
         if (session == null || stack.isEmpty() || amount <= 0) return new InsertResult(0, null);
         ItemCatalog.Described described = catalog.describe(stack);
         TransferRejection rejection = guard.checkInsert(stack, described);
+        if (rejection == TransferRejection.WORLD_REFERENCE && described.item() != null) {
+            service.recordSuspect(described.item().itemId(), String.valueOf(described.worldReference()), simulate);
+        }
         if (rejection != null) return new InsertResult(0, rejection);
         EncodedItem item = described.item();
         service.remember(item);

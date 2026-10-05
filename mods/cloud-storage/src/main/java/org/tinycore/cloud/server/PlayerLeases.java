@@ -34,7 +34,8 @@ final class PlayerLeases {
     record Context(@NotNull CloudBackend backend, @NotNull Executor mainThread, @NotNull BatchOutbox outbox,
                    @NotNull CloudListeners listeners, @NotNull Supplier<CloudQuota> quota,
                    @NotNull Supplier<Boolean> ready, @NotNull Supplier<String> globalReadOnly,
-                   @NotNull Consumer<Map<String, EncodedItem>> learnItems) {}
+                   @NotNull Consumer<Map<String, EncodedItem>> learnItems,
+                   @NotNull Consumer<CloudBackend.HeartbeatReply> onHeartbeat) {}
 
     private final Context ctx;
     private final Map<UUID, PlayerCloud> players = new HashMap<>();
@@ -147,10 +148,13 @@ final class PlayerLeases {
             if (pc.session != null) held.add(new CloudBackend.HeldLease(pc.uuid, pc.session.epoch()));
         });
         if (held.isEmpty()) return;
-        ctx.backend().heartbeat(held).exceptionally(e -> {
-            TcCloud.LOG.debug("Nuvem: heartbeat falhou: {}", e.toString());
-            return null;
-        });
+        ctx.backend().heartbeat(held).whenCompleteAsync((reply, error) -> {
+            if (error != null) {
+                TcCloud.LOG.debug("Nuvem: heartbeat falhou: {}", error.toString());
+                return;
+            }
+            ctx.onHeartbeat().accept(reply);
+        }, ctx.mainThread());
     }
 
     /** Trava um jogador (lote em quarentena) ou todos ({@code player == null}: diário com problema). */
