@@ -311,7 +311,7 @@ Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só come�
 - ~~**MineColonies fora de `integration/`**~~ — **feito (2026-10-06):** `SupplyLogic`, `BridgeLogic`, `BridgeCycle` e
   `CraftDelivery` usam `ColonyRef` (referência opaca) e `OpenRequest.accepts`; o `IColony`, o token e o
   `IDeliverable` ficam privados ao pacote `integration`.
-- **`TargetListWidget` (395 linhas):** separar desenho de tratamento de cliques.
+- ~~**`TargetListWidget` (395 linhas):** separar desenho de tratamento de cliques~~ — **feito (2026-10-06):** desenho e dicas no `TargetListPainter`.
 - Infraestrutura dos monitores para o core, quando o mod de reatores começar.
 
 ## Passo 3 — Abastecedor com auto-craft

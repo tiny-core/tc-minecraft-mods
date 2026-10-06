@@ -1,6 +1,5 @@
 package org.tinycore.colonybridge.client.list;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
@@ -11,14 +10,11 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.logic.target.TargetKind;
 import org.tinycore.colonybridge.logic.target.TargetList;
 import org.tinycore.colonybridge.logic.target.TargetListKind;
-import org.tinycore.colonybridge.logic.target.TargetSpec;
 import org.tinycore.colonybridge.menu.TargetLineView;
 import org.tinycore.colonybridge.menu.TargetListSync;
 import org.tinycore.colonybridge.network.TargetEditPayload.Op;
-import org.tinycore.core.client.ui.ScreenStyle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +23,6 @@ import java.util.function.UnaryOperator;
 
 import static org.tinycore.colonybridge.client.list.TargetRowLayout.AMOUNT_WIDTH;
 import static org.tinycore.colonybridge.client.list.TargetRowLayout.BUTTON;
-import static org.tinycore.colonybridge.client.list.TargetRowLayout.ROW_HEIGHT;
 import static org.tinycore.colonybridge.client.list.TargetRowLayout.in;
 
 /**
@@ -43,6 +38,9 @@ import static org.tinycore.colonybridge.client.list.TargetRowLayout.in;
  * A linha "rascunho" (aberta pelo "+") existe só na tela até ganhar um alvo — assim o servidor nunca guarda
  * linha vazia. As caixas de texto ({@link EditBox}, widget de texto do Minecraft) são criadas uma por linha
  * visível e reaproveitadas ao rolar.
+ * <p>
+ * Esta classe guarda o estado (rolagem, rascunho) e trata a entrada; o desenho e as dicas ficam no
+ * {@link TargetListPainter}, e as caixas de texto no {@link TargetRowEditor}.
  */
 public final class TargetListWidget {
 
@@ -63,6 +61,7 @@ public final class TargetListWidget {
     private final @Nullable LineInfo info;
     private final int rows;
     private final TargetRowEditor editor;
+    private final TargetListPainter painter;
 
     private TargetRowLayout layout;
     private boolean visible = true;
@@ -79,6 +78,7 @@ public final class TargetListWidget {
         this.info = info;
         this.rows = rows;
         this.editor = new TargetRowEditor(kind, sender, rows);
+        this.painter = new TargetListPainter(font, kind, info, rows);
     }
 
     /**
@@ -133,72 +133,9 @@ public final class TargetListWidget {
 
     /** Fundo, ícones e botões (as caixas de texto são desenhadas pela tela, por cima). */
     public void render(GuiGraphics g, int mouseX, int mouseY) {
-        if (!visible) {
-            return;
+        if (visible) {
+            painter.render(g, layout, lines(), firstRow, draft, mouseX, mouseY);
         }
-        List<TargetLineView> lines = lines();
-        renderHeader(g, lines.size(), mouseX, mouseY);
-        ScreenStyle.inset(g, layout.x(), layout.y() - 1, layout.scrollbarX() - layout.x() - 1, layout.height() + 2,
-                ScreenStyle.PANEL);
-        for (int row = 0; row < rows; row++) {
-            int index = firstRow + row;
-            if (index < lines.size()) {
-                renderLine(g, row, index, lines.get(index), mouseX, mouseY);
-            } else if (isDraft(index)) {
-                renderDraft(g, row, mouseX, mouseY);
-            }
-        }
-        if (totalRows() == 0) {
-            g.drawWordWrap(font, Component.translatable("gui.tccolonybridge.list.empty"), layout.x() + 6,
-                    layout.y() + 6, layout.scrollbarX() - layout.x() - 12, ScreenStyle.TEXT_MUTED);
-        }
-        ScreenStyle.scrollbar(g, layout.scrollbarX(), layout.y() - 1, layout.height() + 2, firstRow, rows, totalRows());
-    }
-
-    private void renderHeader(GuiGraphics g, int count, int mouseX, int mouseY) {
-        String counter = count + "/" + maxLines();
-        g.drawString(font, counter, layout.addX() - 4 - font.width(counter), layout.addY() + 2, ScreenStyle.TEXT_MUTED,
-                false);
-        button(g, layout.addX(), layout.addY(), "+", ScreenStyle.ACCENT, mouseX, mouseY);
-    }
-
-    private void renderLine(GuiGraphics g, int row, int index, TargetLineView line, int mouseX, int mouseY) {
-        int y = layout.rowY(row);
-        TargetSpec spec = line.spec();
-        if (info != null) {
-            g.fill(layout.x() + 1, y + 2, layout.x() + 3, y + ROW_HEIGHT - 2, info.color(index));
-        }
-        ScreenStyle.slot(g, layout.iconX(), y + 1);
-        g.renderItem(TargetIcons.icon(spec, line.item()), layout.iconX() + 1, y + 2);
-        if (!line.item().isEmpty() && !line.item().getComponentsPatch().isEmpty()) {
-            g.pose().pushPose();
-            g.pose().translate(0, 0, 200); // acima do item
-            g.drawString(font, "✦", layout.iconX() + 12, y + 1, ScreenStyle.ACCENT, true);
-            g.pose().popPose();
-        }
-        ScreenStyle.inset(g, layout.textX(), y + 3, layout.textWidth(), 14, ScreenStyle.SLOT);
-        if (kind.hasAmount()) {
-            ScreenStyle.inset(g, layout.amountX(), y + 3, AMOUNT_WIDTH, 14, ScreenStyle.SLOT);
-        }
-        if (kind.allowsAll()) {
-            button(g, layout.allX(), y + 4, "∞", line.all() ? ScreenStyle.ACCENT : ScreenStyle.TEXT_MUTED, mouseX, mouseY);
-        }
-        button(g, layout.removeX(), y + 4, "x", ScreenStyle.DANGER, mouseX, mouseY);
-    }
-
-    private void renderDraft(GuiGraphics g, int row, int mouseX, int mouseY) {
-        int y = layout.rowY(row);
-        ScreenStyle.slot(g, layout.iconX(), y + 1);
-        g.drawCenteredString(font, "+", layout.iconX() + 9, y + 6, ScreenStyle.TEXT_MUTED);
-        ScreenStyle.inset(g, layout.textX(), y + 3, layout.textWidth(), 14, ScreenStyle.SLOT);
-        button(g, layout.removeX(), y + 4, "x", ScreenStyle.DANGER, mouseX, mouseY);
-    }
-
-    /** Botão pequeno desenhado à mão (não é widget: aparece e some com a linha, sem gerenciar dezenas de botões). */
-    private void button(GuiGraphics g, int x, int y, String glyph, int color, int mouseX, int mouseY) {
-        boolean hover = in(mouseX, mouseY, x, y, BUTTON, BUTTON);
-        ScreenStyle.inset(g, x, y, BUTTON, BUTTON, hover ? ScreenStyle.HOVER : ScreenStyle.PANEL);
-        g.drawCenteredString(font, glyph, x + BUTTON / 2, y + 2, color);
     }
 
     // ---------------------------------------------------------------- entrada
@@ -308,52 +245,7 @@ public final class TargetListWidget {
 
     /** Dica sob o cursor, ou null. */
     public @Nullable List<Component> tooltip(double mouseX, double mouseY) {
-        if (!visible) {
-            return null;
-        }
-        if (in(mouseX, mouseY, layout.addX(), layout.addY(), BUTTON, BUTTON)) {
-            return List.of(Component.translatable("gui.tccolonybridge.list.add"),
-                    Component.translatable("gui.tccolonybridge.list.syntax").withStyle(ChatFormatting.GRAY));
-        }
-        int row = layout.rowAt(mouseX, mouseY);
-        int index = firstRow + row;
-        if (row < 0 || index >= totalRows()) {
-            return null;
-        }
-        int y = layout.rowY(row);
-        if (in(mouseX, mouseY, layout.removeX(), y + 4, BUTTON, BUTTON)) {
-            return List.of(Component.translatable("gui.tccolonybridge.list.remove"));
-        }
-        if (isDraft(index)) {
-            return in(mouseX, mouseY, layout.iconX(), y + 1, 18, 18)
-                    ? List.of(Component.translatable("gui.tccolonybridge.list.draft")) : editor.problemAt(mouseX, mouseY);
-        }
-        TargetLineView line = lines().get(index);
-        if (kind.allowsAll() && in(mouseX, mouseY, layout.allX(), y + 4, BUTTON, BUTTON)) {
-            return List.of(Component.translatable(line.all() ? "gui.tccolonybridge.list.all_on" : "gui.tccolonybridge.list.all_off"));
-        }
-        if (in(mouseX, mouseY, layout.iconX(), y + 1, 18, 18)) {
-            return iconTooltip(index, line);
-        }
-        return editor.problemAt(mouseX, mouseY);
-    }
-
-    private List<Component> iconTooltip(int index, TargetLineView line) {
-        TargetSpec spec = line.spec();
-        List<Component> lines = new ArrayList<>();
-        lines.add(TargetIcons.name(spec, line.item()));
-        if (spec != null && spec.kind() != TargetKind.ITEM) {
-            lines.add(Component.translatable("gui.tccolonybridge.list.items", TargetIcons.itemCount(spec))
-                    .withStyle(ChatFormatting.GRAY));
-        }
-        if (!line.item().isEmpty() && !line.item().getComponentsPatch().isEmpty()) {
-            lines.add(Component.translatable("gui.tccolonybridge.list.components").withStyle(ChatFormatting.GOLD));
-        }
-        if (info != null) {
-            info.appendTooltip(index, lines);
-        }
-        lines.add(Component.translatable("gui.tccolonybridge.list.icon_hint").withStyle(ChatFormatting.DARK_GRAY));
-        return lines;
+        return visible ? painter.tooltip(layout, lines(), firstRow, draft, editor, mouseX, mouseY) : null;
     }
 
     /** Onde o JEI pode soltar itens: o ícone de cada linha visível e o "+" (linha nova). */

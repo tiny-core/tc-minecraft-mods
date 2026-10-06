@@ -31,7 +31,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/target/TargetListHost` | Interface dos blocos com listas (Abastecedor, Ponte), para edição e sincronização genéricas. |
 | `menu/TargetListEditor` | Servidor: aplica uma edição de lista (`TargetEditPayload`), validando alvo, existência, índice e limite; item do cursor lido do jogador. |
 | `menu/TargetListSync`, `TargetLineView`, `TargetListMenu` | Envio das listas à tela só quando mudam (versão) e cópia no cliente; menus com listas. |
-| `client/list/TargetListWidget`, `TargetRowEditor`, `TargetRowLayout`, `TargetEditSender`, `TargetIcons` | Lista na tela: linhas com ícone (slot virtual), caixa de texto validada na hora, quantidade, "∞", "x", "+" em cima, rascunho só no cliente, clique direito alterna tags; ícone alternando para tag/mod (também no monitor). |
+| `client/list/TargetListWidget` (estado e entrada), `TargetListPainter` (desenho e dicas), `TargetRowEditor`, `TargetRowLayout`, `TargetEditSender`, `TargetIcons` | Lista na tela: linhas com ícone (slot virtual), caixa de texto validada na hora, quantidade, "∞", "x", "+" em cima, rascunho só no cliente, clique direito alterna tags; ícone alternando para tag/mod (também no monitor). |
 | `logic/colony/ColonySlotRule`, `ColonyBlockType` | Regra pura (testada) de quem fica com a vaga; tipos com vaga única. |
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
