@@ -1,10 +1,9 @@
 package org.tinycore.colonybridge.client.jei;
 
-import org.tinycore.colonybridge.client.encoder.PatternEncoderScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.constants.VanillaTypes;
+import mezz.jei.api.gui.builder.IClickableIngredientFactory;
 import mezz.jei.api.gui.handlers.IGuiContainerHandler;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
@@ -13,6 +12,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
+import org.tinycore.colonybridge.client.encoder.PatternEncoderScreen;
 import org.tinycore.colonybridge.client.loader.ChunkLoaderScreen;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
 import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
@@ -88,15 +88,13 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
 
             /** Teclas R/U (receita/usos) sobre os itens da grade do armazém, que não são slots de verdade. */
             @Override
-            public Optional<IClickableIngredient<?>> getClickableIngredientUnderMouse(WarehouseTerminalScreen screen,
-                                                                                      double mouseX, double mouseY) {
+            public Optional<? extends IClickableIngredient<?>> getClickableIngredientUnderMouse(
+                    IClickableIngredientFactory factory, WarehouseTerminalScreen screen, double mouseX, double mouseY) {
                 ItemGrid.Hit hit = screen.gridHit(mouseX, mouseY);
                 if (hit == null) {
                     return Optional.empty();
                 }
-                return registration.getJeiHelpers().getIngredientManager()
-                        .createClickableIngredient(VanillaTypes.ITEM_STACK, hit.item(), new Rect2i(hit.x(), hit.y(), 16, 16), false)
-                        .map(ingredient -> ingredient);
+                return factory.createBuilder(hit.item()).buildWithArea(hit.x(), hit.y(), 16, 16);
             }
         });
     }

@@ -5,6 +5,7 @@ import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
+import mezz.jei.api.recipe.transfer.IRecipeTransferContext;
 import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandler;
 import mezz.jei.api.recipe.transfer.IRecipeTransferHandlerHelper;
@@ -61,12 +62,31 @@ final class TerminalRecipeTransfer
 
     /**
      * Chamado pelo JEI ao desenhar o "+" ({@code doTransfer = false}, só checa) e ao clicar nele
-     * ({@code doTransfer = true}). {@code maxTransfer} = Shift segurado.
+     * ({@code doTransfer = true}). O contexto traz menu, receita, slots, jogador e "Shift segurado" (max).
      */
     @Override
+    public @Nullable IRecipeTransferError transferRecipe(
+            IRecipeTransferContext<RecipeHolder<CraftingRecipe>, WarehouseTerminalMenu> context, boolean doTransfer) {
+        return transfer(context.getContainer(), context.getRecipe(), context.getRecipeSlots(), context.getPlayer(),
+                context.isMaxTransfer(), doTransfer);
+    }
+
+    /**
+     * Forma antiga, que o JEI marcou para remoção mas ainda exige (é abstrata na interface). Só repassa; o JEI atual
+     * chama a forma com contexto acima. Quando o JEI removê-la, basta apagar este método.
+     */
+    @Deprecated
+    @Override
+    @SuppressWarnings("removal")
     public @Nullable IRecipeTransferError transferRecipe(WarehouseTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe,
                                                          IRecipeSlotsView slots, Player player,
                                                          boolean maxTransfer, boolean doTransfer) {
+        return transfer(menu, recipe, slots, player, maxTransfer, doTransfer);
+    }
+
+    private @Nullable IRecipeTransferError transfer(WarehouseTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe,
+                                                    IRecipeSlotsView slots, Player player,
+                                                    boolean maxTransfer, boolean doTransfer) {
         // Posição de cada ingrediente na grade 3×3 (o JEI já resolve receitas menores que 3×3).
         Map<Integer, Ingredient> byGridSlot = helper.getGuiSlotIndexToIngredientMap(recipe);
         List<List<ItemStack>> options = new ArrayList<>();

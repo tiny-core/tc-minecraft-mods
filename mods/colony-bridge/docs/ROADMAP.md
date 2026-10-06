@@ -305,8 +305,9 @@ Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só come�
 
 ## Passo 2 — Dívida técnica
 
-- **JEI:** migrar `TerminalRecipeTransfer.transferRecipe` e `getClickableIngredientUnderMouse` /
-  `createClickableIngredient` (marcados para remoção) para a API nova — quebram numa atualização do JEI no ATM10.
+- ~~**JEI:** migrar `TerminalRecipeTransfer.transferRecipe` e `getClickableIngredientUnderMouse` /
+  `createClickableIngredient` para a API nova~~ — **feito (2026-10-06):** forma com `IRecipeTransferContext` e
+  `IClickableIngredientFactory`; a forma antiga (abstrata no JEI 19.57) só repassa, com `@SuppressWarnings`.
 - **`SupplyLogic` usa `IColony` do MineColonies** fora de `integration/` (fere a regra do projeto): levar para o
   `ColonyAccess`.
 - **`TargetListWidget` (395 linhas):** separar desenho de tratamento de cliques.
