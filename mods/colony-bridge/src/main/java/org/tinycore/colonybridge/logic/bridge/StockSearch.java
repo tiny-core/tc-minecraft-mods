@@ -65,7 +65,7 @@ final class StockSearch {
                     || !(entry.getKey() instanceof AEItemKey itemKey)
                     || itemKey.equals(exact)
                     || c.available(itemKey) <= 0
-                    || !request.deliverable().matches(itemKey.getReadOnlyStack())) {
+                    || !request.accepts(itemKey.getReadOnlyStack())) {
                 continue;
             }
             if (allowed.test(itemKey.getReadOnlyStack())) {

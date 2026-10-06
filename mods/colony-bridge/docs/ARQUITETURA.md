@@ -36,7 +36,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `logic/warehouse/RackDelivery` | Rede ME → racks do armazém, com SIMULATE antes de MODULATE (anti-duplicação). |
 | `logic/warehouse/WarehouseStock` | Conta itens nos racks; racks → rede ME (devolve o que a rede recusar). |
 | `logic/warehouse/WarehouseSnapshot` | Conteúdo dos racks lido uma vez por ciclo da ponte (+ entregas do ciclo). |
-| `integration/ColonyAccess`, `OpenRequest` | **Único** ponto que fala com o MineColonies: colônia, permissões, pedidos em aberto, racks, reatribuir. |
+| `integration/ColonyAccess`, `OpenRequest`, `ColonyRef` | **Único** ponto que fala com o MineColonies: colônia, permissões, pedidos em aberto, racks, reatribuir. `ColonyRef` e `OpenRequest` escondem os tipos do MineColonies (o resto do mod usa `colonyAt` e `accepts`). |
 | `integration/ae2/CableRules` | Só conecta por baixo e só com cabo comum. |
 
 ## Ponte ME da Colônia (`bridge/`) — atende pedidos da colônia

@@ -92,7 +92,7 @@ final class RequestCrafter {
             return RequestOutcome.CRAFTING_DISABLED;
         }
         @Nullable AEItemKey key = candidates.choose(crafting, host.craftRules(),
-                stack -> request.deliverable().matches(stack) && host.filterAllows(stack),
+                stack -> request.accepts(stack) && host.filterAllows(stack),
                 k -> tracker.canTry(c.level(), crafting, k));
         return key == null ? RequestOutcome.NOT_CRAFTABLE : start(c, request, key, shortfall);
     }

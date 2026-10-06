@@ -308,8 +308,9 @@ Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só come�
 - ~~**JEI:** migrar `TerminalRecipeTransfer.transferRecipe` e `getClickableIngredientUnderMouse` /
   `createClickableIngredient` para a API nova~~ — **feito (2026-10-06):** forma com `IRecipeTransferContext` e
   `IClickableIngredientFactory`; a forma antiga (abstrata no JEI 19.57) só repassa, com `@SuppressWarnings`.
-- **`SupplyLogic` usa `IColony` do MineColonies** fora de `integration/` (fere a regra do projeto): levar para o
-  `ColonyAccess`.
+- ~~**MineColonies fora de `integration/`**~~ — **feito (2026-10-06):** `SupplyLogic`, `BridgeLogic`, `BridgeCycle` e
+  `CraftDelivery` usam `ColonyRef` (referência opaca) e `OpenRequest.accepts`; o `IColony`, o token e o
+  `IDeliverable` ficam privados ao pacote `integration`.
 - **`TargetListWidget` (395 linhas):** separar desenho de tratamento de cliques.
 - Infraestrutura dos monitores para o core, quando o mod de reatores começar.
 

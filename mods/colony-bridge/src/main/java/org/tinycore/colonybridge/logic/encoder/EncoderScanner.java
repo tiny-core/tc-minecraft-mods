@@ -77,7 +77,7 @@ public final class EncoderScanner {
         }
         List<ItemStack> result = new ArrayList<>();
         for (ItemStack example : request.examples()) {
-            if (request.deliverable().matches(example)) result.add(example);
+            if (request.accepts(example)) result.add(example);
         }
         return result;
     }

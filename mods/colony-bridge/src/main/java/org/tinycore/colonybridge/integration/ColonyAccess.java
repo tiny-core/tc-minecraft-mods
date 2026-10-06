@@ -39,7 +39,12 @@ public final class ColonyAccess {
     private ColonyAccess() {}
 
     /** Colônia cujas fronteiras contêm a posição, ou null. */
-    public static @Nullable IColony findColony(Level level, BlockPos pos) {
+    public static @Nullable ColonyRef colonyAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        return colony == null ? null : new ColonyRef(colony);
+    }
+
+    private static @Nullable IColony findColony(Level level, BlockPos pos) {
         return IColonyManager.getInstance().getColonyByPosFromWorld(level, pos);
     }
 
@@ -47,7 +52,11 @@ public final class ColonyAccess {
      * Chave estável da colônia entre reinícios. O id só é único dentro de uma dimensão,
      * por isso a dimensão entra na chave.
      */
-    public static String colonyKey(IColony colony) {
+    public static String colonyKey(ColonyRef colony) {
+        return colonyKey(colony.colony);
+    }
+
+    private static String colonyKey(IColony colony) {
         return colony.getDimension().location() + "#" + colony.getID();
     }
 
@@ -86,7 +95,11 @@ public final class ColonyAccess {
      * Exige {@link Action#ACCESS_HUTS} (por padrão: dono, oficiais e amigos), a mesma permissão
      * de abrir as cabanas — a ponte mexe no armazém, então faz sentido exigir o mesmo.
      */
-    public static boolean canUseBridge(IColony colony, @Nullable UUID player) {
+    public static boolean canUseBridge(ColonyRef colony, @Nullable UUID player) {
+        return canUseBridge(colony.colony, player);
+    }
+
+    private static boolean canUseBridge(IColony colony, @Nullable UUID player) {
         if (player == null) {
             return false;
         }
@@ -99,7 +112,11 @@ public final class ColonyAccess {
      * Pedidos que nenhum resolver interno conseguiu tratar: os que estão
      * no resolver do jogador (lista "em aberto") e os que estão em nova tentativa.
      */
-    public static List<OpenRequest> openRequests(IColony colony) {
+    public static List<OpenRequest> openRequests(ColonyRef colony) {
+        return openRequests(colony.colony);
+    }
+
+    private static List<OpenRequest> openRequests(IColony colony) {
         IRequestManager manager = colony.getRequestManager();
         Set<IToken<?>> tokens = new LinkedHashSet<>();
         tokens.addAll(manager.getPlayerResolver().getAllAssignedRequests());
@@ -152,7 +169,11 @@ public final class ColonyAccess {
     }
 
     /** Nome da colônia (limitado a 64 caracteres para o pacote enviado à tela). */
-    public static String colonyName(IColony colony) {
+    public static String colonyName(ColonyRef colony) {
+        return colonyName(colony.colony);
+    }
+
+    private static String colonyName(IColony colony) {
         String name = colony.getName();
         return name.length() > 64 ? name.substring(0, 64) : name;
     }
@@ -165,7 +186,11 @@ public final class ColonyAccess {
      * inventário combinado das duas, e como o armazém lista as duas posições, tudo seria contado
      * (e movido) em dobro.
      */
-    public static List<IItemHandler> warehouseRacks(IColony colony) {
+    public static List<IItemHandler> warehouseRacks(ColonyRef colony) {
+        return warehouseRacks(colony.colony);
+    }
+
+    private static List<IItemHandler> warehouseRacks(IColony colony) {
         Level level = colony.getWorld();
         List<IItemHandler> handlers = new ArrayList<>();
         if (level == null) {
@@ -263,11 +288,11 @@ public final class ColonyAccess {
      * Depois de colocarmos os itens no armazém, o resolver do armazém deve ficar com ele
      * e um courier faz a entrega.
      */
-    public static void reassign(IColony colony, IToken<?> token) {
+    public static void reassign(ColonyRef colony, OpenRequest request) {
         try {
-            colony.getRequestManager().reassignRequest(token, List.of());
+            colony.colony.getRequestManager().reassignRequest(request.token(), List.of());
         } catch (IllegalArgumentException e) {
-            ColonyBridgeMod.LOG.debug("Pedido {} desapareceu antes da reatribuição", token);
+            ColonyBridgeMod.LOG.debug("Pedido {} desapareceu antes da reatribuição", request.id());
         }
     }
 }

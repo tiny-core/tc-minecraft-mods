@@ -4,7 +4,6 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
-import com.minecolonies.api.colony.IColony;
 import it.unimi.dsi.fastutil.objects.Object2LongLinkedOpenCustomHashMap;
 import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraft.server.level.ServerLevel;
@@ -14,6 +13,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.supply.ColonySupplyBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.integration.ColonyRef;
 import org.tinycore.colonybridge.integration.OpenRequest;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.target.TargetKind;
@@ -61,7 +61,7 @@ public final class SupplyLogic {
     }
 
     public void runCycle(ServerLevel level, IGrid grid) {
-        IColony colony = ColonyAccess.findColony(level, host.getBlockPos());
+        ColonyRef colony = ColonyAccess.colonyAt(level, host.getBlockPos());
         if (colony == null) {
             colonyName = "";
             setStatus(BridgeStatus.NO_COLONY);
@@ -225,7 +225,7 @@ public final class SupplyLogic {
     /** true se a colônia está pedindo este item agora (então ele não pode sair do armazém). */
     private static boolean isRequested(List<OpenRequest> requests, ItemStack model) {
         for (OpenRequest request : requests) {
-            if (request.deliverable().matches(model)) {
+            if (request.accepts(model)) {
                 return true;
             }
         }

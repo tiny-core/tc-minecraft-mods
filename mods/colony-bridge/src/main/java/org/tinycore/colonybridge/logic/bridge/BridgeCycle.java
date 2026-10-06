@@ -4,9 +4,9 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
-import com.minecolonies.api.colony.IColony;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.IItemHandler;
+import org.tinycore.colonybridge.integration.ColonyRef;
 import org.tinycore.colonybridge.logic.warehouse.WarehouseSnapshot;
 
 import java.util.List;
@@ -21,7 +21,7 @@ import java.util.List;
  * @param taken  o que já saiu da rede neste ciclo, para descontar do {@code stock}
  * @param bridge posição da ponte ({@code BlockPos.asLong()}), usada como id no {@link DeliveryLedger}
  */
-record BridgeCycle(ServerLevel level, IGrid grid, IActionSource source, IColony colony,
+record BridgeCycle(ServerLevel level, IGrid grid, IActionSource source, ColonyRef colony,
                    List<IItemHandler> racks, WarehouseSnapshot warehouse, KeyCounter stock, KeyCounter taken,
                    DeliveryLedger ledger,
                    String colonyKey, long bridge, long now, boolean craftingEnabled) {

@@ -6,11 +6,11 @@ import appeng.api.networking.IGridNode;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.storage.MEStorage;
 import appeng.api.storage.StorageHelper;
-import com.minecolonies.api.colony.IColony;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.integration.ColonyRef;
 import org.tinycore.colonybridge.logic.crafting.CraftLinks;
 import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
 
@@ -65,7 +65,7 @@ public final class CraftDelivery implements CraftLinks.Sink {
 
     /** Racks do armazém da colônia onde a ponte está (vazio se não há colônia ou armazém carregado). */
     private List<IItemHandler> racks(ServerLevel level) {
-        IColony colony = ColonyAccess.findColony(level, host.getBlockPos());
+        ColonyRef colony = ColonyAccess.colonyAt(level, host.getBlockPos());
         return colony == null ? List.of() : ColonyAccess.warehouseRacks(colony);
     }
 

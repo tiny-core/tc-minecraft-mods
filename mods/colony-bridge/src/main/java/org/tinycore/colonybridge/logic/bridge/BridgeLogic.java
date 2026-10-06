@@ -4,12 +4,12 @@ import appeng.api.networking.IGrid;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.KeyCounter;
-import com.minecolonies.api.colony.IColony;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.items.IItemHandler;
 import org.tinycore.colonybridge.Config;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
+import org.tinycore.colonybridge.integration.ColonyRef;
 import org.tinycore.colonybridge.integration.OpenRequest;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.warehouse.RackDelivery;
@@ -50,7 +50,7 @@ public final class BridgeLogic {
         IActionSource source = host.getActionSource();
         crafter.beginCycle(level, grid, source);
 
-        IColony colony = ColonyAccess.findColony(level, host.getBlockPos());
+        ColonyRef colony = ColonyAccess.colonyAt(level, host.getBlockPos());
         if (colony == null) {
             colonyName = "";
             setStatus(BridgeStatus.NO_COLONY);
@@ -105,12 +105,12 @@ public final class BridgeLogic {
             return RequestOutcome.OTHER_BRIDGE;
         }
 
-        long missing = request.amount() - c.warehouse().count(request.deliverable()::matches);
+        long missing = request.amount() - c.warehouse().count(request::accepts);
         if (missing <= 0) {
             // O armazém já cobre o pedido (ex.: entrega anterior que o courier ainda não levou, ou pedido
             // em "nova tentativa"). Não tira nada da rede: só pede ao MineColonies para reatribuir.
             c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridge(), c.now());
-            ColonyAccess.reassign(c.colony(), request.token());
+            ColonyAccess.reassign(c.colony(), request);
             return RequestOutcome.IN_WAREHOUSE;
         }
 
@@ -161,7 +161,7 @@ public final class BridgeLogic {
             return RequestOutcome.RACKS_FULL;
         }
         c.ledger().markDelivered(c.colonyKey(), request.id(), c.bridge(), c.now());
-        ColonyAccess.reassign(c.colony(), request.token());
+        ColonyAccess.reassign(c.colony(), request);
         return RequestOutcome.DELIVERED;
     }
 
