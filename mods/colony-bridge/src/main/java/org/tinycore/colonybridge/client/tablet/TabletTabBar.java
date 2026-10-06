@@ -76,6 +76,7 @@ public final class TabletTabBar {
             case SUPPLY -> new ItemStack(ModItems.COLONY_SUPPLY.get());
             case BRIDGE_PANEL, SUPPLY_PANEL -> new ItemStack(ModItems.COLONY_MONITOR.get());
             case CHUNK_LOADER -> new ItemStack(ModItems.CHUNK_LOADER.get());
+            case PATTERN_ENCODER -> new ItemStack(ModItems.PATTERN_ENCODER.get());
         };
     }
 }

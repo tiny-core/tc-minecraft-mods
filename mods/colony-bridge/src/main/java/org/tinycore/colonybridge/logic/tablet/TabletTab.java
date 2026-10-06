@@ -12,7 +12,8 @@ public enum TabletTab {
     SUPPLY(true),
     BRIDGE_PANEL(true),
     SUPPLY_PANEL(true),
-    CHUNK_LOADER(true);
+    CHUNK_LOADER(true),
+    PATTERN_ENCODER(true);
 
     private static final TabletTab[] VALUES = values();
 

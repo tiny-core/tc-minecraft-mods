@@ -302,5 +302,6 @@
   "tccolonybridge.configuration.encoderScanTicks": "Pattern Encoder scan interval",
   "tccolonybridge.configuration.encoderScanTicks.tooltip": "Minimum ticks between scans of the colony requests while the Pattern Encoder screen is open.",
   "tccolonybridge.configuration.encoderMaxLines": "Pattern Encoder max lines",
-  "tccolonybridge.configuration.encoderMaxLines.tooltip": "Max lines (items without a pattern) shown by the Pattern Encoder."
+  "tccolonybridge.configuration.encoderMaxLines.tooltip": "Max lines (items without a pattern) shown by the Pattern Encoder.",
+  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder"
 }

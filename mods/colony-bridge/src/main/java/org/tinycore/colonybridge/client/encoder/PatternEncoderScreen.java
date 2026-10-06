@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.tinycore.colonybridge.client.tablet.TabletTabBar;
 import org.tinycore.colonybridge.client.ui.StatusColors;
 import org.tinycore.colonybridge.logic.encoder.EncoderState;
 import org.tinycore.colonybridge.menu.encoder.EncoderLine;
@@ -34,6 +35,7 @@ import java.util.List;
  * <p>
  * Clique numa linha "pronta" codifica aquele item; o botão da barra lateral codifica todas. A tela só pede: o
  * servidor escolhe a receita, gasta o Blank Pattern e manda a lista nova. O tooltip da linha mostra os ingredientes.
+ * Aberta pelo tablet, ganha a barra de abas em cima.
  */
 public class PatternEncoderScreen extends AbstractContainerScreen<PatternEncoderMenu> {
 
@@ -53,6 +55,8 @@ public class PatternEncoderScreen extends AbstractContainerScreen<PatternEncoder
     @Override
     protected void init() {
         super.init();
+        topPos += TabletTabBar.offset(menu.tabletView()); // abas do tablet acima da janela
+        TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.encoder"));

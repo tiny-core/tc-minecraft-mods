@@ -16,6 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.block.encoder.PatternEncoderBlockEntity;
 import org.tinycore.colonybridge.integration.ae2.PatternEncoding;
 import org.tinycore.colonybridge.menu.access.MenuAccess;
+import org.tinycore.colonybridge.menu.tablet.TabletMenu;
 import org.tinycore.colonybridge.menu.tablet.TabletView;
 import org.tinycore.colonybridge.network.EncoderSnapshotPayload;
 import org.tinycore.colonybridge.registry.ModMenus;
@@ -26,8 +27,9 @@ import org.tinycore.colonybridge.registry.ModMenus;
  * "codificar" vai pelo {@code EncoderActionPayload}.
  * <p>
  * Os slots de saída só deixam tirar (nada entra neles pela tela); o de Blank Pattern só aceita Blank Pattern.
+ * Abre pelo bloco ou pela aba do tablet ({@link MenuAccess}).
  */
-public class PatternEncoderMenu extends AbstractContainerMenu {
+public class PatternEncoderMenu extends AbstractContainerMenu implements TabletMenu {
 
     /** Posições usadas também pela tela ({@code PatternEncoderScreen}). */
     public static final int WIDTH = 222;
@@ -51,6 +53,7 @@ public class PatternEncoderMenu extends AbstractContainerMenu {
     /** Só no servidor. */
     private final @Nullable PatternEncoderBlockEntity encoder;
     private final MenuAccess access;
+    private final @Nullable TabletView tabletView;
     private final Player player;
     private @Nullable EncoderSnapshot lastSent;
     private int ticksUntilSync;
@@ -59,21 +62,27 @@ public class PatternEncoderMenu extends AbstractContainerMenu {
 
     /** Servidor: aberto pelo bloco. */
     public PatternEncoderMenu(int containerId, Inventory inventory, PatternEncoderBlockEntity encoder, MenuAccess access) {
-        this(containerId, inventory, encoder, access, encoder.blanks(), encoder.outputs());
+        this(containerId, inventory, encoder, access, access.tabletView(), encoder.blanks(), encoder.outputs());
     }
 
-    /** Cliente: dados extras = posição do bloco + abas do tablet (sempre vazias aqui). */
+    /** Cliente: dados extras = posição do bloco + abas do tablet (ausentes quando aberto pelo bloco). */
     public PatternEncoderMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf extraData) {
-        this(containerId, inventory, null, MenuAccess.CLIENT, new ItemStackHandler(1), new ItemStackHandler(OUTPUTS));
+        this(containerId, inventory, null, MenuAccess.CLIENT, readTabs(extraData), new ItemStackHandler(1),
+                new ItemStackHandler(OUTPUTS));
+    }
+
+    private static @Nullable TabletView readTabs(RegistryFriendlyByteBuf extraData) {
         extraData.readBlockPos();
-        TabletView.read(extraData);
+        return TabletView.read(extraData);
     }
 
     private PatternEncoderMenu(int containerId, Inventory inventory, @Nullable PatternEncoderBlockEntity encoder,
-                               MenuAccess access, IItemHandler blanks, IItemHandler outputs) {
+                               MenuAccess access, @Nullable TabletView tabletView, IItemHandler blanks,
+                               IItemHandler outputs) {
         super(ModMenus.PATTERN_ENCODER.get(), containerId);
         this.encoder = encoder;
         this.access = access;
+        this.tabletView = tabletView;
         this.player = inventory.player;
         addSlot(new SlotItemHandler(blanks, 0, BLANK_X, SLOTS_Y) {
             @Override
@@ -122,6 +131,11 @@ public class PatternEncoderMenu extends AbstractContainerMenu {
     /** Só no servidor. */
     public @Nullable PatternEncoderBlockEntity getEncoder() {
         return encoder;
+    }
+
+    @Override
+    public @Nullable TabletView tabletView() {
+        return tabletView;
     }
 
     public EncoderSnapshot getSnapshot() {

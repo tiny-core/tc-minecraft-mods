@@ -199,7 +199,7 @@ Ponte passa a craftar o item sozinha.
   item com dados que a receita não produz (encantado, poção) e itens do **Domum Ornamentum** (bancada do arquiteto).
 - Linha "Padrão na saída": o padrão já está nos slots de saída; não é codificado de novo.
 - A lista é refeita com a tela aberta, no máximo a cada `encoderScanTicks` (5 s), até `encoderMaxLines` linhas.
-- Ao quebrar o bloco, Blank Patterns e padrões caem no chão. Modelo provisório.
+- Também abre pela aba do tablet. Ao quebrar o bloco, Blank Patterns e padrões caem no chão. Modelo provisório.
 
 ## TC Tablet da Colônia
 Acesso de qualquer lugar aos blocos de uma colônia: abre **as mesmas telas** do Terminal, da Ponte e do Abastecedor
@@ -209,6 +209,7 @@ que estão no mundo, com uma barra de abas em cima da janela.
   blocos ausentes ou em chunk descarregado ficam desativadas (o tablet **nunca carrega chunk**). Funciona em
   qualquer distância e dimensão.
 - **Chunk Loader:** aba com a mesma tela do bloco (situação, contagem, liga/desliga).
+- **Pattern Encoder:** aba com a mesma tela do bloco (lista, Blank Patterns e padrões prontos).
 - **Painéis:** as abas "Painel da Ponte" e "Painel do Abastecedor" mostram o mesmo que um Monitor da Colônia de
   5 × 3 blocos ligado ao bloco (sem precisar de monitor). As listas trocam de página a cada 10 s; clique na metade
   direita do painel avança, na esquerda volta.

@@ -274,8 +274,8 @@ Como fazer:
 ## Fase 12 — TC Pattern Encoder (codificador de padrões)
 
 > **Feita (2026-10-06):** bloco, varredura dos pedidos, receita de bancada mais barata (`RecipeRanking`, testada),
-> padrão com substituição, slots de Blank Pattern/saída, tela e receita. **Falta:** teste no ATM10, aba no tablet,
-> lista de compras (Passo 4) e receitas de processamento (fornalha).
+> padrão com substituição, slots de Blank Pattern/saída, tela e receita. **Feito depois:** aba no tablet, Blank Patterns tirados da rede ME com o
+> slot vazio. **Falta:** teste no ATM10, lista de compras (Passo 4) e receitas de processamento (fornalha).
 
 **Objetivo:** bloco que pega os pedidos da colônia que **não têm craft no AE2** e gera os padrões.
 

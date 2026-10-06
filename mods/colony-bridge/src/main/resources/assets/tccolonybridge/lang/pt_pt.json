@@ -302,5 +302,6 @@
   "tccolonybridge.configuration.encoderScanTicks": "Intervalo de varredura do Pattern Encoder",
   "tccolonybridge.configuration.encoderScanTicks.tooltip": "Intervalo mínimo, em ticks, entre varreduras dos pedidos com a tela do Pattern Encoder aberta.",
   "tccolonybridge.configuration.encoderMaxLines": "Máximo de linhas do Pattern Encoder",
-  "tccolonybridge.configuration.encoderMaxLines.tooltip": "Máximo de linhas (itens sem padrão) mostradas pelo Pattern Encoder."
+  "tccolonybridge.configuration.encoderMaxLines.tooltip": "Máximo de linhas (itens sem padrão) mostradas pelo Pattern Encoder.",
+  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder"
 }
