@@ -32,6 +32,7 @@ public final class ModCreativeTabs {
                         output.accept(ModItems.WAREHOUSE_TERMINAL.get());
                         output.accept(ModItems.LINK_CARD.get());
                         output.accept(ModItems.CHUNK_LOADER.get());
+                        output.accept(ModItems.PATTERN_ENCODER.get());
                         output.accept(ModItems.COLONY_TABLET.get());
                     })
                     .build());

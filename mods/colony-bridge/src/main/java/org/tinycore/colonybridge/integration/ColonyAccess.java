@@ -33,6 +33,9 @@ import java.util.UUID;
  */
 public final class ColonyAccess {
 
+    /** Teto de exemplos guardados por pedido ({@link OpenRequest#examples}). */
+    public static final int MAX_EXAMPLES = 8;
+
     private ColonyAccess() {}
 
     /** Colônia cujas fronteiras contêm a posição, ou null. */
@@ -115,7 +118,7 @@ public final class ColonyAccess {
             }
             ItemStack exact = request.getRequest() instanceof Stack stack ? stack.getStack().copy() : ItemStack.EMPTY;
             result.add(new OpenRequest(token, deliverable, exact, iconOf(request, exact),
-                    request.getShortDisplayString()));
+                    request.getShortDisplayString(), examplesOf(request, exact)));
         }
         return result;
     }
@@ -127,6 +130,25 @@ public final class ColonyAccess {
         }
         List<ItemStack> examples = request.getDisplayStacks();
         return examples.isEmpty() ? ItemStack.EMPTY : examples.get(0).copyWithCount(1);
+    }
+
+    /** Pedidos em aberto da colônia onde está {@code pos} (lista vazia fora de colônia). */
+    public static List<OpenRequest> openRequestsAt(Level level, BlockPos pos) {
+        IColony colony = findColony(level, pos);
+        return colony == null ? List.of() : openRequests(colony);
+    }
+
+    /** Alguns itens aceitos pelo pedido (o exato, ou os exemplos do MineColonies), cópias de 1 unidade. */
+    private static List<ItemStack> examplesOf(IRequest<?> request, ItemStack exact) {
+        if (!exact.isEmpty()) {
+            return List.of(exact.copyWithCount(1));
+        }
+        List<ItemStack> result = new ArrayList<>();
+        for (ItemStack stack : request.getDisplayStacks()) {
+            if (result.size() >= MAX_EXAMPLES) break;
+            if (!stack.isEmpty()) result.add(stack.copyWithCount(1));
+        }
+        return result;
     }
 
     /** Nome da colônia (limitado a 64 caracteres para o pacote enviado à tela). */

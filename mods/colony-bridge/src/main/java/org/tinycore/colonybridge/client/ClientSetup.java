@@ -10,6 +10,7 @@ import org.tinycore.colonybridge.client.bridge.ColonyBridgeScreen;
 import org.tinycore.colonybridge.client.render.MonitorRenderer;
 import org.tinycore.colonybridge.client.supply.ColonySupplyScreen;
 import org.tinycore.colonybridge.client.loader.ChunkLoaderScreen;
+import org.tinycore.colonybridge.client.encoder.PatternEncoderScreen;
 import org.tinycore.colonybridge.client.tablet.TabletPanelScreen;
 import org.tinycore.colonybridge.client.terminal.WarehouseTerminalScreen;
 import org.tinycore.colonybridge.registry.ModBlockEntities;
@@ -33,6 +34,7 @@ public final class ClientSetup {
         event.register(ModMenus.WAREHOUSE_TERMINAL.get(), WarehouseTerminalScreen::new);
         event.register(ModMenus.TABLET_PANEL.get(), TabletPanelScreen::new);
         event.register(ModMenus.CHUNK_LOADER.get(), ChunkLoaderScreen::new);
+        event.register(ModMenus.PATTERN_ENCODER.get(), PatternEncoderScreen::new);
     }
 
     /** Liga o block entity do monitor ao renderer que desenha a tela no mundo. */

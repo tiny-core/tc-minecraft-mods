@@ -1,5 +1,6 @@
 package org.tinycore.colonybridge.registry;
 
+import org.tinycore.colonybridge.block.encoder.PatternEncoderBlockEntity;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -45,6 +46,11 @@ public final class ModBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ColonyChunkLoaderBlockEntity>> CHUNK_LOADER =
             BLOCK_ENTITIES.register("colony_chunk_loader",
                     () -> BlockEntityType.Builder.of(ColonyChunkLoaderBlockEntity::new, ModBlocks.CHUNK_LOADER.get()).build(null));
+
+    @SuppressWarnings("DataFlowIssue")
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PatternEncoderBlockEntity>> PATTERN_ENCODER =
+            BLOCK_ENTITIES.register("pattern_encoder",
+                    () -> BlockEntityType.Builder.of(PatternEncoderBlockEntity::new, ModBlocks.PATTERN_ENCODER.get()).build(null));
 
     private ModBlockEntities() {}
 

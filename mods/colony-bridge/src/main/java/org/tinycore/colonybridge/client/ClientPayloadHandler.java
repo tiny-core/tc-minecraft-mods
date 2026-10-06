@@ -7,6 +7,8 @@ import org.tinycore.colonybridge.menu.bridge.ColonyBridgeMenu;
 import org.tinycore.colonybridge.menu.supply.ColonySupplyMenu;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.menu.loader.ChunkLoaderMenu;
+import org.tinycore.colonybridge.menu.encoder.PatternEncoderMenu;
+import org.tinycore.colonybridge.network.EncoderSnapshotPayload;
 import org.tinycore.colonybridge.network.BridgeSnapshotPayload;
 import org.tinycore.colonybridge.network.ChunkLoaderSnapshotPayload;
 import org.tinycore.colonybridge.network.SupplySnapshotPayload;
@@ -79,6 +81,15 @@ public final class ClientPayloadHandler {
     }
 
     /** Situação do Chunk Loader para a tela aberta, se ela ainda é a mesma. */
+    public static void onEncoderSnapshot(EncoderSnapshotPayload payload) {
+        var player = Minecraft.getInstance().player;
+        if (player != null
+                && player.containerMenu instanceof PatternEncoderMenu menu
+                && menu.containerId == payload.containerId()) {
+            menu.setSnapshot(payload.snapshot());
+        }
+    }
+
     public static void onChunkLoaderSnapshot(ChunkLoaderSnapshotPayload payload) {
         var player = Minecraft.getInstance().player;
         if (player != null

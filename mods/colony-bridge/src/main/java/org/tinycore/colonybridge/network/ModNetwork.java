@@ -1,5 +1,8 @@
 package org.tinycore.colonybridge.network;
 
+import net.minecraft.server.level.ServerLevel;
+import org.tinycore.colonybridge.block.encoder.PatternEncoderBlockEntity;
+import org.tinycore.colonybridge.menu.encoder.PatternEncoderMenu;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -35,7 +38,7 @@ import org.tinycore.core.block.RedstoneMode;
 public final class ModNetwork {
 
     /** Versão do protocolo: mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "12";
+    private static final String PROTOCOL_VERSION = "13";
 
     private ModNetwork() {}
 
@@ -71,6 +74,9 @@ public final class ModNetwork {
                 TerminalPackets::onAction);
         registrar.playToServer(TerminalRecipePayload.TYPE, TerminalRecipePayload.STREAM_CODEC,
                 TerminalPackets::onRecipe);
+        registrar.playToClient(EncoderSnapshotPayload.TYPE, EncoderSnapshotPayload.STREAM_CODEC,
+                (payload, context) -> ClientPayloadHandler.onEncoderSnapshot(payload));
+        registrar.playToServer(EncoderActionPayload.TYPE, EncoderActionPayload.STREAM_CODEC, ModNetwork::onEncoderAction);
     }
 
     private static void onSettings(BridgeSettingsPayload payload, IPayloadContext context) {
@@ -161,6 +167,20 @@ public final class ModNetwork {
     }
 
     /**
+     * "Codificar" no Pattern Encoder. Menu validado (distância, permissão na colônia); do pacote só se usa o item da
+     * linha, só para escolher entre as linhas que o próprio servidor montou.
+     */
+    private static void onEncoderAction(EncoderActionPayload payload, IPayloadContext context) {
+        PatternEncoderMenu menu = validMenu(context, payload.containerId(), PatternEncoderMenu.class);
+        PatternEncoderBlockEntity encoder = menu == null ? null : menu.getEncoder();
+        if (encoder == null || !(encoder.getLevel() instanceof ServerLevel level)) {
+            return;
+        }
+        encoder.encode(level, payload.item().copyWithCount(1));
+        menu.requestSync();
+    }
+
+    /**
      * Troca de aba do tablet. O {@link TabletOpener} confere tudo de novo (tablet na mão, bateria, bloco
      * disponível, permissão); do cliente só vem o número da aba.
      */
@@ -211,6 +231,9 @@ public final class ModNetwork {
         }
         if (menu instanceof ChunkLoaderMenu loader) {
             return loader.getLoader();
+        }
+        if (menu instanceof PatternEncoderMenu encoder) {
+            return encoder.getEncoder();
         }
         return null;
     }

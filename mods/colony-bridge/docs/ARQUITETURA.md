@@ -145,6 +145,20 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `client/loader/ChunkLoaderScreen` | Tela: situação, cartões (chunks, energia, "solta em"), barra lateral. |
 | `integration/ColonyAccess` (`claimedChunksAt`, `colonyCenterAt`, `memberOnlineAt`) | Reivindicações da colônia (`IColonyManager.getClaimData`), centro e membros online. |
 
+## TC Pattern Encoder (`encoder/`) — padrões para o que a colônia pede e o AE2 não crafta
+
+| Classe | Responsabilidade |
+|---|---|
+| `block/encoder/PatternEncoderBlock`, `PatternEncoderBlockEntity` | Bloco e lógica: confere colônia/permissão a cada ciclo; com a tela aberta, guarda a última varredura; `encode` refaz a varredura e codifica. |
+| `block/encoder/EncoderInventory` | Slot de Blank Pattern e 9 de saída; `store` simula antes de gastar o Blank Pattern; derruba tudo ao quebrar. |
+| `logic/encoder/EncoderScanner` | Pedidos da colônia sem padrão no AE2 → linhas (exato ou exemplos da tag, soma por item, "na saída"). |
+| `logic/encoder/RecipeRanking` | Regra pura (testada): receita com menos ingredientes faltando, depois menos ingredientes por item. |
+| `logic/encoder/EncoderState` | Situação da linha: pronta, na saída, sem receita, excluída. |
+| `integration/ae2/PatternEncoding` | Único lugar que monta padrões: acha a receita, monta a grade 3×3, confere `matches` e chama `PatternDetailsHelper.encodeCraftingPattern`. |
+| `integration/ae2/CraftingRecipeIndex` | Índice item → receitas de bancada, refeito após `/reload` (`OnDatapackSyncEvent`) e ao parar o servidor. |
+| `menu/encoder/PatternEncoderMenu`, `EncoderSnapshot`, `EncoderLine`, `network/Encoder*Payload` | Slots, foto 1×/s quando muda (comparação por conteúdo), pacote "codificar" com só o item da linha. |
+| `client/encoder/PatternEncoderScreen` | Tela: lista com rolagem, tooltip com ingredientes, slots e botão "codificar todos". |
+
 ## Infraestrutura
 
 | Classe | Responsabilidade |

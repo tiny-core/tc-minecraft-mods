@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CPC",
+    "RTR",
+    "LBL"
+  ],
+  "key": {
+    "C": {
+      "item": "ae2:calculation_processor"
+    },
+    "P": {
+      "item": "ae2:pattern_provider"
+    },
+    "R": {
+      "item": "minecolonies:blockminecoloniesrack"
+    },
+    "T": {
+      "item": "ae2:pattern_encoding_terminal"
+    },
+    "L": {
+      "item": "ae2:logic_processor"
+    },
+    "B": {
+      "item": "minecolonies:blockhutuniversity"
+    }
+  },
+  "result": {
+    "id": "tccolonybridge:pattern_encoder",
+    "count": 1
+  }
+}

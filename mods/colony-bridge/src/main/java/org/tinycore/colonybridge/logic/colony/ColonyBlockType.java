@@ -12,5 +12,6 @@ public enum ColonyBlockType {
     BRIDGE,
     SUPPLY,
     TERMINAL,
-    CHUNK_LOADER
+    CHUNK_LOADER,
+    PATTERN_ENCODER
 }

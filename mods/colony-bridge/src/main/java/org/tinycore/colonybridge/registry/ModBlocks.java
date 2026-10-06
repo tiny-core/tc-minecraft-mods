@@ -1,5 +1,6 @@
 package org.tinycore.colonybridge.registry;
 
+import org.tinycore.colonybridge.block.encoder.PatternEncoderBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -48,6 +49,12 @@ public final class ModBlocks {
     public static final DeferredBlock<ColonyChunkLoaderBlock> CHUNK_LOADER = BLOCKS.register("colony_chunk_loader",
             () -> new ColonyChunkLoaderBlock(BlockBehaviour.Properties.of()
                     .strength(3.5f, 1200f)
+                    .sound(SoundType.METAL)
+                    .requiresCorrectToolForDrops()));
+
+    public static final DeferredBlock<PatternEncoderBlock> PATTERN_ENCODER = BLOCKS.register("pattern_encoder",
+            () -> new PatternEncoderBlock(BlockBehaviour.Properties.of()
+                    .strength(2.2f, 11f)
                     .sound(SoundType.METAL)
                     .requiresCorrectToolForDrops()));
 

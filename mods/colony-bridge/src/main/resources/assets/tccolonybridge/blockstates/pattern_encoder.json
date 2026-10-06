@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,status=offline": {
+      "model": "tccolonybridge:block/pattern_encoder_offline"
+    },
+    "facing=east,status=offline": {
+      "model": "tccolonybridge:block/pattern_encoder_offline",
+      "y": 90
+    },
+    "facing=south,status=offline": {
+      "model": "tccolonybridge:block/pattern_encoder_offline",
+      "y": 180
+    },
+    "facing=west,status=offline": {
+      "model": "tccolonybridge:block/pattern_encoder_offline",
+      "y": 270
+    },
+    "facing=north,status=error": {
+      "model": "tccolonybridge:block/pattern_encoder_error"
+    },
+    "facing=east,status=error": {
+      "model": "tccolonybridge:block/pattern_encoder_error",
+      "y": 90
+    },
+    "facing=south,status=error": {
+      "model": "tccolonybridge:block/pattern_encoder_error",
+      "y": 180
+    },
+    "facing=west,status=error": {
+      "model": "tccolonybridge:block/pattern_encoder_error",
+      "y": 270
+    },
+    "facing=north,status=idle": {
+      "model": "tccolonybridge:block/pattern_encoder_idle"
+    },
+    "facing=east,status=idle": {
+      "model": "tccolonybridge:block/pattern_encoder_idle",
+      "y": 90
+    },
+    "facing=south,status=idle": {
+      "model": "tccolonybridge:block/pattern_encoder_idle",
+      "y": 180
+    },
+    "facing=west,status=idle": {
+      "model": "tccolonybridge:block/pattern_encoder_idle",
+      "y": 270
+    },
+    "facing=north,status=working": {
+      "model": "tccolonybridge:block/pattern_encoder_working"
+    },
+    "facing=east,status=working": {
+      "model": "tccolonybridge:block/pattern_encoder_working",
+      "y": 90
+    },
+    "facing=south,status=working": {
+      "model": "tccolonybridge:block/pattern_encoder_working",
+      "y": 180
+    },
+    "facing=west,status=working": {
+      "model": "tccolonybridge:block/pattern_encoder_working",
+      "y": 270
+    }
+  }
+}

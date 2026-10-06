@@ -29,6 +29,9 @@ public final class ModItems {
     public static final DeferredItem<BlockItem> CHUNK_LOADER =
             ITEMS.registerSimpleBlockItem("colony_chunk_loader", ModBlocks.CHUNK_LOADER, new Item.Properties());
 
+    public static final DeferredItem<BlockItem> PATTERN_ENCODER =
+            ITEMS.registerSimpleBlockItem("pattern_encoder", ModBlocks.PATTERN_ENCODER, new Item.Properties());
+
     public static final DeferredItem<ColonyTabletItem> COLONY_TABLET =
             ITEMS.registerItem("colony_tablet", ColonyTabletItem::new, new Item.Properties().stacksTo(1));
 

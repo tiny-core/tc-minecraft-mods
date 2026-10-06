@@ -183,6 +183,24 @@ comum por baixo, um canal.
   chunks forçados do FTB Chunks. Ao iniciar o servidor, chunks de loaders que não existem mais são soltos.
 - Conferir no jogo: o `/forceload query` do vanilla provavelmente não lista estes chunks (são tickets de mod); use o contador da tela ou veja se plantações/cidadãos longe continuam trabalhando.
 
+## TC Pattern Encoder
+Cria os **padrões de crafting** que faltam para a colônia. A tela lista os pedidos em aberto que a rede ME **não sabe
+craftar**, com a receita de bancada achada para cada um; clique numa linha pronta (ou no botão lateral, para todas) e
+o padrão aparece nos slots de saída, gastando 1 Blank Pattern. Leve-o a um Pattern Provider ou Molecular Assembler e a
+Ponte passa a craftar o item sozinha.
+
+- Um por colônia, cabo ME comum por baixo (um canal), permissão na colônia. Não precisa da Ponte.
+- **Receita escolhida:** a que usa menos ingredientes que a rede não tem nem sabe craftar; empate, a com menos
+  ingredientes por item produzido. Em cada ingrediente com opções (tábuas de qualquer madeira...), entra o item que
+  a rede tem mais, e o padrão sai com **substituição ligada** (o AE2 aceita qualquer opção do ingrediente).
+- **Pedido por tag/ferramenta/comida:** usa os exemplos que o MineColonies mostra; o primeiro com receita vira a linha.
+  Se a rede já crafta algum item que o pedido aceita, o pedido não aparece.
+- Fica de fora (linha sem botão): item sem receita de **bancada** (fornalha, máquinas — por enquanto só bancada),
+  item com dados que a receita não produz (encantado, poção) e itens do **Domum Ornamentum** (bancada do arquiteto).
+- Linha "Padrão na saída": o padrão já está nos slots de saída; não é codificado de novo.
+- A lista é refeita com a tela aberta, no máximo a cada `encoderScanTicks` (5 s), até `encoderMaxLines` linhas.
+- Ao quebrar o bloco, Blank Patterns e padrões caem no chão. Modelo provisório.
+
 ## TC Tablet da Colônia
 Acesso de qualquer lugar aos blocos de uma colônia: abre **as mesmas telas** do Terminal, da Ponte e do Abastecedor
 que estão no mundo, com uma barra de abas em cima da janela.
@@ -220,6 +238,7 @@ podem ser trocadas por datapack/KubeJS. Confira no JEI/EMI do ATM10 (o KubeJS do
 | TC Terminal do Armazém | `ECE` `RTR` `ELE` | E Engenharia · C Cálculo · R Rack · T Crafting Terminal · L Lógico |
 | TC Chunk Loader da Colônia | `OEO` `SCS` `OPO` | O Obsidiana chorona · E Olho do Ender · S Singularidade · C Célula de energia densa · P Engenharia |
 | TC Tablet da Colônia | `QWQ` `ETE` `QCQ` | Q Vidro de quartzo · W Receptor sem fio · E Engenharia · T Terminal sem fio · C Célula de energia densa |
+| TC Pattern Encoder | `CPC` `RTR` `LBL` | C Cálculo · P Pattern Provider · R Rack · T Pattern Encoding Terminal · L Lógico · B Cabana da Universidade |
 | TC Cartão de Ligação | ` F ` `EME` ` L ` | F Pérola de Fluix · E Engenharia · M Memory Card · L Lógico |
 
 ## Setup

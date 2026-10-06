@@ -1,5 +1,6 @@
 package org.tinycore.colonybridge.client.jei;
 
+import org.tinycore.colonybridge.client.encoder.PatternEncoderScreen;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -70,6 +71,12 @@ public class ColonyBridgeJeiPlugin implements IModPlugin {
         registration.addGuiContainerHandler(ChunkLoaderScreen.class, new IGuiContainerHandler<>() {
             @Override
             public List<Rect2i> getGuiExtraAreas(ChunkLoaderScreen screen) {
+                return screen.extraAreas();
+            }
+        });
+        registration.addGuiContainerHandler(PatternEncoderScreen.class, new IGuiContainerHandler<>() {
+            @Override
+            public List<Rect2i> getGuiExtraAreas(PatternEncoderScreen screen) {
                 return screen.extraAreas();
             }
         });

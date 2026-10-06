@@ -155,6 +155,18 @@ public final class Config {
             .comment("Máximo de tipos de item mostrados pelo Terminal do Armazém (limita o tráfego em armazéns enormes).")
             .defineInRange("terminalMaxTypes", 4096, 64, 32768);
 
+    public static final ModConfigSpec.DoubleValue ENCODER_IDLE_POWER = B
+            .comment("Consumo parado do TC Pattern Encoder, em AE/t (vale ao colocar ou recarregar o bloco).")
+            .defineInRange("encoderIdlePower", 2.0, 0.0, 1000.0);
+
+    public static final ModConfigSpec.IntValue ENCODER_SCAN_TICKS = B
+            .comment("Intervalo mínimo, em ticks, entre varreduras dos pedidos com a tela do Pattern Encoder aberta.")
+            .defineInRange("encoderScanTicks", 100, 20, 6000);
+
+    public static final ModConfigSpec.IntValue ENCODER_MAX_LINES = B
+            .comment("Máximo de linhas (itens sem padrão) mostradas pelo Pattern Encoder.")
+            .defineInRange("encoderMaxLines", 32, 1, 64);
+
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

@@ -1,5 +1,6 @@
 package org.tinycore.colonybridge;
 
+import org.tinycore.colonybridge.integration.ae2.CraftingRecipeIndex;
 import appeng.api.AECapabilities;
 import com.mojang.logging.LogUtils;
 import net.neoforged.bus.api.IEventBus;
@@ -43,6 +44,8 @@ public final class ColonyBridgeMod {
         modBus.addListener(ModNetwork::register);
         modBus.addListener(ChunkTickets::register);
         // Eventos do jogo (não do mod): jogador entrou/saiu acorda os Chunk Loaders.
+        NeoForge.EVENT_BUS.addListener(CraftingRecipeIndex::onDatapackSync);
+        NeoForge.EVENT_BUS.addListener(CraftingRecipeIndex::onServerStopped);
         NeoForge.EVENT_BUS.addListener(LoaderEvents::onLogin);
         NeoForge.EVENT_BUS.addListener(LoaderEvents::onLogout);
     }
@@ -60,7 +63,7 @@ public final class ColonyBridgeMod {
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.COLONY_SUPPLY.get(),
                 (be, ctx) -> be);
-        // O Terminal e o Chunk Loader também têm nó ME: sem esta capability o cabo não se liga a eles.
+        // O Terminal, o Chunk Loader e o Pattern Encoder também têm nó ME: sem esta capability o cabo não se liga a eles.
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.WAREHOUSE_TERMINAL.get(),
@@ -68,6 +71,10 @@ public final class ColonyBridgeMod {
         event.registerBlockEntity(
                 AECapabilities.IN_WORLD_GRID_NODE_HOST,
                 ModBlockEntities.CHUNK_LOADER.get(),
+                (be, ctx) -> be);
+        event.registerBlockEntity(
+                AECapabilities.IN_WORLD_GRID_NODE_HOST,
+                ModBlockEntities.PATTERN_ENCODER.get(),
                 (be, ctx) -> be);
         // Bateria do tablet como energia padrão do NeoForge: carregadores de outros mods também a enchem.
         event.registerItem(Capabilities.EnergyStorage.ITEM, (stack, ctx) -> TabletEnergy.storage(stack),

@@ -1,5 +1,6 @@
 package org.tinycore.colonybridge.registry;
 
+import org.tinycore.colonybridge.menu.encoder.PatternEncoderMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.bus.api.IEventBus;
@@ -38,6 +39,9 @@ public final class ModMenus {
 
     public static final DeferredHolder<MenuType<?>, MenuType<ChunkLoaderMenu>> CHUNK_LOADER =
             MENUS.register("colony_chunk_loader", () -> IMenuTypeExtension.create(ChunkLoaderMenu::new));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<PatternEncoderMenu>> PATTERN_ENCODER =
+            MENUS.register("pattern_encoder", () -> IMenuTypeExtension.create(PatternEncoderMenu::new));
 
     private ModMenus() {}
 
