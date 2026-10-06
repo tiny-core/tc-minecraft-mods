@@ -36,6 +36,13 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
 Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag
 `#tccloud:never_transfer` ou com sinais de guardar dados no mundo.
 
+Receita (cara de propósito: o Link leva itens entre servidores), em `data/tccloud/recipe/cloud_link.json`:
+```
+RSR     R = Anel de quantum (AE2)   S = Singularidade entrelaçada (AE2)
+PDP     P = Processador de Cálculo (AE2)   D = ME Drive (AE2)
+RCR     C = Componente de armazenamento 64k (AE2)
+```
+
 Admin: `/tccloud checkpoint` salva o mundo com flush e torna tudo durável (usado pelo backup do TCMine).
 
 ## Requisitos (quando estiver pronto)

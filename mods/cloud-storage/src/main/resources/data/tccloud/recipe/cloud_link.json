@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RSR",
+    "PDP",
+    "RCR"
+  ],
+  "key": {
+    "R": {
+      "item": "ae2:quantum_ring"
+    },
+    "S": {
+      "item": "ae2:quantum_entangled_singularity"
+    },
+    "P": {
+      "item": "ae2:calculation_processor"
+    },
+    "D": {
+      "item": "ae2:drive"
+    },
+    "C": {
+      "item": "ae2:cell_component_64k"
+    }
+  },
+  "result": {
+    "id": "tccloud:cloud_link",
+    "count": 1
+  }
+}
