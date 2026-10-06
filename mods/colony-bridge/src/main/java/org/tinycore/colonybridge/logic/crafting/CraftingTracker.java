@@ -11,19 +11,20 @@ import net.minecraft.server.level.ServerLevel;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.colonybridge.ColonyBridgeMod;
 import org.tinycore.colonybridge.Config;
-import org.tinycore.colonybridge.stats.BridgeStats;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.function.LongConsumer;
 
 /**
- * Agenda crafts no AE2 para os pedidos da colônia, em duas etapas:
+ * Agenda crafts no AE2 (pedidos da colônia na Ponte, falta no armazém no Abastecedor), em duas etapas:
  * <ol>
  *   <li>{@link #tryStart}: pede ao AE2 o <b>cálculo</b> do plano (assíncrono, roda fora da thread do jogo);</li>
  *   <li>{@link #poll} (a cada ciclo): quando o cálculo termina, <b>envia o job</b> com a ponte como dona
- *       ({@link CraftLinks}), para o resultado ir direto ao armazém.</li>
+ *       ({@link CraftLinks}), para o resultado ir direto ao armazém. Sem {@code CraftLinks} (Abastecedor), o job vai
+ *       sem dono e o resultado entra na rede ME, de onde o bloco o leva no ciclo seguinte.</li>
  * </ol>
  * A quantidade pedida é só a que falta (a ponte já desconta armazém e rede). Também guarda a espera após
  * falha (falta de material, sem CPU) e a blacklist da config.
@@ -36,17 +37,42 @@ public final class CraftingTracker {
     /** Cálculo em andamento: o plano ainda não voltou do AE2. */
     private record Pending(String colonyKey, String requestId, Future<ICraftingPlan> plan) {}
 
-    private final CraftLinks links;
+    /** Quem avisa as estatísticas do bloco dono (crafts começados e falhos). */
+    public interface Events {
+        void started(long now);
+
+        void failed(long now);
+
+        /** Eventos a partir de dois métodos ({@code LongConsumer} ≈ {@code Action<long>} em C#). */
+        static Events of(LongConsumer started, LongConsumer failed) {
+            return new Events() {
+                @Override
+                public void started(long now) {
+                    started.accept(now);
+                }
+
+                @Override
+                public void failed(long now) {
+                    failed.accept(now);
+                }
+            };
+        }
+
+        Events NONE = of(now -> {}, now -> {});
+    }
+
+    private final @Nullable CraftLinks links;
     private final Map<AEItemKey, Pending> calculating = new HashMap<>();
     private final Map<AEItemKey, Long> failedUntil = new HashMap<>();
 
-    public CraftingTracker(CraftLinks links) {
+    /** @param links dono dos jobs (resultado direto ao armazém), ou null: job sem dono, resultado na rede ME */
+    public CraftingTracker(@Nullable CraftLinks links) {
         this.links = links;
     }
 
     /** true se já existe um craft em cálculo ou a correr para este item (desta ponte ou de qualquer um). */
     public boolean isBusy(ICraftingService crafting, AEItemKey key) {
-        return calculating.containsKey(key) || links.isCrafting(key) || crafting.isRequesting(key);
+        return calculating.containsKey(key) || (links != null && links.isCrafting(key)) || crafting.isRequesting(key);
     }
 
     /**
@@ -65,7 +91,7 @@ public final class CraftingTracker {
                 return entry.getKey();
             }
         }
-        CraftLinks.Job job = links.activeFor(requestId);
+        CraftLinks.Job job = links == null ? null : links.activeFor(requestId);
         return job == null ? null : job.item();
     }
 
@@ -82,7 +108,7 @@ public final class CraftingTracker {
     }
 
     /** Envia os cálculos que já terminaram e registra sucesso/falha nas estatísticas. Chamado a cada ciclo. */
-    public void poll(ServerLevel level, IGrid grid, IActionSource source, BridgeStats stats) {
+    public void poll(ServerLevel level, IGrid grid, IActionSource source, Events stats) {
         long now = level.getGameTime();
         // Esperas vencidas não servem mais: sem isto o mapa só cresceria enquanto a ponte existir.
         failedUntil.values().removeIf(until -> until <= now);
@@ -108,10 +134,10 @@ public final class CraftingTracker {
                     fail(key, now, String.valueOf(result.errorCode()), stats);
                     continue;
                 }
-                if (result.link() != null) {
+                if (links != null && result.link() != null) {
                     links.add(result.link(), new CraftLinks.Job(pending.colonyKey(), pending.requestId(), key));
                 }
-                stats.recordCraftStarted(now);
+                stats.started(now);
             } catch (Exception e) {
                 fail(key, now, e.getMessage(), stats);
             }
@@ -127,9 +153,9 @@ public final class CraftingTracker {
         calculating.clear();
     }
 
-    private void fail(AEItemKey key, long now, String reason, BridgeStats stats) {
+    private void fail(AEItemKey key, long now, String reason, Events stats) {
         failedUntil.put(key, now + Config.CRAFT_FAIL_COOLDOWN_TICKS.get());
-        stats.recordCraftFailed(now);
+        stats.failed(now);
         ColonyBridgeMod.LOG.debug("Craft de {} falhou: {}", key, reason);
     }
 

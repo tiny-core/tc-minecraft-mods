@@ -42,7 +42,8 @@ final class RequestCrafter {
 
     /** Começo do ciclo: submete cálculos prontos e limpa os caches do ciclo anterior. */
     void beginCycle(ServerLevel level, IGrid grid, IActionSource source) {
-        tracker.poll(level, grid, source, host.getStats());
+        tracker.poll(level, grid, source, CraftingTracker.Events.of(host.getStats()::recordCraftStarted,
+                host.getStats()::recordCraftFailed));
         candidates.beginCycle();
     }
 
