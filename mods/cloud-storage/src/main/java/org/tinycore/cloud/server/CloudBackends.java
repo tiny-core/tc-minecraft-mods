@@ -5,6 +5,7 @@ import net.neoforged.fml.ModList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.Config;
+import org.tinycore.cloud.cloud.CloudQuota;
 import org.tinycore.cloud.TcCloud;
 import org.tinycore.cloud.integration.tcmine.CloudBackend;
 import org.tinycore.cloud.integration.tcmine.CloudCredentials;
@@ -38,9 +39,16 @@ final class CloudBackends {
         }
         if (Config.DEV_FILE_BACKEND.get()) {
             return new FileCloudBackend(server.getServerDirectory().resolve("tccloud-dev-backend.json"),
-                    () -> Config.DEV_LEASE_TTL_SECONDS.get() * 1000L);
+                    () -> Config.DEV_LEASE_TTL_SECONDS.get() * 1000L, CloudBackends::devQuota);
         }
         return null;
+    }
+
+    /** Cota da nuvem de teste, da config (0 = sem limite), lida a cada {@code hello}. */
+    private static CloudQuota devQuota() {
+        int types = Config.DEV_QUOTA_MAX_TYPES.get();
+        long total = Config.DEV_QUOTA_MAX_TOTAL.get();
+        return new CloudQuota(types == 0 ? Integer.MAX_VALUE : types, total == 0 ? Long.MAX_VALUE : total);
     }
 
     private static String modVersion() {

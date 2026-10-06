@@ -48,7 +48,10 @@ import java.util.List;
 public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     private static final int PADDING = 8;
-    private static final int SEARCH_Y = 32;
+    /** Linhas do cabeçalho: título (7), cota (19), aviso (31), busca. */
+    private static final int QUOTA_Y = 19;
+    private static final int INFO_Y = 31;
+    private static final int SEARCH_Y = 44;
     /** Espaço livre deixado acima e abaixo da janela ao calcular quantas linhas cabem. */
     private static final int SCREEN_MARGIN = 8;
 
@@ -167,7 +170,8 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         ScreenStyle.statusDot(g, x + CloudLinkMenu.WIDTH - PADDING - statusWidth - 10, top + 7, statusColor(status));
         ScreenStyle.drawFitted(g, font, title, x + PADDING, top + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
         Line line = infoLine(header, status);
-        if (line != null) ScreenStyle.drawFitted(g, font, line.text(), x + PADDING, top + 19, inner, line.color());
+        QuotaBar.render(g, font, header.quota(), x + PADDING, top + QUOTA_Y, inner);
+        if (line != null) ScreenStyle.drawFitted(g, font, line.text(), x + PADDING, top + INFO_Y, inner, line.color());
         ScreenStyle.inset(g, x + PADDING, top + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
 
         grid.update(gridVersion, visibleEntries(), search.getValue(), sort);
@@ -241,6 +245,13 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         super.render(g, mouseX, mouseY, partialTick);
         LinkEntry hovered = menu.getCarried().isEmpty() ? grid.entryAt(mouseX, mouseY) : null;
         if (hovered == null) {
+            int quotaX = leftPos + PADDING;
+            int quotaY = topPos - extra + QUOTA_Y;
+            if (mouseX >= quotaX && mouseX < quotaX + CloudLinkMenu.WIDTH - PADDING * 2
+                    && mouseY >= quotaY && mouseY < quotaY + 9) {
+                g.renderComponentTooltip(font, QuotaBar.tooltip(menu.view().header().quota()), mouseX, mouseY);
+                return;
+            }
             renderTooltip(g, mouseX, mouseY);
             return;
         }

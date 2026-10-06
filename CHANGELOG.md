@@ -22,6 +22,8 @@ Mudanças por versão de cada mod TC. A versão de cada mod fica no `gradle.prop
 - Protocolo de rede 13: cliente e servidor precisam da mesma versão.
 
 ### TC Cloud Storage 0.3.0 (exige TC Core 0.2.0)
+- Barra de cota do canal no topo da tela do Cloud Link (itens e tipos, com cores perto do limite); cota opcional
+  na nuvem de teste (`devQuotaMaxTotal`, `devQuotaMaxTypes`).
 - Receita do TC Cloud Link.
 - Grade começa com 5 linhas, botão de altura e busca por `#tag`.
 - Fala com a nuvem do TCMine (fase 4): chave entregue pelo TCMine, política de itens, relatórios.

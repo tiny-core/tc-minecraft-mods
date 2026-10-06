@@ -57,6 +57,22 @@ public final class ChannelBalances {
         return items == null ? Map.of() : Collections.unmodifiableMap(items);
     }
 
+    /** Cota aplicada aos canais deste jogador. */
+    public @NotNull CloudQuota quota() {
+        return quota;
+    }
+
+    /** Tipos de item diferentes no canal (o que a cota de tipos conta). */
+    public int typeCount(@NotNull UUID channelId) {
+        Map<String, Long> items = channels.get(channelId);
+        return items == null ? 0 : items.size();
+    }
+
+    /** Soma das quantidades do canal (o que a cota de total conta). */
+    public long total(@NotNull UUID channelId) {
+        return totals.getOrDefault(channelId, 0L);
+    }
+
     /** Quanto de {@code amount} pode entrar, respeitando canal existente e cota. Não altera nada. */
     public long insertable(@NotNull BalanceKey key, long amount) {
         Map<String, Long> items = channels.get(key.channelId());

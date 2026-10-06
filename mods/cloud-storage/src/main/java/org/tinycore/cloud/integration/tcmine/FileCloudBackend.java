@@ -39,6 +39,7 @@ public final class FileCloudBackend implements CloudBackend {
 
     private final Path file;
     private final Supplier<Long> ttlMs;
+    private final Supplier<CloudQuota> quota;
     private final ExecutorService executor = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "tccloud-dev-backend");
         t.setDaemon(true);
@@ -49,8 +50,14 @@ public final class FileCloudBackend implements CloudBackend {
     private volatile String holder = "?";
 
     public FileCloudBackend(@NotNull Path file, @NotNull Supplier<Long> ttlMs) {
+        this(file, ttlMs, () -> CloudQuota.UNLIMITED);
+    }
+
+    /** @param quota cota entregue no {@code hello} (para testar a barra de cota sem o TCMine) */
+    public FileCloudBackend(@NotNull Path file, @NotNull Supplier<Long> ttlMs, @NotNull Supplier<CloudQuota> quota) {
         this.file = file;
         this.ttlMs = ttlMs;
+        this.quota = quota;
         this.state = load(file);
     }
 
@@ -58,7 +65,7 @@ public final class FileCloudBackend implements CloudBackend {
     public @NotNull CompletableFuture<HelloReply> hello(@NotNull Checkpoint checkpoint) {
         return CompletableFuture.supplyAsync(() -> {
             holder = checkpoint.worldId().toString();
-            return new HelloReply(ItemPolicy.OPEN, CloudQuota.UNLIMITED, 0, false, null);
+            return new HelloReply(ItemPolicy.OPEN, quota.get(), 0, false, null);
         }, executor);
     }
 

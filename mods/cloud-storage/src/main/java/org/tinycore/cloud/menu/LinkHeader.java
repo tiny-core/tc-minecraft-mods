@@ -14,13 +14,14 @@ import org.jetbrains.annotations.NotNull;
  * @param conflict    onde o canal já está montado ("" se em lugar nenhum)
  * @param rejection   {@code TransferRejection.ordinal()} da última recusa, ou -1
  * @param networkUp   o nó AE2 está ativo (energia + canal)
+ * @param quota       uso da cota do canal ({@link LinkQuota#NONE} sem sessão)
  */
 public record LinkHeader(int status, @NotNull String detail, int access, int priority, @NotNull String conflict,
-                         int rejection, boolean networkUp) {
+                         int rejection, boolean networkUp, @NotNull LinkQuota quota) {
 
     static final int MAX_TEXT = 96;
 
-    public static final LinkHeader EMPTY = new LinkHeader(0, "", 2, 0, "", -1, false);
+    public static final LinkHeader EMPTY = new LinkHeader(0, "", 2, 0, "", -1, false, LinkQuota.NONE);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, LinkHeader> STREAM_CODEC = StreamCodec.of(
             (buf, h) -> {
@@ -31,9 +32,10 @@ public record LinkHeader(int status, @NotNull String detail, int access, int pri
                 buf.writeUtf(h.conflict, MAX_TEXT);
                 buf.writeVarInt(h.rejection + 1);
                 buf.writeBoolean(h.networkUp);
+                LinkQuota.STREAM_CODEC.encode(buf, h.quota);
             },
             buf -> new LinkHeader(buf.readVarInt(), buf.readUtf(MAX_TEXT), buf.readVarInt(), buf.readVarInt(),
-                    buf.readUtf(MAX_TEXT), buf.readVarInt() - 1, buf.readBoolean()));
+                    buf.readUtf(MAX_TEXT), buf.readVarInt() - 1, buf.readBoolean(), LinkQuota.STREAM_CODEC.decode(buf)));
 
     /** Corta textos no teto do pacote. */
     static String clip(String text) {

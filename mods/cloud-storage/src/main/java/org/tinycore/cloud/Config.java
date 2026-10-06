@@ -15,6 +15,15 @@ public final class Config {
                     "do jogo/servidor (compartilhado entre mundos). Só para testes; em produção a nuvem é o TCMine.")
             .define("devFileBackend", false);
 
+    public static final ModConfigSpec.IntValue DEV_QUOTA_MAX_TYPES = B
+            .comment("Cota da nuvem de teste (devFileBackend): máximo de tipos de item por canal. 0 = sem limite.",
+                    "Com o TCMine, a cota vem do painel e isto é ignorado.")
+            .defineInRange("devQuotaMaxTypes", 0, 0, 1_000_000);
+
+    public static final ModConfigSpec.LongValue DEV_QUOTA_MAX_TOTAL = B
+            .comment("Cota da nuvem de teste (devFileBackend): soma máxima das quantidades por canal. 0 = sem limite.")
+            .defineInRange("devQuotaMaxTotal", 0L, 0L, Long.MAX_VALUE);
+
     public static final ModConfigSpec.IntValue DEV_LEASE_TTL_SECONDS = B
             .comment("Backend de desenvolvimento: segundos sem heartbeat até o lease de um jogador expirar.")
             .defineInRange("devLeaseTtlSeconds", 90, 30, 3600);

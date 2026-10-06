@@ -35,7 +35,7 @@ public class CloudLinkMenu extends AbstractContainerMenu {
      */
     public static final int WIDTH = 190;
     public static final int GRID_X = 9;
-    public static final int GRID_Y = 48;
+    public static final int GRID_Y = 60;
     public static final int COLUMNS = 9;
     public static final int MIN_ROWS = 2;
     public static final int MAX_ROWS = 12;

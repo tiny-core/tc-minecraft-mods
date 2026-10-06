@@ -36,5 +36,12 @@
   "gui.tccloud.reject.not_empty": "Empty the item first",
   "gui.tccloud.reject.world_reference": "Item linked to the world: waiting for the owner's approval",
   "command.tccloud.disabled": "The cloud is off on this server.",
-  "command.tccloud.checkpoint.done": "Cloud checkpoint saved."
+  "command.tccloud.checkpoint.done": "Cloud checkpoint saved.",
+  "gui.tccloud.quota": "Quota",
+  "gui.tccloud.quota.title": "Channel quota",
+  "gui.tccloud.quota.unlimited": "no limit",
+  "gui.tccloud.quota.unknown": "Shown once the cloud is connected.",
+  "gui.tccloud.quota.total": "Items: %s / %s",
+  "gui.tccloud.quota.types": "Item types: %s / %s",
+  "gui.tccloud.quota.owner": "Set by the cloud owner in the TCMine panel."
 }

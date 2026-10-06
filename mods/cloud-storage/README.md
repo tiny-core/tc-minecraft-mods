@@ -30,7 +30,10 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
    neste servidor (apagados, com o motivo).
 4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
    (`+`/`-`).
-5. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
+5. No topo da tela, a **barra de cota** mostra quanto do canal está ocupado (a barra segue o limite mais apertado
+   entre itens e tipos; amarela a partir de 75 %, vermelha a partir de 95 %). O tooltip traz os dois números. A cota
+   vem do painel do TCMine; na nuvem de teste, use `devQuotaMaxTotal` e `devQuotaMaxTypes` (0 = sem limite).
+6. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
    estão lá.
 
 Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag

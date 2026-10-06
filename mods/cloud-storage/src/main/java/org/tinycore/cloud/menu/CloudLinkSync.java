@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.Config;
 import org.tinycore.cloud.block.CloudLinkBlockEntity;
+import org.tinycore.cloud.cloud.ChannelBalances;
+import org.tinycore.cloud.cloud.CloudQuota;
 import org.tinycore.cloud.cloud.PlayerCloudSession;
 import org.tinycore.cloud.item.TransferRejection;
 import org.tinycore.cloud.network.LinkSyncPayload;
@@ -65,7 +67,7 @@ final class CloudLinkSync {
         CloudService service = CloudService.get();
         UUID owner = player.getUUID();
         PlayerCloudSession session = service == null ? null : service.session(owner);
-        LinkHeader header = header(service, owner);
+        LinkHeader header = header(service, owner, session);
         boolean itemsChanged = session != lastSession || (session != null && session.changeCount() != lastChange);
         if (!itemsChanged && header.equals(lastHeader) && !first) return;
 
@@ -97,14 +99,25 @@ final class CloudLinkSync {
         lastHeader = header;
     }
 
-    private LinkHeader header(@Nullable CloudService service, UUID owner) {
+    private LinkHeader header(@Nullable CloudService service, UUID owner, @Nullable PlayerCloudSession session) {
         CloudStatus status = service == null ? CloudStatus.DISABLED : service.status(owner);
         String detailText = service == null ? null : service.statusDetail(owner);
         String detail = detailText == null ? "" : detailText;
         var conflict = link.mountConflict();
         String where = conflict == null ? "" : conflict.pos().toShortString() + " (" + conflict.dimension().location() + ")";
         return new LinkHeader(status.ordinal(), LinkHeader.clip(detail), link.access().ordinal(), link.priority(),
-                LinkHeader.clip(where), rejection == null ? -1 : rejection.ordinal(), link.isNetworkActive());
+                LinkHeader.clip(where), rejection == null ? -1 : rejection.ordinal(), link.isNetworkActive(),
+                quota(service, owner, session));
+    }
+
+    /** Uso da cota do canal mostrado (o padrão do jogador); {@link LinkQuota#NONE} sem sessão. */
+    private static LinkQuota quota(@Nullable CloudService service, UUID owner, @Nullable PlayerCloudSession session) {
+        UUID channel = service == null ? null : service.defaultChannel(owner);
+        if (session == null || channel == null) return LinkQuota.NONE;
+        ChannelBalances balances = session.balances();
+        CloudQuota limits = balances.quota();
+        return new LinkQuota(true, balances.typeCount(channel), limits.maxTypes(), balances.total(channel),
+                limits.maxTotal());
     }
 
     private void send(LinkHeader header, List<LinkEntry> changes) {

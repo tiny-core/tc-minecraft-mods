@@ -36,5 +36,12 @@
   "gui.tccloud.reject.not_empty": "Esvazie o item antes",
   "gui.tccloud.reject.world_reference": "Item vinculado ao mundo: aguardando aprovação do dono",
   "command.tccloud.disabled": "A nuvem está desligada neste servidor.",
-  "command.tccloud.checkpoint.done": "Checkpoint da nuvem salvo."
+  "command.tccloud.checkpoint.done": "Checkpoint da nuvem salvo.",
+  "gui.tccloud.quota": "Cota",
+  "gui.tccloud.quota.title": "Cota do canal",
+  "gui.tccloud.quota.unlimited": "sem limite",
+  "gui.tccloud.quota.unknown": "Aparece quando a nuvem conectar.",
+  "gui.tccloud.quota.total": "Itens: %s / %s",
+  "gui.tccloud.quota.types": "Tipos de item: %s / %s",
+  "gui.tccloud.quota.owner": "Definida pelo dono da nuvem no painel do TCMine."
 }

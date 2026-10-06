@@ -17,7 +17,7 @@ import org.tinycore.cloud.menu.LinkAction;
 public final class ModNetwork {
 
     /** Mudar quando o formato de algum pacote mudar (cliente e servidor precisam casar). */
-    private static final String PROTOCOL_VERSION = "1";
+    private static final String PROTOCOL_VERSION = "2";
 
     private ModNetwork() {}
 
