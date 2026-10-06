@@ -1,5 +1,9 @@
 {
   "redstone.tccore.ignored": "Ignore",
   "redstone.tccore.active_with_signal": "With signal",
-  "redstone.tccore.active_without_signal": "Without signal"
+  "redstone.tccore.active_without_signal": "Without signal",
+  "gui.tccore.grid_height": "Grid height: %s (click to change)",
+  "gui.tccore.grid_height.small": "5 rows",
+  "gui.tccore.grid_height.medium": "8 rows",
+  "gui.tccore.grid_height.tall": "fill the window"
 }

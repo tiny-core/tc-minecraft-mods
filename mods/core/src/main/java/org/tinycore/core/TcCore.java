@@ -1,7 +1,9 @@
 package org.tinycore.core;
 
 import com.mojang.logging.LogUtils;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import org.slf4j.Logger;
 
 /**
@@ -15,6 +17,8 @@ import org.slf4j.Logger;
  *   <li>{@code block}: modo de redstone;</li>
  *   <li>{@code stats}: contadores numa janela de tempo (ring buffer).</li>
  * </ul>
+ * Também registra a config de cliente ({@link TcCoreClientConfig}: preferências de tela comuns aos mods TC).
+ * <p>
  * É um mod separado (o jogador instala o jar dele junto dos mods TC); os mods declaram a dependência no
  * próprio {@code neoforge.mods.toml}.
  */
@@ -24,7 +28,9 @@ public final class TcCore {
     public static final String MOD_ID = "tccore";
     public static final Logger LOG = LogUtils.getLogger();
 
-    public TcCore() {
-        // Nada a registrar por enquanto: o core é só código compartilhado.
+    /** {@code ModContainer} é injetado pelo NeoForge: o "dono" do mod, onde as configs são registradas. */
+    public TcCore(ModContainer container) {
+        // Config de cliente: o NeoForge só a carrega no cliente; no servidor dedicado fica sem efeito.
+        container.registerConfig(ModConfig.Type.CLIENT, TcCoreClientConfig.SPEC);
     }
 }

@@ -1,5 +1,9 @@
 {
   "redstone.tccore.ignored": "Ignorar",
   "redstone.tccore.active_with_signal": "Com sinal",
-  "redstone.tccore.active_without_signal": "Sem sinal"
+  "redstone.tccore.active_without_signal": "Sem sinal",
+  "gui.tccore.grid_height": "Altura da grelha: %s (clique para mudar)",
+  "gui.tccore.grid_height.small": "5 linhas",
+  "gui.tccore.grid_height.medium": "8 linhas",
+  "gui.tccore.grid_height.tall": "a janela toda"
 }
