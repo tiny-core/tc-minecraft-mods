@@ -1,6 +1,7 @@
 package org.tinycore.core.grid;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -12,7 +13,8 @@ import java.util.function.ToLongFunction;
  * testada sem itens; a tela passa como ler o nome, o id do mod e a quantidade de cada entrada.
  * <p>
  * Busca como no AE2: texto comum procura no nome; começando com {@code @} procura no id do mod
- * ({@code @minecolonies}). Maiúsculas e minúsculas não importam.
+ * ({@code @minecolonies}); começando com {@code #} procura nas tags do item ({@code #ingots/iron},
+ * {@code #c:ores}). Maiúsculas e minúsculas não importam.
  */
 public final class ItemListing {
 
@@ -43,13 +45,27 @@ public final class ItemListing {
      */
     public static <T> List<T> filterAndSort(List<T> entries, String query, Sort sort, Function<T, String> name,
                                             Function<T, String> modId, ToLongFunction<T> amount) {
+        return filterAndSort(entries, query, sort, name, modId, entry -> List.of(), amount);
+    }
+
+    /**
+     * Como acima, com busca por tag.
+     *
+     * @param tags ids das tags da entrada (ex.: "c:ingots/iron"); só é chamado em buscas com {@code #}
+     */
+    public static <T> List<T> filterAndSort(List<T> entries, String query, Sort sort, Function<T, String> name,
+                                            Function<T, String> modId, Function<T, Collection<String>> tags,
+                                            ToLongFunction<T> amount) {
         String search = query.trim().toLowerCase(Locale.ROOT);
         boolean byMod = search.startsWith("@");
-        String term = byMod ? search.substring(1) : search;
+        boolean byTag = search.startsWith("#");
+        String term = byMod || byTag ? search.substring(1) : search;
         List<T> result = new ArrayList<>();
         for (T entry : entries) {
-            String field = byMod ? modId.apply(entry) : name.apply(entry);
-            if (term.isEmpty() || field.toLowerCase(Locale.ROOT).contains(term)) {
+            boolean match = term.isEmpty()
+                    || (byTag ? anyContains(tags.apply(entry), term)
+                    : (byMod ? modId.apply(entry) : name.apply(entry)).toLowerCase(Locale.ROOT).contains(term));
+            if (match) {
                 result.add(entry);
             }
         }
@@ -58,5 +74,14 @@ public final class ItemListing {
                 : Comparator.<T>comparingLong(amount).reversed().thenComparing(byName);
         result.sort(order);
         return result;
+    }
+
+    private static boolean anyContains(Collection<String> values, String term) {
+        for (String value : values) {
+            if (value.toLowerCase(Locale.ROOT).contains(term)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

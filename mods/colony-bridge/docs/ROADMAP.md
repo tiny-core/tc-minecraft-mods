@@ -344,7 +344,7 @@ Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só come�
 
 - **Copiar configuração** entre blocos (como o Memory Card do AE2) ou exportar/importar lista como texto.
 - **Autocompletar** ids e tags na caixa de texto das listas (o clique direito que alterna as tags do item já existe).
-- Busca do Terminal com `#tag` além de `@mod`.
+- ~~Busca do Terminal com `#tag` além de `@mod`~~ — **feito (2026-10-06)**, também no TC Cloud Link.
 - Tablet: atalho de teclado e slot do Curios.
 
 ## Descartado por enquanto

@@ -4,7 +4,7 @@
   "gui.tccloud.not_owner": "Só %s pode abrir este TC Cloud Link.",
   "gui.tccloud.help": "Seu canal na nuvem: o que fica aqui acompanha você em outros servidores do mesmo dono.\nClique esquerdo: tira um stack · Direito: tira 1\nCom item no cursor: esquerdo guarda tudo, direito guarda 1\nShift-clique no inventário: guarda o stack",
   "gui.tccloud.show_incompatible": "Mostrar itens que não podem ser usados neste servidor",
-  "gui.tccloud.search": "Buscar (@mod)",
+  "gui.tccloud.search": "Buscar (@mod, #tag)",
   "gui.tccloud.sort.amount": "Ordem: quantidade",
   "gui.tccloud.sort.name": "Ordem: nome",
   "gui.tccloud.access": "Acesso da rede AE2: %s",

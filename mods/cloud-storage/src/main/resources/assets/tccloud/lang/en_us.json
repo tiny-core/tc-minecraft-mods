@@ -4,7 +4,7 @@
   "gui.tccloud.not_owner": "Only %s can open this TC Cloud Link.",
   "gui.tccloud.help": "Your cloud channel: items stored here follow you to other servers of the same owner.\nLeft click: take a stack · Right click: take 1\nWith an item on the cursor: left stores all, right stores 1\nShift-click in your inventory: store the stack",
   "gui.tccloud.show_incompatible": "Show items that cannot be used on this server",
-  "gui.tccloud.search": "Search (@mod)",
+  "gui.tccloud.search": "Search (@mod, #tag)",
   "gui.tccloud.sort.amount": "Sort: amount",
   "gui.tccloud.sort.name": "Sort: name",
   "gui.tccloud.access": "AE2 network access: %s",

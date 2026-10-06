@@ -114,7 +114,7 @@ move por ciclo.
 
 ## Terminal do Armazém
 Terceiro bloco: uma tela como o terminal do AE2, mas para o **armazém da colônia**. Mostra todos os itens de
-todos os racks, somados por tipo, com busca (`@mod` filtra por mod; clique direito limpa) e ordem por
+todos os racks, somados por tipo, com busca (`@mod` filtra por mod, `#tag` por tag; clique direito limpa) e ordem por
 quantidade ou nome (botão na barra lateral). A grade tem 11 colunas e começa com 5 linhas; o botão de altura
 na barra lateral alterna entre 5, 8 e "a janela toda" (até 12), como o estilo do terminal do AE2. A escolha vale
 para todos os terminais TC e fica salva em `config/tccore-client.toml`. R/U do JEI funcionam sobre os itens dela.

@@ -84,11 +84,18 @@ public final class ItemGrid<T> {
         seenVersion = version;
         seenQuery = query;
         seenSort = sort;
-        visible = ItemListing.filterAndSort(entries, query, sort, adapter::name, adapter::modId, adapter::amount);
+        visible = ItemListing.filterAndSort(entries, query, sort, adapter::name, adapter::modId, this::tagsOf,
+                adapter::amount);
         if (searchChanged) {
             firstRow = 0; // nova busca começa do topo; atualização de dados mantém a posição
         }
         firstRow = Math.min(firstRow, maxFirstRow());
+    }
+
+    /** Tags do ícone da entrada (busca com {@code #}); entrada sem ícone (item ausente) não tem tags. */
+    private List<String> tagsOf(T entry) {
+        ItemStack icon = adapter.icon(entry);
+        return icon == null ? List.of() : icon.getTags().map(tag -> tag.location().toString()).toList();
     }
 
     public void render(@NotNull GuiGraphics g, @NotNull Font font, int mouseX, int mouseY) {

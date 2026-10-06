@@ -41,6 +41,27 @@ class ItemListingTest {
         assertEquals(List.of(COAL, BREAD), list("@minecraft", ItemListing.Sort.AMOUNT));
     }
 
+    private static List<String> tagsOf(Entry entry) {
+        return entry == COAL ? List.of("minecraft:coals", "c:fuels") : entry == BREAD ? List.of("c:foods/bread") : List.of();
+    }
+
+    private static List<Entry> byTag(String query) {
+        return ItemListing.filterAndSort(ALL, query, ItemListing.Sort.AMOUNT, Entry::name, Entry::mod,
+                ItemListingTest::tagsOf, Entry::amount);
+    }
+
+    @Test
+    void hashSearchesByTag() {
+        assertEquals(List.of(COAL), byTag("#fuel"));
+        assertEquals(List.of(BREAD), byTag("#C:FOODS"));
+        assertEquals(List.of(), byTag("#ingots"));
+    }
+
+    @Test
+    void bareHashShowsAll() {
+        assertEquals(List.of(COAL, BREAD, HAMMER), byTag("#"));
+    }
+
     @Test
     void doesNotChangeTheInputList() {
         List<Entry> input = new java.util.ArrayList<>(ALL);
