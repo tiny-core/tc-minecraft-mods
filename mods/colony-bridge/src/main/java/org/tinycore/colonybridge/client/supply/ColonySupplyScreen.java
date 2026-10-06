@@ -5,6 +5,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -27,7 +29,7 @@ import java.util.List;
 
 /**
  * Tela do Abastecedor (só cliente), com a estrutura dos terminais do AE2 e as cores da marca
- * ({@link ScreenStyle}): barra lateral com ajuda "?" e redstone, duas abas (Manter no armazém / Excedente para
+ * ({@link ScreenStyle}): barra lateral com ajuda "?", redstone e auto-craft, duas abas (Manter no armazém / Excedente para
  * o ME), cada uma com a sua lista de linhas ({@link TargetListWidget}), e o inventário embaixo.
  * <p>
  * As listas são editadas pela própria {@link TargetListWidget} (pacotes ao servidor). Aqui ficam o layout, as
@@ -45,6 +47,7 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
 
     private SideToolbar toolbar;
     private IconButton redstoneButton;
+    private IconButton craftButton;
     private TargetListWidget keepList;
     private TargetListWidget surplusList;
     private boolean keepTab = true;
@@ -67,6 +70,8 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));
         redstoneButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleRedstone)));
+        craftButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::toggleCraft)
+                .icon(new ItemStack(Items.CRAFTING_TABLE))));
         toolbar.layout(leftPos, topPos, WIDTH);
 
         keepList = list(TargetListKind.KEEP, true);
@@ -108,13 +113,26 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         redstoneButton.icon(RedstoneIcons.of(settings.redstoneMode()));
         redstoneButton.setTooltipText(Component.translatable("gui.tccolonybridge.redstone",
                 Component.translatable(settings.redstoneMode().translationKey())));
+        craftButton.setBadge(settings.craftMissing() ? ScreenStyle.SUCCESS : ScreenStyle.DANGER);
+        craftButton.setTooltipText(Component.translatable("gui.tccolonybridge.supply.craft",
+                Component.translatable(settings.craftMissing() ? "gui.tccolonybridge.on" : "gui.tccolonybridge.off")));
         keepList.tick();
         surplusList.tick();
     }
 
     private void cycleRedstone() {
         settings = settings.withRedstone(settings.redstoneMode().next());
-        PacketDistributor.sendToServer(new SupplyConfigPayload(menu.containerId, settings.redstoneMode().ordinal()));
+        sendSettings();
+    }
+
+    private void toggleCraft() {
+        settings = settings.withCraftMissing(!settings.craftMissing());
+        sendSettings();
+    }
+
+    private void sendSettings() {
+        PacketDistributor.sendToServer(new SupplyConfigPayload(menu.containerId, settings.redstoneMode().ordinal(),
+                settings.craftMissing()));
     }
 
     // ---------------------------------------------------------------- desenho

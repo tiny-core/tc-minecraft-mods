@@ -144,7 +144,7 @@
   "gui.tccolonybridge.help.filter": "Each line is an item, a #tag or a @mod. + adds a line (type and press Enter, or click with an item / drag from JEI). Click a line's icon with an item to replace it; right-click cycles through the item's tags. Shift-click in the inventory adds a line. Left bar: filter mode and comparison.",
   "gui.tccolonybridge.help.preferred": "Order used by the \"Preferred list\" preference: 1st slot first. Empty = the server config list is used. Same controls as the filter.",
   "gui.tccolonybridge.help.mods": "Click a mod to mark it. The left bar button chooses how marked mods are used: all, only marked, all except marked or prefer marked. Only mods with craftable items in your ME network are listed.",
-  "gui.tccolonybridge.help.supply": "Keep: items come from the ME network until the warehouse has at least the amount (a #tag counts the sum of its items). Surplus: anything above the amount goes back to the ME network (never while the colony is requesting it); ∞ sends everything. Each line is an item, #tag or @mod (@mod only in Surplus). Mouse wheel over the amount: ±1, Shift ±10, Ctrl ±64. Amount 0 turns the line off.",
+  "gui.tccolonybridge.help.supply": "Keep: items come from the ME network until the warehouse has at least the amount (a #tag counts the sum of its items). Surplus: anything above the amount goes back to the ME network (never while the colony is requesting it); ∞ sends everything. Each line is an item, #tag or @mod (@mod only in Surplus). Mouse wheel over the amount: ±1, Shift ±10, Ctrl ±64. Amount 0 turns the line off. With the crafting table button on, a Keep line that is still short and has nothing left in the ME network asks AE2 to craft the rest; it arrives on the next cycle.",
   "monitor.tccolonybridge.crafts_done": "Crafts done (%sh)",
   "monitor.tccolonybridge.supply.empty": "No lines configured",
   "gui.tccolonybridge.supply.keep_rule": "Keeps at least %s in the warehouse; what is missing comes from the ME network.",
@@ -303,5 +303,9 @@
   "tccolonybridge.configuration.encoderScanTicks.tooltip": "Minimum ticks between scans of the colony requests while the Pattern Encoder screen is open.",
   "tccolonybridge.configuration.encoderMaxLines": "Pattern Encoder max lines",
   "tccolonybridge.configuration.encoderMaxLines.tooltip": "Max lines (items without a pattern) shown by the Pattern Encoder.",
-  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder"
+  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder",
+  "gui.tccolonybridge.supply.craft": "Craft what is missing: %s (Keep lines ask AE2 to craft when the ME network runs out)",
+  "monitor.tccolonybridge.supply.status.crafting": "Crafting in AE2",
+  "tccolonybridge.configuration.supplyCrafting": "Supply auto-craft",
+  "tccolonybridge.configuration.supplyCrafting.tooltip": "Supply: ask AE2 to craft what Keep lines are missing when the ME network has none (each block also has its own button; false turns it off server-wide)."
 }

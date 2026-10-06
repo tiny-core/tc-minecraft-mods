@@ -142,7 +142,7 @@ e menu base com os ghost slots (`AbstractGhostMenu`).
 
 - **Feito:** manter estoque no armazém, excedente do armazém para o ME, tela com as duas listas,
   quantidade por linha, modo de redstone e guarda contra vaivém (não tira o que está em pedido aberto).
-- **Pendente:** alimentar craft do AE2 com o que falta usando os materiais do armazém
+- **Feito (Passo 3, 2026-10-06):** pedir craft ao AE2 do que falta. **Pendente:** usar os materiais do armazém
   (depende de confirmar se o plano de craft do AE2 expõe a lista do que faltou).
 - **Feito (7b):** estatísticas do Abastecedor (repostos / devolvidos) e painel próprio nos monitores
   (cartão de ligação aceita Ponte e Abastecedor via `MonitorSource`).
@@ -315,6 +315,10 @@ Decidido com o autor: **testar antes de adicionar**. Cada passo abaixo só come�
 - Infraestrutura dos monitores para o core, quando o mod de reatores começar.
 
 ## Passo 3 — Abastecedor com auto-craft
+
+> **Feito (2026-10-06):** `SupplyCrafter` com o `CraftingTracker` da Ponte **sem dono** (resultado na rede ME, a
+> linha leva ao armazém no ciclo seguinte), regra `SupplyRule.craft` (testada), estado "Craftando no AE2", botão por
+> bloco e `supplyCrafting` na config. **Falta:** teste no ATM10.
 
 - Linha "manter" pede craft ao AE2 do que falta quando a rede não tem o item (pendência da Fase 7).
 - Reaproveitar `CraftingTracker`/`CraftLinks` da Ponte (requester, resultado direto no armazém), teto por ciclo e

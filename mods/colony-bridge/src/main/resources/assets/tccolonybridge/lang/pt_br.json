@@ -144,7 +144,7 @@
   "gui.tccolonybridge.help.filter": "Cada linha é um item, uma #tag ou um @mod. O + adiciona uma linha (digite e aperte Enter, ou clique com um item / arraste do JEI). Clique no ícone de uma linha com um item para trocá-lo; o botão direito alterna entre as tags do item. Shift-clique no inventário adiciona uma linha. Barra lateral: modo do filtro e tipo de comparação.",
   "gui.tccolonybridge.help.preferred": "Ordem usada pela preferência \"Lista de preferidos\": 1º slot primeiro. Vazio = usa a lista da config do servidor. Mesmos controles do filtro.",
   "gui.tccolonybridge.help.mods": "Clique num mod para marcá-lo. O botão da barra lateral escolhe como os marcados são usados: todos, só os marcados, todos menos os marcados ou preferir os marcados. Só aparecem mods com itens craftáveis na sua rede ME.",
-  "gui.tccolonybridge.help.supply": "Manter: vem item da rede ME até o armazém ter pelo menos a quantidade (uma #tag conta a soma dos itens dela). Excedente: o que passar da quantidade volta para a rede ME (nunca enquanto a colônia estiver pedindo o item); ∞ devolve tudo. Cada linha é um item, #tag ou @mod (@mod só no Excedente). Roda do mouse sobre a quantidade: ±1, Shift ±10, Ctrl ±64. Quantidade 0 desliga a linha.",
+  "gui.tccolonybridge.help.supply": "Manter: vem item da rede ME até o armazém ter pelo menos a quantidade (uma #tag conta a soma dos itens dela). Excedente: o que passar da quantidade volta para a rede ME (nunca enquanto a colônia estiver pedindo o item); ∞ devolve tudo. Cada linha é um item, #tag ou @mod (@mod só no Excedente). Roda do mouse sobre a quantidade: ±1, Shift ±10, Ctrl ±64. Quantidade 0 desliga a linha. Com o botão da bancada ligado, uma linha Manter que ainda falta e não tem mais nada na rede ME pede o craft do resto ao AE2; os itens chegam no ciclo seguinte.",
   "monitor.tccolonybridge.crafts_done": "Crafts concluídos (%sh)",
   "monitor.tccolonybridge.supply.empty": "Nenhuma linha configurada",
   "gui.tccolonybridge.supply.keep_rule": "Mantém pelo menos %s no armazém; o que faltar vem da rede ME.",
@@ -303,5 +303,9 @@
   "tccolonybridge.configuration.encoderScanTicks.tooltip": "Intervalo mínimo, em ticks, entre varreduras dos pedidos com a tela do Pattern Encoder aberta.",
   "tccolonybridge.configuration.encoderMaxLines": "Máximo de linhas do Pattern Encoder",
   "tccolonybridge.configuration.encoderMaxLines.tooltip": "Máximo de linhas (itens sem padrão) mostradas pelo Pattern Encoder.",
-  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder"
+  "gui.tccolonybridge.tablet.tab.pattern_encoder": "Pattern Encoder",
+  "gui.tccolonybridge.supply.craft": "Craftar o que falta: %s (linhas Manter pedem craft ao AE2 quando a rede ME acaba)",
+  "monitor.tccolonybridge.supply.status.crafting": "Craftando no AE2",
+  "tccolonybridge.configuration.supplyCrafting": "Auto-craft do Abastecedor",
+  "tccolonybridge.configuration.supplyCrafting.tooltip": "Abastecedor: pedir ao AE2 o craft do que falta nas linhas Manter quando a rede ME não tem o item (cada bloco ainda tem o próprio botão; false desliga no servidor todo)."
 }

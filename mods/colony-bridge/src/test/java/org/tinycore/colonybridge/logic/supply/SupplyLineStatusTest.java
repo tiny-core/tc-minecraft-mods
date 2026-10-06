@@ -30,6 +30,14 @@ class SupplyLineStatusTest {
     }
 
     @Test
+    void keepLineWaitingForACraftIsCrafting() {
+        assertEquals(SupplyLineStatus.CRAFTING, SupplyLineStatus.of(true, 10, 64, 0, 0, false, true));
+        assertEquals(SupplyLineStatus.RESTOCKING, SupplyLineStatus.of(true, 20, 64, 0, 10, false, true),
+                "trouxe itens neste ciclo: isso aparece primeiro");
+        assertEquals(SupplyLineStatus.STOCKED, SupplyLineStatus.of(true, 64, 64, 0, 0, false, true));
+    }
+
+    @Test
     void surplusLineThatMovedIsReturning() {
         assertEquals(SupplyLineStatus.RETURNING, SupplyLineStatus.of(false, 64, 64, 1000, 64, false));
     }

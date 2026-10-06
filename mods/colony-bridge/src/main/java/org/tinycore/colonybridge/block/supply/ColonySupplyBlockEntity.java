@@ -51,6 +51,8 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
     private final TargetList surplusList = new TargetList(TargetListKind.SURPLUS);
     private final SupplyStats stats = new SupplyStats();
     private RedstoneMode redstoneMode = RedstoneMode.IGNORED;
+    /** Pedir ao AE2 o craft do que falta nas linhas "manter" (botão na tela; padrão ligado). */
+    private boolean craftMissing = true;
 
     public ColonySupplyBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.COLONY_SUPPLY.get(), pos, state, ModItems.COLONY_SUPPLY.get(), Config.SUPPLY_IDLE_POWER::get);
@@ -130,9 +132,19 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
         setChanged();
     }
 
+    public boolean craftsMissing() {
+        return craftMissing;
+    }
+
+    public void setCraftMissing(boolean value) {
+        craftMissing = value;
+        forceCycleNextTick();
+        setChanged();
+    }
+
     /** Foto atual para a tela (chamado no servidor, no máximo 1×/s por tela aberta). */
     public SupplySnapshot snapshot() {
-        return new SupplySnapshot(logic.getStatus(), logic.getColonyName(), redstoneMode,
+        return new SupplySnapshot(logic.getStatus(), logic.getColonyName(), redstoneMode, craftMissing,
                 lineStats(keepList, logic.results(true)), lineStats(surplusList, logic.results(false)));
     }
 
@@ -173,6 +185,7 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
         tag.put("keepList", keepList.save(registries));
         tag.put("surplusList", surplusList.save(registries));
         tag.putInt("redstone", redstoneMode.ordinal());
+        tag.putBoolean("craftMissing", craftMissing);
         tag.put("stats", stats.save());
     }
 
@@ -191,6 +204,7 @@ public class ColonySupplyBlockEntity extends AbstractBridgeBlockEntity implement
             legacy.exportTo(keepList, surplusList);
         }
         redstoneMode = RedstoneMode.byId(tag.getInt("redstone"));
+        craftMissing = !tag.contains("craftMissing") || tag.getBoolean("craftMissing"); // blocos antigos: ligado
         stats.load(tag.getCompound("stats"));
     }
 }

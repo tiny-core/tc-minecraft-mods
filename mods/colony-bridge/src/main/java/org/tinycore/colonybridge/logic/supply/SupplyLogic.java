@@ -35,7 +35,8 @@ import java.util.List;
  * <ul>
  *   <li><b>Manter no armazém</b> (item ou tag) — falta? tira da rede ME e coloca nos racks
  *       ({@link RackDelivery}). Tag: a meta vale para a <b>soma</b> dos itens da tag, e o que falta vem do
- *       item que a rede tem mais (e do seguinte, se não bastar);</li>
+ *       item que a rede tem mais (e do seguinte, se não bastar). Se ainda falta e a rede não tem mais nada da
+ *       linha, pede o craft ao AE2 ({@link SupplyCrafter}, se ligado no bloco e na config);</li>
  *   <li><b>Excedente para o ME</b> (item, tag ou mod; "tudo" = meta 0) — sobra? tira dos racks e manda para
  *       a rede ({@link WarehouseStock}), começando pelo item com mais unidades no armazém.</li>
  * </ul>
@@ -51,6 +52,7 @@ public final class SupplyLogic {
     private final ColonySupplyBlockEntity host;
     private final SupplyLineResults keepResults = new SupplyLineResults();
     private final SupplyLineResults surplusResults = new SupplyLineResults();
+    private final SupplyCrafter crafter = new SupplyCrafter();
     /** Tempo de jogo do último movimento de qualquer linha; -1 = nenhum desde que o mundo carregou. */
     private long lastMoveTime = -1;
     private BridgeStatus status = BridgeStatus.STARTING;
@@ -61,6 +63,7 @@ public final class SupplyLogic {
     }
 
     public void runCycle(ServerLevel level, IGrid grid) {
+        crafter.beginCycle(level, grid, host.getActionSource());
         ColonyRef colony = ColonyAccess.colonyAt(level, host.getBlockPos());
         if (colony == null) {
             colonyName = "";
@@ -78,7 +81,7 @@ public final class SupplyLogic {
             return;
         }
 
-        Cycle cycle = new Cycle(grid, racks, ColonyAccess.openRequests(colony), WarehouseItems.countAll(racks),
+        Cycle cycle = new Cycle(level, grid, racks, ColonyAccess.openRequests(colony), WarehouseItems.countAll(racks),
                 level.getGameTime());
         boolean moved = false;
         List<TargetLine> keep = host.getKeepList().lines();
@@ -96,7 +99,7 @@ public final class SupplyLogic {
     }
 
     /** Dados de um ciclo, para não passar seis parâmetros a cada linha. */
-    private record Cycle(IGrid grid, List<IItemHandler> racks, List<OpenRequest> requests,
+    private record Cycle(ServerLevel level, IGrid grid, List<IItemHandler> racks, List<OpenRequest> requests,
                          Object2LongLinkedOpenCustomHashMap<ItemStack> warehouse, long now) {
 
         KeyCounter network() {
@@ -137,8 +140,11 @@ public final class SupplyLogic {
         host.getStats().recordRestocked(c.now, moved);
         current += moved;
         networkTotal -= moved; // o cache do AE2 só atualiza no fim do tick
+        boolean craftEnabled = host.craftsMissing() && Config.SUPPLY_CRAFTING.get();
+        boolean crafting = crafter.craftFor(c.level, c.grid, host.getActionSource(), sources, craftEnabled, current,
+                target, networkTotal);
         keepResults.set(index, current, networkTotal,
-                SupplyLineStatus.of(true, current, target, networkTotal, moved, false));
+                SupplyLineStatus.of(true, current, target, networkTotal, moved, false, crafting));
         return moved > 0;
     }
 
@@ -254,6 +260,9 @@ public final class SupplyLogic {
 
     /** Fora de um ciclo completo as contagens não valem mais, então são zeradas. */
     public void setStatus(BridgeStatus status) {
+        if (status == BridgeStatus.OFFLINE) {
+            crafter.clear();
+        }
         if (status != BridgeStatus.IDLE && status != BridgeStatus.WORKING) {
             keepResults.clear();
             surplusResults.clear();

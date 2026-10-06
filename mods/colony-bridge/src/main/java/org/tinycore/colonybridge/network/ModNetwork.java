@@ -118,7 +118,7 @@ public final class ModNetwork {
         }
     }
 
-    /** Modo de redstone do Abastecedor (o {@code byId} troca valor inválido pelo padrão). */
+    /** Redstone e auto-craft do Abastecedor (o {@code byId} troca valor inválido pelo padrão). */
     private static void onSupplyConfig(SupplyConfigPayload payload, IPayloadContext context) {
         ColonySupplyMenu menu = validMenu(context, payload.containerId(), ColonySupplyMenu.class);
         if (menu == null) {
@@ -129,6 +129,7 @@ public final class ModNetwork {
             return;
         }
         supply.setRedstoneMode(RedstoneMode.byId(payload.redstoneMode()));
+        supply.setCraftMissing(payload.craftMissing());
         menu.requestSync();
     }
 

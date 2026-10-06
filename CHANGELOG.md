@@ -11,6 +11,8 @@ Mudanças por versão de cada mod TC. A versão de cada mod fica no `gradle.prop
 - Busca por `#tag` nas grades de itens (além de nome e `@mod`).
 
 ### TC Colony Bridge 0.4.0 (exige TC Core 0.2.0)
+- **Abastecedor com auto-craft:** linha "manter" que continua abaixo da meta, com a rede ME sem o item, pede o
+  craft ao AE2 (botão por bloco, `supplyCrafting` na config).
 - **TC Pattern Encoder:** cria padrões de crafting para os pedidos da colônia que a rede ME não sabe craftar; Blank
   Patterns do slot ou da rede ME; também pela aba do tablet.
 - Receitas mais caras para todos os blocos e itens; Monitor, Abastecedor, Terminal e Cartão de Ligação ganharam

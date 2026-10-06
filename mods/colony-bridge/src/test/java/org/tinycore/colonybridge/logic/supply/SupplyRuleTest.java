@@ -61,4 +61,21 @@ class SupplyRuleTest {
         assertArrayEquals(new long[]{0, 0}, SupplyRule.allocate(0, new long[]{5, 5}));
         assertArrayEquals(new long[]{0}, SupplyRule.allocate(-3, new long[]{5}));
     }
+
+    @Test
+    void craftAsksForTheWholeShortfallWhenTheNetworkIsEmpty() {
+        assertEquals(54, SupplyRule.craft(true, 10, 64, 0, false));
+    }
+
+    @Test
+    void craftNeverRunsWhileTheNetworkStillHasTheItem() {
+        assertEquals(0, SupplyRule.craft(true, 10, 64, 5, false));
+    }
+
+    @Test
+    void craftDoesNotStackJobsOrRunWhenStockedOrDisabled() {
+        assertEquals(0, SupplyRule.craft(true, 10, 64, 0, true), "já há craft rodando");
+        assertEquals(0, SupplyRule.craft(true, 64, 64, 0, false), "meta atingida");
+        assertEquals(0, SupplyRule.craft(false, 10, 64, 0, false), "desligado no bloco ou na config");
+    }
 }

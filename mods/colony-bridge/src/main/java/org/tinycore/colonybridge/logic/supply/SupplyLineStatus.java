@@ -27,7 +27,12 @@ public enum SupplyLineStatus {
     /** Excedente: passou do limite, mas a colônia pediu o item, então ele fica (evita vaivém com a ponte). */
     HELD_REQUESTED(Severity.WARNING),
     /** Excedente: passou do limite e a rede ME não aceitou nada. */
-    NETWORK_FULL(Severity.PROBLEM);
+    NETWORK_FULL(Severity.PROBLEM),
+    /**
+     * Manter: falta no armazém, a rede não tem e o AE2 está craftando (o resultado entra na rede e vem no próximo
+     * ciclo). No fim do enum: o ordinal é salvo nos monitores.
+     */
+    CRAFTING(Severity.ACTIVE);
 
     /** Gravidade, usada para a cor e para contar "precisam de atenção". */
     public enum Severity { NEUTRAL, OK, ACTIVE, WARNING, PROBLEM }
@@ -67,6 +72,12 @@ public enum SupplyLineStatus {
      */
     public static SupplyLineStatus of(boolean keep, long warehouse, long target, long network, long moved,
                                       boolean requested) {
+        return of(keep, warehouse, target, network, moved, requested, false);
+    }
+
+    /** Como acima; {@code crafting} = há craft do AE2 rodando para a linha "manter". */
+    public static SupplyLineStatus of(boolean keep, long warehouse, long target, long network, long moved,
+                                      boolean requested, boolean crafting) {
         if (keep) {
             if (moved > 0) {
                 return RESTOCKING;
@@ -74,7 +85,10 @@ public enum SupplyLineStatus {
             if (warehouse >= target) {
                 return STOCKED;
             }
-            return network <= 0 ? NETWORK_EMPTY : WAREHOUSE_FULL;
+            if (network <= 0) {
+                return crafting ? CRAFTING : NETWORK_EMPTY;
+            }
+            return WAREHOUSE_FULL;
         }
         if (moved > 0) {
             return RETURNING;

@@ -34,6 +34,22 @@ final class SupplyRule {
     }
 
     /**
+     * Linha "manter": quanto pedir de craft ao AE2. Só pede quando, depois de trazer o que havia, o armazém continua
+     * abaixo da meta e a rede ME <b>não tem mais nada</b> da linha (assim nunca se crafta o que já existe), e quando
+     * não há craft da linha rodando (senão cada ciclo pediria outro).
+     *
+     * @param network quanto a rede tem da linha depois do movimento deste ciclo
+     * @param busy    true se já há craft (ou cálculo) de algum item da linha
+     * @return 0 = não pedir; senão a falta inteira (o teto por job fica com quem pede o craft)
+     */
+    static long craft(boolean enabled, long current, long target, long network, boolean busy) {
+        if (!enabled || busy || network > 0 || current >= target) {
+            return 0;
+        }
+        return target - current;
+    }
+
+    /**
      * Divide uma quantidade entre várias fontes, na ordem dada (quem chama ordena: a de mais estoque
      * primeiro). Usado nas linhas de tag e de mod: "trazer 40 de {@code #c:ingots/iron}" tira do item que a
      * rede tem mais e, se não bastar, do seguinte.

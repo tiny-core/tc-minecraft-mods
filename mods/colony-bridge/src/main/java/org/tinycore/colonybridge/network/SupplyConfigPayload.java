@@ -9,10 +9,10 @@ import org.tinycore.colonybridge.ColonyBridgeMod;
 
 
 /**
- * Pacote cliente → servidor com a configuração geral do Abastecedor: o modo de redstone. As linhas das listas
+ * Pacote cliente → servidor com a configuração geral do Abastecedor: o modo de redstone e o auto-craft. As linhas das listas
  * vão pelo {@link TargetEditPayload}, uma edição por mensagem.
  */
-public record SupplyConfigPayload(int containerId, int redstoneMode)
+public record SupplyConfigPayload(int containerId, int redstoneMode, boolean craftMissing)
         implements CustomPacketPayload {
 
     public static final Type<SupplyConfigPayload> TYPE =
@@ -22,6 +22,7 @@ public record SupplyConfigPayload(int containerId, int redstoneMode)
             StreamCodec.composite(
                     ByteBufCodecs.VAR_INT, SupplyConfigPayload::containerId,
                     ByteBufCodecs.VAR_INT, SupplyConfigPayload::redstoneMode,
+                    ByteBufCodecs.BOOL, SupplyConfigPayload::craftMissing,
                     SupplyConfigPayload::new);
 
     @Override

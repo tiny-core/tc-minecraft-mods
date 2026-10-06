@@ -102,6 +102,11 @@ comum por baixo) e uma tela com duas abas, cada uma com a sua lista (ver "Listas
 - **Manter (ME → Armazém, mínimo)** — "sempre ter 64 de farinha de osso": se cair abaixo, o bloco tira da rede
   ME e coloca nos racks. Aceita item e `#tag`: numa tag, a meta vale para a **soma** dos itens dela, e o que
   falta vem do item que a rede ME tem mais (e do seguinte, se não bastar).
+  **Auto-craft** (botão da bancada na barra lateral, ligado por padrão): se ainda falta e a rede ME **não tem mais
+  nada** da linha, o bloco pede ao AE2 o craft do resto (até `maxCraftPerRequest` por vez; tag: o primeiro item da
+  tag que a rede sabe craftar). O resultado entra na rede ME e vem para o armazém no ciclo seguinte; enquanto isso a
+  linha mostra "Craftando no AE2". Um craft por linha de cada vez; falha (falta de material, sem CPU) espera
+  `craftFailCooldownTicks`. O admin desliga no servidor todo com `supplyCrafting = false`.
 - **Excedente (Armazém → ME, máximo)** — "acima de 128 de trigo, o resto volta para o ME": esvazia o armazém
   entupido pelas fazendas da colônia. Aceita item, `#tag` e `@mod`; o **∞** devolve tudo. Numa tag ou mod,
   sai primeiro o item com mais unidades no armazém.

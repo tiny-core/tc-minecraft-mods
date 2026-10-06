@@ -77,6 +77,7 @@ estatísticas genéricas (`MetricRing`, `MetricSeries`). Ver `mods/core/README.m
 | `block/supply/StockList` | Formato antigo (grade 18 + 18, e antes 9 + 9): só lido para migrar para as listas. |
 | `logic/supply/SupplyLineStatus` | Situação de cada linha em palavras (Abastecido, Falta na rede ME, Retido...) e gravidade para a cor do monitor (regra pura, testada). |
 | `logic/supply/SupplyLogic` | **Ciclo:** lê o armazém uma vez, repõe o que falta da rede (tag: soma, item com mais estoque primeiro); devolve o excedente (tag/mod: item com mais unidades primeiro), exceto itens em pedido aberto (anti vaivém). Quantidades e divisão pela `SupplyRule` (regra pura, testada). |
+| `logic/supply/SupplyCrafter` | Auto-craft das linhas "manter": `CraftingTracker` sem dono (resultado na rede ME), um job por linha, só com a rede sem o item (`SupplyRule.craft`). |
 | `logic/supply/SupplyLineResults` | Armazém, rede e situação de cada linha no último ciclo (tela e monitor). |
 | `menu/supply/ColonySupplyMenu`, `SupplySnapshot`, `SupplyLineStat` | Container (só inventário; shift-clique vira linha da aba aberta) e a "foto" enviada ao cliente. |
 | `client/supply/ColonySupplyScreen` | Tela com as abas Manter / Excedente, uma lista em cada, e o botão de redstone. |
