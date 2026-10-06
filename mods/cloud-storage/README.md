@@ -28,7 +28,7 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
 3. Na tela: clique esquerdo tira um stack, direito tira 1; com item no cursor, esquerdo guarda tudo e direito
    guarda 1; shift-clique no inventário guarda o stack. O botão `!` mostra os itens que não podem ser usados
    neste servidor (apagados, com o motivo).
-4. Barra lateral: modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
+4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
    (`+`/`-`).
 5. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
    estão lá.

@@ -19,6 +19,8 @@ import org.tinycore.colonybridge.logic.terminal.TerminalAction;
 import org.tinycore.colonybridge.menu.terminal.WarehouseEntry;
 import org.tinycore.colonybridge.menu.terminal.WarehouseTerminalMenu;
 import org.tinycore.colonybridge.network.WarehouseActionPayload;
+import org.tinycore.core.TcCoreClientConfig;
+import org.tinycore.core.client.ui.GridHeightButton;
 import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.ItemGrid;
 import org.tinycore.core.client.ui.ScreenStyle;
@@ -40,8 +42,9 @@ import java.util.List;
  * inventário guarda o stack no armazém (isso é tratado pelo menu). A tela só manda o pedido; o servidor
  * decide e a grade se atualiza com o próximo pacote.
  * <p>
- * <b>Altura variável:</b> a grade tem de {@code MIN_ROWS} a {@code MAX_ROWS} linhas, conforme cabe na janela do
- * jogo (como no AE2). Como os slots têm posição fixa, a parte de baixo (bancada e inventário) fica no lugar
+ * <b>Altura variável:</b> o botão da barra lateral ({@link GridHeightButton}) escolhe 5 linhas (padrão), 8 ou o que
+ * couber na janela, como o "estilo do terminal" do AE2; a escolha vale para todos os terminais TC. Janela do jogo
+ * pequena reduz a grade até {@code MIN_ROWS}. Como os slots têm posição fixa, a parte de baixo (bancada e inventário) fica no lugar
  * de sempre e as linhas extras crescem para cima: {@link #extra} pixels acima de {@code topPos}.
  */
 public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTerminalMenu> {
@@ -76,8 +79,8 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     protected void init() {
         super.init();
         int tabs = menu.tabletView() == null ? 0 : TabletTabBar.HEIGHT; // abas do tablet acima da janela
-        int rows = Math.max(WarehouseTerminalMenu.MIN_ROWS, Math.min(WarehouseTerminalMenu.MAX_ROWS,
-                WarehouseTerminalMenu.MIN_ROWS + (height - tabs - SCREEN_MARGIN * 2 - HEIGHT) / 18));
+        int rows = TcCoreClientConfig.gridHeight().rows(WarehouseTerminalMenu.MIN_ROWS, WarehouseTerminalMenu.MAX_ROWS,
+                height - tabs - SCREEN_MARGIN * 2 - HEIGHT, 18);
         extra = (rows - WarehouseTerminalMenu.MIN_ROWS) * 18;
         // Janela inteira (com as abas) centralizada; slots continuam em topPos.
         topPos = (height - tabs - HEIGHT - extra) / 2 + extra + tabs;
@@ -88,6 +91,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.terminal"));
         sortButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleSort)));
+        addRenderableWidget(toolbar.add(GridHeightButton.create(this::rebuildWidgets)));
         toolbar.layout(leftPos, top, WIDTH);
         updateSortButton();
 

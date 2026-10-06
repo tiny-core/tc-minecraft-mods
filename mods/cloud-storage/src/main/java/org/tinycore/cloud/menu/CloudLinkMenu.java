@@ -29,14 +29,18 @@ import java.util.UUID;
  */
 public class CloudLinkMenu extends AbstractContainerMenu {
 
-    /** Posições usadas também pela tela ({@code CloudLinkScreen}). */
+    /**
+     * Posições usadas também pela tela ({@code CloudLinkScreen}), para a grade com {@link #MIN_ROWS} linhas. A tela
+     * mostra mais linhas (botão de altura) crescendo <b>para cima</b>, porque os slots têm posição fixa.
+     */
     public static final int WIDTH = 190;
     public static final int GRID_X = 9;
     public static final int GRID_Y = 48;
     public static final int COLUMNS = 9;
-    public static final int ROWS = 5;
+    public static final int MIN_ROWS = 2;
+    public static final int MAX_ROWS = 12;
     public static final int INVENTORY_X = (WIDTH - 9 * 18) / 2 + 1;
-    public static final int INVENTORY_Y = GRID_Y + ROWS * 18 + 18;
+    public static final int INVENTORY_Y = GRID_Y + MIN_ROWS * 18 + 18;
     public static final int HOTBAR_Y = INVENTORY_Y + 58;
     public static final int HEIGHT = HOTBAR_Y + 24;
     private static final double MAX_DISTANCE_SQ = 8 * 8;

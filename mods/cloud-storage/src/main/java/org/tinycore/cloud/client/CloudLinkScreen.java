@@ -19,6 +19,8 @@ import org.tinycore.cloud.menu.LinkEntry;
 import org.tinycore.cloud.menu.LinkHeader;
 import org.tinycore.cloud.network.LinkActionPayload;
 import org.tinycore.cloud.server.CloudStatus;
+import org.tinycore.core.TcCoreClientConfig;
+import org.tinycore.core.client.ui.GridHeightButton;
 import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.ItemGrid;
 import org.tinycore.core.client.ui.ScreenStyle;
@@ -38,11 +40,17 @@ import java.util.List;
  *
  * <p>Por padrão só aparecem os itens que podem sair neste servidor; com o filtro ligado aparecem também os
  * incompatíveis, apagados e com o motivo no tooltip.
+ *
+ * <p><b>Altura variável:</b> o botão de altura ({@link GridHeightButton}, comum aos terminais TC) escolhe 5 linhas
+ * (padrão), 8 ou o que couber. As linhas além de {@code MIN_ROWS} crescem para cima ({@link #extra} pixels acima
+ * de {@code topPos}), porque o inventário embaixo tem posição fixa.
  */
 public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     private static final int PADDING = 8;
     private static final int SEARCH_Y = 32;
+    /** Espaço livre deixado acima e abaixo da janela ao calcular quantas linhas cabem. */
+    private static final int SCREEN_MARGIN = 8;
 
     /** Preferências da sessão de jogo (não salvas): ordem e filtro. */
     private static ItemListing.Sort sort = ItemListing.Sort.AMOUNT;
@@ -60,6 +68,8 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     private int filteredFrom = -1;
     private boolean filteredShowAll;
     private int gridVersion;
+    /** Pixels acima de {@code topPos} ocupados pelas linhas extras da grade. */
+    private int extra;
 
     public CloudLinkScreen(CloudLinkMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -70,6 +80,11 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     @Override
     protected void init() {
         super.init();
+        int rows = TcCoreClientConfig.gridHeight().rows(CloudLinkMenu.MIN_ROWS, CloudLinkMenu.MAX_ROWS,
+                height - SCREEN_MARGIN * 2 - CloudLinkMenu.HEIGHT, 18);
+        extra = (rows - CloudLinkMenu.MIN_ROWS) * 18;
+        topPos = (height - CloudLinkMenu.HEIGHT - extra) / 2 + extra; // janela inteira centralizada
+        int top = topPos - extra;
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
         help.setTooltipText(Component.translatable("gui.tccloud.help"));
@@ -79,12 +94,13 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         accessButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.CYCLE_ACCESS, ""))));
         priorityUp = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_UP, "")).glyph("+")));
         priorityDown = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_DOWN, "")).glyph("-")));
-        toolbar.layout(leftPos, topPos, CloudLinkMenu.WIDTH);
+        addRenderableWidget(toolbar.add(GridHeightButton.create(this::rebuildWidgets)));
+        toolbar.layout(leftPos, top, CloudLinkMenu.WIDTH);
         updateSortButton();
         incompatibleButton.setSelected(showIncompatible);
 
         String previous = search == null ? "" : search.getValue(); // mantém a busca ao redimensionar
-        search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, topPos + SEARCH_Y + 2,
+        search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, top + SEARCH_Y + 2,
                 CloudLinkMenu.WIDTH - PADDING * 2 - 6, 10, Component.translatable("gui.tccloud.search")));
         search.setBordered(false);
         search.setMaxLength(64);
@@ -92,8 +108,8 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         search.setHint(Component.translatable("gui.tccloud.search").withColor(ScreenStyle.TEXT_MUTED));
         search.setValue(previous);
 
-        grid = new ItemGrid<>(leftPos + CloudLinkMenu.GRID_X, topPos + CloudLinkMenu.GRID_Y,
-                CloudLinkMenu.COLUMNS, CloudLinkMenu.ROWS, new LinkEntryAdapter());
+        grid = new ItemGrid<>(leftPos + CloudLinkMenu.GRID_X, top + CloudLinkMenu.GRID_Y,
+                CloudLinkMenu.COLUMNS, rows, new LinkEntryAdapter());
     }
 
     private void send(LinkAction action, String fingerprint) {
@@ -138,20 +154,21 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
         int x = leftPos;
         int y = topPos;
+        int top = topPos - extra; // cabeçalho, busca e grade sobem junto com as linhas extras
         int inner = CloudLinkMenu.WIDTH - PADDING * 2;
         LinkHeader header = menu.view().header();
         updateToolbar(header);
         toolbar.render(g);
-        ScreenStyle.window(g, x, y, CloudLinkMenu.WIDTH, CloudLinkMenu.HEIGHT);
+        ScreenStyle.window(g, x, top, CloudLinkMenu.WIDTH, CloudLinkMenu.HEIGHT + extra);
 
         CloudStatus status = statusOf(header);
         int statusWidth = ScreenStyle.drawFittedRight(g, font, Component.translatable(status.translationKey()),
-                x + CloudLinkMenu.WIDTH - PADDING, y + 7, inner / 2, ScreenStyle.TEXT);
-        ScreenStyle.statusDot(g, x + CloudLinkMenu.WIDTH - PADDING - statusWidth - 10, y + 7, statusColor(status));
-        ScreenStyle.drawFitted(g, font, title, x + PADDING, y + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
+                x + CloudLinkMenu.WIDTH - PADDING, top + 7, inner / 2, ScreenStyle.TEXT);
+        ScreenStyle.statusDot(g, x + CloudLinkMenu.WIDTH - PADDING - statusWidth - 10, top + 7, statusColor(status));
+        ScreenStyle.drawFitted(g, font, title, x + PADDING, top + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
         Line line = infoLine(header, status);
-        if (line != null) ScreenStyle.drawFitted(g, font, line.text(), x + PADDING, y + 19, inner, line.color());
-        ScreenStyle.inset(g, x + PADDING, y + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
+        if (line != null) ScreenStyle.drawFitted(g, font, line.text(), x + PADDING, top + 19, inner, line.color());
+        ScreenStyle.inset(g, x + PADDING, top + SEARCH_Y, inner, 13, ScreenStyle.SLOT);
 
         grid.update(gridVersion, visibleEntries(), search.getValue(), sort);
         grid.render(g, font, mouseX, mouseY);
@@ -283,5 +300,15 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
             return true;
         }
         return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    /**
+     * A janela vai além de {@code topPos} para cima (linhas extras): clicar ali não é "fora da janela" (fora, o jogo
+     * jogaria no chão o item do cursor).
+     */
+    @Override
+    protected boolean hasClickedOutside(double mouseX, double mouseY, int guiLeft, int guiTop, int button) {
+        return mouseX < guiLeft || mouseY < guiTop - extra
+                || mouseX >= guiLeft + imageWidth || mouseY >= guiTop + imageHeight;
     }
 }
