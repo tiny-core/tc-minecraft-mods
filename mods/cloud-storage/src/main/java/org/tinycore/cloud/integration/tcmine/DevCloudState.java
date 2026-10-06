@@ -1,8 +1,10 @@
 package org.tinycore.cloud.integration.tcmine;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.Batch;
+import org.tinycore.cloud.cloud.ChannelNames;
 import org.tinycore.cloud.cloud.CloudOp;
 import org.tinycore.cloud.item.EncodedItem;
 
@@ -75,6 +77,48 @@ public final class DevCloudState {
         p.lastSeq = 0;
         p.heartbeatAt = now;
         return new CloudBackend.LeaseResult.Granted(p.epoch, snapshots(p), false);
+    }
+
+    /**
+     * Cria um canal (como o {@code POST /channels} do TCMine): só quem segura o lease, nome limpo, sem repetir e até
+     * {@code maxChannels} canais.
+     */
+    public synchronized @NotNull CloudBackend.ChannelResult createChannel(@NotNull UUID player, @NotNull String rawName,
+                                                                         @NotNull String holder, int maxChannels) {
+        PlayerState p = players.get(player.toString());
+        if (p == null || !holder.equals(p.holder)) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.NO_LEASE);
+        String name = ChannelNames.clean(rawName);
+        if (name == null) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.INVALID_NAME);
+        if (ChannelNames.taken(names(p, null), name)) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.DUPLICATE);
+        if (p.channels.size() >= maxChannels) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.LIMIT);
+        ChannelState c = new ChannelState();
+        c.id = UUID.randomUUID().toString();
+        c.name = name;
+        p.channels.add(c);
+        return CloudBackend.ChannelResult.done(UUID.fromString(c.id), name);
+    }
+
+    /** Renomeia um canal (como o {@code POST /channels/rename} do TCMine). */
+    public synchronized @NotNull CloudBackend.ChannelResult renameChannel(@NotNull UUID player, @NotNull UUID channel,
+                                                                         @NotNull String rawName, @NotNull String holder) {
+        PlayerState p = players.get(player.toString());
+        if (p == null || !holder.equals(p.holder)) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.NO_LEASE);
+        ChannelState c = channel(p, channel);
+        if (c == null) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.UNKNOWN_CHANNEL);
+        String name = ChannelNames.clean(rawName);
+        if (name == null) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.INVALID_NAME);
+        if (ChannelNames.taken(names(p, c), name)) return CloudBackend.ChannelResult.refused(CloudBackend.ChannelRefusal.DUPLICATE);
+        c.name = name;
+        return CloudBackend.ChannelResult.done(channel, name);
+    }
+
+    /** Nomes dos canais do jogador, menos {@code except}. */
+    private static List<String> names(PlayerState p, @Nullable ChannelState except) {
+        List<String> names = new ArrayList<>();
+        for (ChannelState c : p.channels) {
+            if (c != except) names.add(c.name);
+        }
+        return names;
     }
 
     public synchronized void heartbeat(@NotNull UUID player, long epoch, @NotNull String holder, long now) {

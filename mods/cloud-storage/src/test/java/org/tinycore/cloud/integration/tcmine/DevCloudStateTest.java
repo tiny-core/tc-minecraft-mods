@@ -91,4 +91,35 @@ class DevCloudStateTest {
         UUID channel = grant(state, "mundoA", 0).channels().getFirst().id();
         assertEquals(CloudBackend.BatchResult.QUARANTINED, state.submit(batch(channel, 1, 2, 1, 1), List.of(DIAMOND), "mundoA"));
     }
+
+    @Test
+    void criaERenomeiaCanaisComAsRegrasDoTcmine() {
+        DevCloudState state = new DevCloudState();
+        CloudBackend.LeaseResult.Granted g = grant(state, "mundoA", 0);
+        CloudBackend.ChannelResult created = state.createChannel(PLAYER, "  Minérios ", "mundoA", 3);
+        assertEquals(true, created.ok());
+        assertEquals("Minérios", created.name());
+        assertEquals(CloudBackend.ChannelRefusal.DUPLICATE, state.createChannel(PLAYER, "minérios", "mundoA", 3).refusal());
+        assertEquals(CloudBackend.ChannelRefusal.INVALID_NAME, state.createChannel(PLAYER, "§c", "mundoA", 3).refusal());
+        assertEquals(CloudBackend.ChannelRefusal.NO_LEASE, state.createChannel(PLAYER, "Outro", "mundoB", 3).refusal());
+        state.createChannel(PLAYER, "Comida", "mundoA", 3);
+        assertEquals(CloudBackend.ChannelRefusal.LIMIT, state.createChannel(PLAYER, "Quarto", "mundoA", 3).refusal());
+
+        UUID principal = g.channels().getFirst().id();
+        assertEquals("Casa", state.renameChannel(PLAYER, principal, "Casa", "mundoA").name());
+        assertEquals(CloudBackend.ChannelRefusal.DUPLICATE, state.renameChannel(PLAYER, principal, "Comida", "mundoA").refusal());
+        assertEquals("CASA", state.renameChannel(PLAYER, principal, "CASA", "mundoA").name(), "mesmo canal pode trocar a caixa");
+        assertEquals(CloudBackend.ChannelRefusal.UNKNOWN_CHANNEL,
+                state.renameChannel(PLAYER, UUID.randomUUID(), "X", "mundoA").refusal());
+        assertEquals(3, grant(state, "mundoA", 1).channels().size(), "canais criados voltam no próximo acquire");
+    }
+
+    @Test
+    void loteNoCanalCriadoEhAceito() {
+        DevCloudState state = new DevCloudState();
+        CloudBackend.LeaseResult.Granted g = grant(state, "mundoA", 0);
+        UUID novo = state.createChannel(PLAYER, "Novo", "mundoA", 8).id();
+        assertEquals(CloudBackend.BatchResult.APPLIED,
+                state.submit(batch(novo, g.epoch(), 1, 5, 5), List.of(DIAMOND), "mundoA"));
+    }
 }

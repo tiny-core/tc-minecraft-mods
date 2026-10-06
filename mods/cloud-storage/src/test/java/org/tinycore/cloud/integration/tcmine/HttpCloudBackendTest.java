@@ -204,4 +204,30 @@ class HttpCloudBackendTest {
         assertTrue(credentials.toString().contains("tcs_abcdefghijkm_…"));
         assertTrue(!credentials.toString().contains("segredo"));
     }
+
+    @Test
+    void criarCanalMandaONomeELeOCanal() {
+        UUID id = UUID.randomUUID();
+        replies.put("/channels", "{\"id\":\"" + id + "\",\"name\":\"Minérios\"}");
+        CloudBackend.ChannelResult r = backend.createChannel(PLAYER, "Minérios").join();
+        assertEquals(id, r.id());
+        assertEquals("Minérios", r.name());
+        assertEquals(PLAYER.toString(), sent("/channels").get("playerUuid").getAsString());
+        assertEquals("Minérios", sent("/channels").get("name").getAsString());
+    }
+
+    @Test
+    void tcmineSemEndpointDeCanalEhSemSuporte() {
+        status.put("/channels/rename", 404);
+        assertEquals(CloudBackend.ChannelRefusal.UNSUPPORTED,
+                backend.renameChannel(PLAYER, CHANNEL, "X").join().refusal());
+        assertEquals(CHANNEL.toString(), sent("/channels/rename").get("channelId").getAsString());
+    }
+
+    @Test
+    void recusaDeCanalVemNoCorpo() {
+        status.put("/channels", 409);
+        replies.put("/channels", "{\"refusal\":\"limit\"}");
+        assertEquals(CloudBackend.ChannelRefusal.LIMIT, backend.createChannel(PLAYER, "X").join().refusal());
+    }
 }

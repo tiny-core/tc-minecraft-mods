@@ -60,15 +60,29 @@ public interface CloudBackend {
     /** Itens recusados por parecerem guardar dados no mundo (fila de suspeitos do dono). */
     @NotNull CompletableFuture<Void> reportSuspects(@NotNull List<SuspectReport> suspects);
 
+    /**
+     * Cria um canal para o jogador (exige o lease deste servidor). O nome já vem limpo ({@code ChannelNames}).
+     * Resultado recusado não é exceção: é {@link ChannelResult} com o motivo; falha de rede é exceção.
+     */
+    @NotNull CompletableFuture<ChannelResult> createChannel(@NotNull UUID playerUuid, @NotNull String name);
+
+    /** Renomeia um canal do jogador (exige o lease deste servidor). */
+    @NotNull CompletableFuture<ChannelResult> renameChannel(@NotNull UUID playerUuid, @NotNull UUID channelId,
+                                                           @NotNull String name);
+
     /** Nome para o log ("arquivo local", "TCMine em ..."). */
     @NotNull String describe();
 
     /** Para o backend (fecha threads/arquivos). */
     void close();
 
-    /** Configuração da nuvem recebida no {@link #hello}. */
+    /**
+     * Configuração da nuvem recebida no {@link #hello}.
+     *
+     * @param maxChannels canais por jogador definidos pelo dono (0 = usar {@code maxChannels} da config do mod)
+     */
     record HelloReply(@NotNull ItemPolicy policy, @NotNull CloudQuota quota, int maxItemBytes, boolean readOnly,
-                      @Nullable String readOnlyReason) {}
+                      @Nullable String readOnlyReason, int maxChannels) {}
 
     /** Resposta do heartbeat: jogadores cujo lease se perdeu e a versão atual da política. */
     record HeartbeatReply(@NotNull List<UUID> lost, long policyVersion) {}
@@ -82,6 +96,33 @@ public interface CloudBackend {
     /** Um canal do jogador como o backend o entrega no acquire. */
     record ChannelSnapshot(@NotNull UUID id, @NotNull String name, @NotNull Map<String, Long> amounts,
                            @NotNull Map<String, EncodedItem> items) {}
+
+    /** Por que a nuvem recusou criar/renomear um canal. */
+    enum ChannelRefusal {
+        INVALID_NAME,
+        DUPLICATE,
+        LIMIT,
+        /** Este servidor não segura o lease do jogador. */
+        NO_LEASE,
+        UNKNOWN_CHANNEL,
+        /** A nuvem não tem a operação (TCMine sem os endpoints de canal). */
+        UNSUPPORTED
+    }
+
+    /** Resultado de criar/renomear: o canal (id e nome finais) ou o motivo da recusa. */
+    record ChannelResult(@Nullable UUID id, @NotNull String name, @Nullable ChannelRefusal refusal) {
+        public static ChannelResult done(@NotNull UUID id, @NotNull String name) {
+            return new ChannelResult(id, name, null);
+        }
+
+        public static ChannelResult refused(@NotNull ChannelRefusal refusal) {
+            return new ChannelResult(null, "", refusal);
+        }
+
+        public boolean ok() {
+            return refusal == null;
+        }
+    }
 
     /** Resposta do acquire. */
     sealed interface LeaseResult {

@@ -38,6 +38,14 @@ public final class ChannelBalances {
         });
     }
 
+    /**
+     * Canal criado durante a sessão (a nuvem já confirmou que ele existe): começa vazio. Nada muda se já existe.
+     */
+    public void addChannel(@NotNull UUID channelId) {
+        channels.putIfAbsent(channelId, new HashMap<>());
+        totals.putIfAbsent(channelId, 0L);
+    }
+
     public boolean hasChannel(@NotNull UUID channelId) {
         return channels.containsKey(channelId);
     }

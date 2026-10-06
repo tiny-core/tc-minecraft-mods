@@ -3,6 +3,7 @@ package org.tinycore.cloud.integration.tcmine;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.jetbrains.annotations.NotNull;
+import org.tinycore.cloud.Config;
 import org.tinycore.cloud.TcCloud;
 import org.tinycore.cloud.cloud.Batch;
 import org.tinycore.cloud.cloud.CloudQuota;
@@ -65,13 +66,24 @@ public final class FileCloudBackend implements CloudBackend {
     public @NotNull CompletableFuture<HelloReply> hello(@NotNull Checkpoint checkpoint) {
         return CompletableFuture.supplyAsync(() -> {
             holder = checkpoint.worldId().toString();
-            return new HelloReply(ItemPolicy.OPEN, quota.get(), 0, false, null);
+            return new HelloReply(ItemPolicy.OPEN, quota.get(), 0, false, null, 0);
         }, executor);
     }
 
     @Override
     public @NotNull CompletableFuture<LeaseResult> acquire(@NotNull UUID playerUuid, @NotNull String playerName) {
         return mutate(() -> state.acquire(playerUuid, holder, System.currentTimeMillis(), ttlMs.get()));
+    }
+
+    @Override
+    public @NotNull CompletableFuture<ChannelResult> createChannel(@NotNull UUID playerUuid, @NotNull String name) {
+        return mutate(() -> state.createChannel(playerUuid, name, holder, Config.MAX_CHANNELS.get()));
+    }
+
+    @Override
+    public @NotNull CompletableFuture<ChannelResult> renameChannel(@NotNull UUID playerUuid, @NotNull UUID channelId,
+                                                                  @NotNull String name) {
+        return mutate(() -> state.renameChannel(playerUuid, channelId, name, holder));
     }
 
     @Override

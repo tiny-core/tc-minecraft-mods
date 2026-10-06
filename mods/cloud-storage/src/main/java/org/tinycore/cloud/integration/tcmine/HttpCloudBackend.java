@@ -72,7 +72,7 @@ public final class HttpCloudBackend implements CloudBackend {
         return post("/hello", body, HelloDto.class).thenApply(r -> new HelloReply(
                 toPolicy(r.policyMode, r.policyVersion, r.rules),
                 new CloudQuota(r.quota.maxTypes, r.quota.maxTotal),
-                r.maxItemBytes, r.readOnly, r.readOnlyReason));
+                r.maxItemBytes, r.readOnly, r.readOnlyReason, r.maxChannelsPerPlayer));
     }
 
     @Override
@@ -146,6 +146,48 @@ public final class HttpCloudBackend implements CloudBackend {
     public @NotNull CompletableFuture<Void> reportSuspects(@NotNull List<SuspectReport> suspects) {
         List<SuspectDto> items = suspects.stream().map(s -> new SuspectDto(s.itemId(), s.evidence(), s.attempts())).toList();
         return send("/reports/suspects", new SuspectsRequest(items)).thenApply(r -> okOrThrow("/reports/suspects", r));
+    }
+
+    /**
+     * {@code POST /channels} (contrato em {@code docs/planos/tc-cloud-storage-tcmine.md}, §canais). TCMine sem o
+     * endpoint responde 404/405: vira {@code UNSUPPORTED}, não erro.
+     */
+    @Override
+    public @NotNull CompletableFuture<ChannelResult> createChannel(@NotNull UUID playerUuid, @NotNull String name) {
+        return send("/channels", new ChannelCreateRequest(playerUuid.toString(), name))
+                .thenApply(r -> channelResult("/channels", r));
+    }
+
+    /** {@code POST /channels/rename}; mesmas respostas do {@link #createChannel}. */
+    @Override
+    public @NotNull CompletableFuture<ChannelResult> renameChannel(@NotNull UUID playerUuid, @NotNull UUID channelId,
+                                                                  @NotNull String name) {
+        return send("/channels/rename", new ChannelRenameRequest(playerUuid.toString(), channelId, name))
+                .thenApply(r -> channelResult("/channels/rename", r));
+    }
+
+    /** 200 = canal; 404/405 = sem suporte; 409 = refusal no corpo; resto = falha (o jogador tenta de novo). */
+    private static ChannelResult channelResult(String path, HttpResponse<String> response) {
+        return switch (response.statusCode()) {
+            case 200 -> {
+                ChannelReplyDto dto = GSON.fromJson(response.body(), ChannelReplyDto.class);
+                yield ChannelResult.done(dto.id, dto.name);
+            }
+            case 404, 405 -> ChannelResult.refused(ChannelRefusal.UNSUPPORTED);
+            case 400, 409 -> ChannelResult.refused(refusal(GSON.fromJson(response.body(), ChannelReplyDto.class)));
+            default -> throw failure(path, response);
+        };
+    }
+
+    private static ChannelRefusal refusal(@Nullable ChannelReplyDto dto) {
+        String code = dto == null || dto.refusal == null ? "" : dto.refusal;
+        return switch (code) {
+            case "duplicate" -> ChannelRefusal.DUPLICATE;
+            case "limit" -> ChannelRefusal.LIMIT;
+            case "noLease" -> ChannelRefusal.NO_LEASE;
+            case "unknownChannel" -> ChannelRefusal.UNKNOWN_CHANNEL;
+            default -> ChannelRefusal.INVALID_NAME;
+        };
     }
 
     @Override

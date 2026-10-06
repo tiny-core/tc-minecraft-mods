@@ -45,6 +45,10 @@ public final class CloudApiDto {
 
     public record SuspectsRequest(List<SuspectDto> items) {}
 
+    public record ChannelCreateRequest(String playerUuid, String name) {}
+
+    public record ChannelRenameRequest(String playerUuid, UUID channelId, String name) {}
+
     // Respostas: classes simples (o Gson preenche campo a campo; campo ausente fica no valor padrão).
 
     public static final class RuleDto {
@@ -88,6 +92,13 @@ public final class CloudApiDto {
         public String itemId;
         public String displayName;
         public String encoded;
+    }
+
+    /** Resposta de criar/renomear canal: o canal (200) ou o motivo da recusa (400/409). */
+    public static final class ChannelReplyDto {
+        public UUID id;
+        public String name;
+        public String refusal;
     }
 
     public static final class ChannelDto {

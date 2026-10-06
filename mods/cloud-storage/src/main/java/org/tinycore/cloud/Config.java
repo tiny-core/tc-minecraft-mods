@@ -15,6 +15,10 @@ public final class Config {
                     "do jogo/servidor (compartilhado entre mundos). Só para testes; em produção a nuvem é o TCMine.")
             .define("devFileBackend", false);
 
+    public static final ModConfigSpec.IntValue MAX_CHANNELS = B
+            .comment("Canais por jogador quando a nuvem não define (nuvem de teste, ou TCMine com 0).")
+            .defineInRange("maxChannels", 8, 1, 64);
+
     public static final ModConfigSpec.IntValue DEV_QUOTA_MAX_TYPES = B
             .comment("Cota da nuvem de teste (devFileBackend): máximo de tipos de item por canal. 0 = sem limite.",
                     "Com o TCMine, a cota vem do painel e isto é ignorado.")
