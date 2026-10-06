@@ -18,8 +18,8 @@ import java.util.Set;
  * Slots do TC Pattern Encoder: um de entrada para Blank Patterns e {@link #OUTPUT_SLOTS} de saída para os padrões
  * prontos. Não são expostos a funis nem cabos (só à tela, que só abre para quem tem permissão na colônia).
  * <p>
- * Contra duplicação: {@link #store} só gasta o Blank Pattern depois de simular que o padrão cabe na saída; se não
- * couber, nada muda. Ao quebrar o bloco, tudo cai no chão ({@link #drop}).
+ * Contra duplicação: quem codifica confere {@link #fits} antes de gastar o Blank Pattern (do slot ou da rede ME) e
+ * só então chama {@link #put}. Ao quebrar o bloco, tudo cai no chão ({@link #drop}).
  */
 final class EncoderInventory {
 
@@ -61,18 +61,19 @@ final class EncoderInventory {
         return !blanks.extractItem(0, 1, true).isEmpty();
     }
 
-    /**
-     * Guarda o padrão na saída gastando 1 Blank Pattern. SIMULATE antes de MODULATE nos dois lados.
-     *
-     * @return false (sem efeito) se não há Blank Pattern ou a saída está cheia
-     */
-    boolean store(ItemStack pattern) {
-        if (!hasBlank() || !ItemHandlerHelper.insertItemStacked(outputs, pattern.copy(), true).isEmpty()) {
-            return false;
-        }
-        blanks.extractItem(0, 1, false);
-        ItemStack rest = ItemHandlerHelper.insertItemStacked(outputs, pattern, false);
-        return rest.isEmpty();
+    /** true se o padrão cabe inteiro na saída (simulação, sem efeito). */
+    boolean fits(ItemStack pattern) {
+        return ItemHandlerHelper.insertItemStacked(outputs, pattern.copy(), true).isEmpty();
+    }
+
+    /** Gasta 1 Blank Pattern do slot; false se não havia. */
+    boolean takeBlank() {
+        return !blanks.extractItem(0, 1, false).isEmpty();
+    }
+
+    /** Põe o padrão na saída (chamar só depois de {@link #fits}). */
+    void put(ItemStack pattern) {
+        ItemHandlerHelper.insertItemStacked(outputs, pattern, false);
     }
 
     /** Itens cujos padrões estão na saída (para a tela marcar "na saída"). */

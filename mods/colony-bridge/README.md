@@ -186,7 +186,7 @@ comum por baixo, um canal.
 ## TC Pattern Encoder
 Cria os **padrões de crafting** que faltam para a colônia. A tela lista os pedidos em aberto que a rede ME **não sabe
 craftar**, com a receita de bancada achada para cada um; clique numa linha pronta (ou no botão lateral, para todas) e
-o padrão aparece nos slots de saída, gastando 1 Blank Pattern. Leve-o a um Pattern Provider ou Molecular Assembler e a
+o padrão aparece nos slots de saída, gastando 1 Blank Pattern (do slot do bloco; com ele vazio, da rede ME). Leve-o a um Pattern Provider ou Molecular Assembler e a
 Ponte passa a craftar o item sozinha.
 
 - Um por colônia, cabo ME comum por baixo (um canal), permissão na colônia. Não precisa da Ponte.

@@ -1,11 +1,15 @@
 package org.tinycore.colonybridge.integration.ae2;
 
+import appeng.api.config.Actionable;
 import appeng.api.crafting.IPatternDetails;
 import appeng.api.crafting.PatternDetailsHelper;
+import appeng.api.networking.IGrid;
 import appeng.api.networking.crafting.ICraftingService;
+import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
+import appeng.api.storage.StorageHelper;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
@@ -188,6 +192,21 @@ public final class PatternEncoding {
     /** true se é o Blank Pattern do AE2 (pelo id: o mod compila só contra a API, sem as definições internas). */
     public static boolean isBlankPattern(ItemStack stack) {
         return !stack.isEmpty() && BuiltInRegistries.ITEM.getKey(stack.getItem()).equals(BLANK_PATTERN);
+    }
+
+    /**
+     * Tira 1 Blank Pattern da rede ME (gastando a energia da operação, como o AE2). Com {@code mode = SIMULATE}
+     * só confere se dá.
+     *
+     * @return true se tirou (ou tiraria) 1
+     */
+    public static boolean takeBlankFromNetwork(IGrid grid, IActionSource source, Actionable mode) {
+        AEItemKey blank = AEItemKey.of(BuiltInRegistries.ITEM.get(BLANK_PATTERN));
+        if (blank == null) {
+            return false;
+        }
+        return StorageHelper.poweredExtraction(grid.getEnergyService(), grid.getStorageService().getInventory(),
+                blank, 1, source, mode) == 1;
     }
 
     /** Item principal que um padrão codificado produz, ou null (não é padrão / não decodifica). */

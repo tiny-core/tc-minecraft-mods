@@ -284,7 +284,7 @@
   "block.tccolonybridge.pattern_encoder": "TC Pattern Encoder",
   "tooltip.tccolonybridge.pattern_encoder.line1": "Lista os pedidos da colónia que a rede ME não sabe fabricar e cria os padrões de fabrico deles.",
   "tooltip.tccolonybridge.pattern_encoder.line2": "Precisa de cabo ME comum por baixo e energia. Um por colónia; gasta 1 Blank Pattern por padrão.",
-  "gui.tccolonybridge.help.encoder": "Pedidos da colónia que a rede ME não sabe fabricar, com a receita de bancada encontrada para cada um. Coloque Blank Patterns na ranhura da esquerda. Clique numa linha pronta para a codificar, ou use o botão lateral para codificar todas. Leve os padrões das ranhuras de saída a um Pattern Provider ou Molecular Assembler. Linhas que não ficam prontas: sem receita de bancada (fornalha, máquinas, itens com dados especiais) ou itens do Domum Ornamentum.",
+  "gui.tccolonybridge.help.encoder": "Pedidos da colónia que a rede ME não sabe fabricar, com a receita de bancada encontrada para cada um. Coloque Blank Patterns na ranhura da esquerda (com ela vazia, saem da rede ME). Clique numa linha pronta para a codificar, ou use o botão lateral para codificar todas. Leve os padrões das ranhuras de saída a um Pattern Provider ou Molecular Assembler. Linhas que não ficam prontas: sem receita de bancada (fornalha, máquinas, itens com dados especiais) ou itens do Domum Ornamentum.",
   "gui.tccolonybridge.encoder.encode_all": "Codificar todas as linhas prontas (1 Blank Pattern cada)",
   "gui.tccolonybridge.encoder.blanks": "Vazios",
   "gui.tccolonybridge.encoder.outputs": "Padrões prontos",

@@ -284,7 +284,7 @@
   "block.tccolonybridge.pattern_encoder": "TC Pattern Encoder",
   "tooltip.tccolonybridge.pattern_encoder.line1": "Lists colony requests that the ME network cannot craft and encodes crafting patterns for them.",
   "tooltip.tccolonybridge.pattern_encoder.line2": "Needs a plain ME cable below and power. One per colony; uses 1 Blank Pattern per pattern.",
-  "gui.tccolonybridge.help.encoder": "Colony requests the ME network cannot craft, with the crafting table recipe found for each. Put Blank Patterns in the left slot. Click a ready line to encode it, or use the side button to encode all of them. Take the patterns from the output slots to a Pattern Provider or Molecular Assembler. Lines that are not ready: no crafting table recipe (furnace, machines, items with special data) or Domum Ornamentum items.",
+  "gui.tccolonybridge.help.encoder": "Colony requests the ME network cannot craft, with the crafting table recipe found for each. Put Blank Patterns in the left slot (when it is empty, they come from the ME network). Click a ready line to encode it, or use the side button to encode all of them. Take the patterns from the output slots to a Pattern Provider or Molecular Assembler. Lines that are not ready: no crafting table recipe (furnace, machines, items with special data) or Domum Ornamentum items.",
   "gui.tccolonybridge.encoder.encode_all": "Encode every ready line (1 Blank Pattern each)",
   "gui.tccolonybridge.encoder.blanks": "Blank",
   "gui.tccolonybridge.encoder.outputs": "Encoded patterns",
