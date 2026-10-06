@@ -18,6 +18,7 @@ import org.tinycore.cloud.menu.LinkAction;
 import org.tinycore.cloud.menu.LinkEntry;
 import org.tinycore.cloud.menu.LinkHeader;
 import org.tinycore.cloud.network.LinkActionPayload;
+import org.tinycore.cloud.server.ChannelFeedback;
 import org.tinycore.cloud.server.CloudStatus;
 import org.tinycore.core.TcCoreClientConfig;
 import org.tinycore.core.client.ui.GridHeightButton;
@@ -48,10 +49,11 @@ import java.util.List;
 public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     private static final int PADDING = 8;
-    /** Linhas do cabeçalho: título (7), cota (19), aviso (31), busca. */
-    private static final int QUOTA_Y = 19;
-    private static final int INFO_Y = 31;
-    private static final int SEARCH_Y = 44;
+    /** Linhas do cabeçalho: título (7), canal (19), cota (32), aviso (44), busca. */
+    private static final int CHANNEL_Y = 19;
+    private static final int QUOTA_Y = 32;
+    private static final int INFO_Y = 44;
+    private static final int SEARCH_Y = 56;
     /** Espaço livre deixado acima e abaixo da janela ao calcular quantas linhas cabem. */
     private static final int SCREEN_MARGIN = 8;
 
@@ -73,6 +75,7 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     private int gridVersion;
     /** Pixels acima de {@code topPos} ocupados pelas linhas extras da grade. */
     private int extra;
+    private ChannelBar channelBar;
 
     public CloudLinkScreen(CloudLinkMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title);
@@ -101,6 +104,10 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         toolbar.layout(leftPos, top, CloudLinkMenu.WIDTH);
         updateSortButton();
         incompatibleButton.setSelected(showIncompatible);
+
+        if (channelBar == null) channelBar = new ChannelBar(font, this::send); // mantém a edição ao redimensionar
+        channelBar.init(this::addRenderableWidget, this::addRenderableWidget, this::setFocused, leftPos + PADDING,
+                top + CHANNEL_Y, CloudLinkMenu.WIDTH - PADDING * 2);
 
         String previous = search == null ? "" : search.getValue(); // mantém a busca ao redimensionar
         search = addRenderableWidget(new EditBox(font, leftPos + PADDING + 3, top + SEARCH_Y + 2,
@@ -169,6 +176,8 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
                 x + CloudLinkMenu.WIDTH - PADDING, top + 7, inner / 2, ScreenStyle.TEXT);
         ScreenStyle.statusDot(g, x + CloudLinkMenu.WIDTH - PADDING - statusWidth - 10, top + 7, statusColor(status));
         ScreenStyle.drawFitted(g, font, title, x + PADDING, top + 7, inner - statusWidth - 16, ScreenStyle.TITLE);
+        channelBar.update(header);
+        channelBar.render(g);
         Line line = infoLine(header, status);
         QuotaBar.render(g, font, header.quota(), x + PADDING, top + QUOTA_Y, inner);
         if (line != null) ScreenStyle.drawFitted(g, font, line.text(), x + PADDING, top + INFO_Y, inner, line.color());
@@ -216,6 +225,12 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     /** Segunda linha do cabeçalho: a informação mais importante agora. */
     private static @Nullable Line infoLine(LinkHeader header, CloudStatus status) {
+        ChannelFeedback feedback = ChannelFeedback.byId(header.feedback());
+        if (feedback != ChannelFeedback.NONE) {
+            int color = feedback.isError() ? ScreenStyle.DANGER
+                    : feedback == ChannelFeedback.WORKING ? ScreenStyle.INFO : ScreenStyle.SUCCESS;
+            return new Line(Component.translatable(feedback.translationKey()), color);
+        }
         TransferRejection[] rejections = TransferRejection.values();
         if (header.rejection() >= 0 && header.rejection() < rejections.length) {
             return new Line(Component.translatable(rejections[header.rejection()].translationKey()), ScreenStyle.DANGER);
@@ -274,6 +289,7 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        channelBar.mouseClicked(mouseX, mouseY);
         if (button == GLFW.GLFW_MOUSE_BUTTON_RIGHT && search.isMouseOver(mouseX, mouseY)) {
             search.setValue(""); // clique direito na busca limpa, como no AE2
             return true;
@@ -306,6 +322,7 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     /** Com a busca em foco, as teclas vão para ela (senão "E" fecharia a tela). Esc continua fechando. */
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (channelBar.keyPressed(keyCode, scanCode, modifiers)) return true; // nome do canal sendo digitado
         if (search.isFocused() && keyCode != GLFW.GLFW_KEY_ESCAPE) {
             search.keyPressed(keyCode, scanCode, modifiers);
             return true;

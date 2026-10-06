@@ -15,8 +15,10 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.block.CloudLinkBlockEntity;
 import org.tinycore.cloud.registry.ModMenus;
 import org.tinycore.cloud.server.CloudInventory;
+import org.tinycore.cloud.server.ChannelFeedback;
 import org.tinycore.cloud.server.CloudService;
 
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -35,7 +37,7 @@ public class CloudLinkMenu extends AbstractContainerMenu {
      */
     public static final int WIDTH = 190;
     public static final int GRID_X = 9;
-    public static final int GRID_Y = 60;
+    public static final int GRID_Y = 72;
     public static final int COLUMNS = 9;
     public static final int MIN_ROWS = 2;
     public static final int MAX_ROWS = 12;
@@ -109,14 +111,55 @@ public class CloudLinkMenu extends AbstractContainerMenu {
             case CYCLE_ACCESS -> link.setAccess(link.access().next());
             case PRIORITY_UP -> link.setPriority(Math.min(PRIORITY_LIMIT, link.priority() + 1));
             case PRIORITY_DOWN -> link.setPriority(Math.max(-PRIORITY_LIMIT, link.priority() - 1));
+            case SELECT_CHANNEL, CREATE_CHANNEL, RENAME_CHANNEL -> channelAction(player, action, fingerprint);
             default -> moveItems(player, action, fingerprint);
         }
         sync.soon();
     }
 
+    /**
+     * Canais: o texto vem do cliente (id ou nome) e é tratado como hostil. Escolher só aceita um canal do próprio
+     * jogador; criar/renomear passam pelas regras do {@code PlayerChannels} e pela nuvem. Criar já passa o Link para
+     * o canal novo.
+     */
+    private void channelAction(ServerPlayer player, LinkAction action, String text) {
+        CloudService service = CloudService.get();
+        if (service == null || link == null || sync == null) return;
+        UUID owner = player.getUUID();
+        switch (action) {
+            case SELECT_CHANNEL -> {
+                UUID wanted = parseUuid(text);
+                if (wanted != null && service.channels(owner).containsKey(wanted)) link.setChannel(wanted);
+            }
+            case CREATE_CHANNEL -> {
+                Set<UUID> before = service.channels(owner).keySet();
+                service.createChannel(owner, text, feedback -> {
+                    if (feedback == ChannelFeedback.CREATED && !link.isRemoved()) {
+                        service.channels(owner).keySet().stream().filter(id -> !before.contains(id)).findFirst()
+                                .ifPresent(link::setChannel);
+                    }
+                    sync.setFeedback(feedback);
+                });
+            }
+            case RENAME_CHANNEL -> {
+                UUID channel = service.channelFor(owner, link.channel());
+                if (channel != null) service.renameChannel(owner, channel, text, sync::setFeedback);
+            }
+            default -> { }
+        }
+    }
+
+    private static @Nullable UUID parseUuid(String text) {
+        try {
+            return UUID.fromString(text);
+        } catch (IllegalArgumentException e) {
+            return null;
+        }
+    }
+
     private void moveItems(ServerPlayer player, LinkAction action, String fingerprint) {
         CloudService service = CloudService.get();
-        UUID channel = service == null ? null : service.defaultChannel(player.getUUID());
+        UUID channel = service == null || link == null ? null : service.channelFor(player.getUUID(), link.channel());
         if (service == null || channel == null) return;
         CloudInventory inventory = service.inventory();
         switch (action) {
@@ -149,7 +192,7 @@ public class CloudLinkMenu extends AbstractContainerMenu {
         }
         Slot slot = slots.get(index);
         CloudService service = CloudService.get();
-        UUID channel = service == null ? null : service.defaultChannel(sp.getUUID());
+        UUID channel = service == null ? null : service.channelFor(sp.getUUID(), link.channel());
         if (!slot.hasItem() || service == null || channel == null) return ItemStack.EMPTY;
         ItemStack stack = slot.getItem();
         slot.set(deposit(sp, service.inventory(), channel, stack, stack.getCount()));

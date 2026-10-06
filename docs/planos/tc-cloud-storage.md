@@ -238,7 +238,7 @@ principal via `server.execute(...)`.
 | `POST /api/cloud/v1/leases/heartbeat` | a cada 60 s, todos os leases → comandos (congelar, liberar, política nova) |
 | `POST /api/cloud/v1/batches` | após cada save, os lotes selados (época, seq, operações, saldos esperados) |
 | `POST /api/cloud/v1/leases/release` | após o logout + save + envio |
-| `POST /api/cloud/v1/channels` (+ renomear/apagar vazio) | jogador cria/gerencia canais na tela |
+| `POST /api/cloud/v1/channels` e `/channels/rename` | jogador cria/renomeia canais na tela (mod pronto; contrato em `tc-cloud-storage-tcmine.md` §4) |
 | `POST /api/cloud/v1/reports/suspects` | itens recusados pela heurística (agregados) |
 | `POST /api/cloud/v1/reports/doubtful` | boot após desligamento não limpo: operações "não confirmadas" do diário (§5) |
 

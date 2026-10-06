@@ -19,7 +19,7 @@ import org.tinycore.cloud.server.CloudService;
 import java.util.UUID;
 
 /**
- * Estado do TC Cloud Link no mundo: o dono (quem colocou), o modo de acesso da rede, a prioridade e o nó AE2
+ * Estado do TC Cloud Link no mundo: o dono (quem colocou), o canal escolhido, o modo de acesso da rede, a prioridade e o nó AE2
  * ({@link CloudLinkNode}). Não guarda item nenhum: os itens estão na nuvem, então quebrar o bloco não derruba
  * nada.
  *
@@ -34,6 +34,8 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
     private String ownerName = "";
     private NetworkAccess access = NetworkAccess.FULL;
     private int priority;
+    /** Canal escolhido na tela; null = o padrão do dono (Link novo ou de antes dos canais múltiplos). */
+    private @Nullable UUID channel;
     private boolean nodeCreated;
     private @Nullable CloudService listeningTo;
     private final Runnable onCloudChange = this::refreshMounts;
@@ -121,6 +123,19 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         return priority;
     }
 
+    @Override
+    public @Nullable UUID channel() {
+        return channel;
+    }
+
+    /** Troca o canal deste Link (a tela já conferiu que é do dono); remonta no AE2. */
+    public void setChannel(@NotNull UUID channel) {
+        if (channel.equals(this.channel)) return;
+        this.channel = channel;
+        setChanged();
+        refreshMounts();
+    }
+
     public void setAccess(@NotNull NetworkAccess access) {
         if (this.access == access) return;
         this.access = access;
@@ -165,6 +180,7 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         tag.putString("ownerName", ownerName);
         tag.putInt("access", access.ordinal());
         tag.putInt("priority", priority);
+        if (channel != null) tag.putUUID("channel", channel);
     }
 
     @Override
@@ -175,5 +191,6 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         ownerName = tag.getString("ownerName");
         access = NetworkAccess.byId(tag.getInt("access"));
         priority = tag.getInt("priority");
+        channel = tag.hasUUID("channel") ? tag.getUUID("channel") : null;
     }
 }

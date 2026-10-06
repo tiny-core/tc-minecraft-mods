@@ -131,6 +131,18 @@ Tabelas: `cloud_vaults`, `cloud_server_credentials`, `cloud_channels`, `cloud_it
   `426` com mensagem clara (mesma lição do `Protocol` do launcher).
 - Endpoints: `hello`, `policy`, `leases/acquire`, `leases/heartbeat`, `leases/release`, `batches`,
   `channels` (POST/PATCH/DELETE), `reports/suspects`, `reports/doubtful`.
+- **Canais (contrato que o mod já usa desde 2026-10-06; falta implementar no TCMine).** Os dois exigem que o
+  servidor que chama segure o lease do jogador (o mesmo `ServerId` do `acquire`). O nome chega limpo pelo mod
+  (`ChannelNames`: 1–32 caracteres, sem controle nem `§`), mas o TCMine valida de novo.
+  - `POST /channels` `{ "playerUuid", "name" }` → `200 { "id", "name" }`. Cria no cofre do servidor, para o
+    jogador. Recusas em `409 { "refusal": "duplicate" | "limit" | "noLease" }` ou `400 { "refusal": "invalidName" }`.
+    Limite = `maxChannelsPerPlayer` do `hello` (0 = o mod usa a própria config, padrão 8).
+  - `POST /channels/rename` `{ "playerUuid", "channelId", "name" }` → `200 { "id", "name" }`; recusas como acima,
+    mais `409 { "refusal": "unknownChannel" }`.
+  - Nome repetido conta sem diferenciar maiúsculas; renomear o próprio canal para outra caixa é permitido.
+  - Auditoria: entrada em `cloud_admin_audit` não é necessária (ação do jogador), mas logar com `[LoggerMessage]`.
+  - Enquanto não existirem, o mod recebe 404 e mostra "este TCMine ainda não permite criar/renomear canais".
+    Escolher entre os canais já existentes funciona desde já (o `acquire` entrega todos).
 - `Background/`: um serviço que expira leases (`ExpiresAt < agora`) e, no arranque, **estende**
   todos os `Held` pelo TTL (a queda foi do TCMine, não do jogo).
 

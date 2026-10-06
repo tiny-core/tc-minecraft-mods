@@ -30,10 +30,15 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
    neste servidor (apagados, com o motivo).
 4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
    (`+`/`-`).
-5. No topo da tela, a **barra de cota** mostra quanto do canal está ocupado (a barra segue o limite mais apertado
+5. **Canais:** a linha "Canal" no topo escolhe o canal deste Link (◀ ▶); `+` cria um canal (digite o nome, Enter
+   confirma, Esc cancela) e já passa o Link para ele; `✎` renomeia. Cada Link mostra e monta na rede AE2 o seu
+   canal; o mesmo canal só pode estar montado em um Link por servidor. Limite: o do painel do TCMine, ou
+   `maxChannels` (padrão 8). Com o TCMine, criar/renomear depende de endpoints que ele ainda não tem: a tela avisa;
+   escolher entre canais existentes já funciona. Na nuvem de teste, tudo funciona.
+6. No topo da tela, a **barra de cota** mostra quanto do canal está ocupado (a barra segue o limite mais apertado
    entre itens e tipos; amarela a partir de 75 %, vermelha a partir de 95 %). O tooltip traz os dois números. A cota
    vem do painel do TCMine; na nuvem de teste, use `devQuotaMaxTotal` e `devQuotaMaxTypes` (0 = sem limite).
-6. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
+7. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
    estão lá.
 
 Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag

@@ -20,10 +20,12 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 /**
  * O serviço da nuvem de UM servidor ligado: diário, fila de envio, configuração da nuvem e ciclo de vida (boot,
@@ -49,11 +51,14 @@ public final class CloudService {
     private final ChannelMounts mounts = new ChannelMounts();
     private final CloudInventory inventory;
     private final CloudReports reports;
+    private final PlayerChannels channels;
     private boolean policyRefreshInFlight;
 
     private volatile ItemPolicy policy = ItemPolicy.OPEN;
     private CloudQuota quota = CloudQuota.UNLIMITED;
     private int maxItemBytes = Config.MAX_ITEM_BYTES.get();
+    /** Canais por jogador definidos pela nuvem (0 = config do mod). */
+    private int maxChannels;
     private boolean helloDone;
     private boolean helloInFlight;
     private int helloRetryInTicks;
@@ -72,6 +77,7 @@ public final class CloudService {
                 () -> helloDone, () -> globalReadOnly, definitions::putAll, this::onHeartbeat));
         this.reports = new CloudReports(backend, server, folder);
         this.inventory = new CloudInventory(this, server.registryAccess());
+        this.channels = new PlayerChannels(backend, server, leases::get, listeners, this::maxChannels);
     }
 
     /** O serviço do servidor atual, ou {@code null} se a nuvem está desligada (sem backend). */
@@ -168,6 +174,7 @@ public final class CloudService {
             policy = reply.policy();
             quota = reply.quota();
             if (reply.maxItemBytes() > 0) maxItemBytes = reply.maxItemBytes();
+            maxChannels = reply.maxChannels();
             if (reply.readOnly()) enterGlobalReadOnly(reply.readOnlyReason() != null ? reply.readOnlyReason() : "backend");
             helloDone = true;
         }, server);
@@ -321,10 +328,39 @@ public final class CloudService {
         return pc == null || pc.releaseRequested ? null : pc.session;
     }
 
-    /** Canal padrão do jogador (fase 2: o único). */
+    /** Canal padrão do jogador (o primeiro que a nuvem entregou). */
     public @Nullable UUID defaultChannel(@NotNull UUID player) {
         PlayerCloud pc = leases.get(player);
         return pc == null ? null : pc.defaultChannel();
+    }
+
+    /** O canal escolhido num Link, se ainda for do jogador; senão o padrão (canal apagado, Link novo...). */
+    public @Nullable UUID channelFor(@NotNull UUID player, @Nullable UUID wanted) {
+        PlayerCloud pc = leases.get(player);
+        if (pc == null) return null;
+        return wanted != null && pc.channels.containsKey(wanted) ? wanted : pc.defaultChannel();
+    }
+
+    /** Canais do jogador (id → nome, na ordem da nuvem); vazio sem lease. */
+    public @NotNull Map<UUID, String> channels(@NotNull UUID player) {
+        PlayerCloud pc = leases.get(player);
+        return pc == null ? Map.of() : new LinkedHashMap<>(pc.channels);
+    }
+
+    /** Limite de canais por jogador: o da nuvem, ou o da config. */
+    public int maxChannels() {
+        return maxChannels > 0 ? maxChannels : Config.MAX_CHANNELS.get();
+    }
+
+    /** Cria um canal (tela do Link); {@code done} recebe o andamento e o resultado na thread do servidor. */
+    public void createChannel(@NotNull UUID player, @NotNull String name, @NotNull Consumer<ChannelFeedback> done) {
+        channels.create(player, name, done);
+    }
+
+    /** Renomeia um canal do jogador. */
+    public void renameChannel(@NotNull UUID player, @NotNull UUID channel, @NotNull String name,
+                              @NotNull Consumer<ChannelFeedback> done) {
+        channels.rename(player, channel, name, done);
     }
 
     public @NotNull CloudInventory inventory() {

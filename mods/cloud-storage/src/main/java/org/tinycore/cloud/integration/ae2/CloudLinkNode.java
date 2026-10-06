@@ -41,6 +41,9 @@ public final class CloudLinkNode implements IStorageProvider {
 
         int priority();
 
+        /** Canal escolhido na tela do Link, ou null (usa o padrão do dono). */
+        @Nullable UUID channel();
+
         /** O canal deste Link não pôde ser montado (já está em outro Link) ou voltou a poder. */
         void onMountConflict(@Nullable GlobalPos holder);
     }
@@ -99,7 +102,7 @@ public final class CloudLinkNode implements IStorageProvider {
         CloudService service = CloudService.get();
         UUID owner = host.owner();
         if (service == null || owner == null || !host.access().mounts() || service.session(owner) == null) return;
-        UUID channel = service.defaultChannel(owner);
+        UUID channel = service.channelFor(owner, host.channel());
         if (channel == null) return;
         BlockEntity be = (BlockEntity) host;
         if (be.getLevel() == null) return;

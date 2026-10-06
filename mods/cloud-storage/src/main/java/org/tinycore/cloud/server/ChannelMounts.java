@@ -17,8 +17,12 @@ public final class ChannelMounts {
 
     private final Map<UUID, GlobalPos> holders = new HashMap<>();
 
-    /** Tenta ficar com o canal; true se conseguiu (ou já era deste Link). */
+    /**
+     * Tenta ficar com o canal; true se conseguiu (ou já era deste Link). Um Link monta um canal só: se ele trocou de
+     * canal, o anterior é solto aqui.
+     */
     public boolean claim(@NotNull UUID channel, @NotNull GlobalPos link) {
+        holders.entrySet().removeIf(e -> e.getValue().equals(link) && !e.getKey().equals(channel));
         GlobalPos current = holders.putIfAbsent(channel, link);
         return current == null || current.equals(link);
     }
