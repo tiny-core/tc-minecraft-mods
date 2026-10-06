@@ -2,32 +2,29 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "EIE",
-    "RHR",
-    "CPC"
+    "ECE",
+    "RTR",
+    "ELE"
   ],
   "key": {
     "E": {
       "item": "ae2:engineering_processor"
     },
-    "I": {
-      "item": "ae2:interface"
+    "C": {
+      "item": "ae2:calculation_processor"
     },
     "R": {
       "item": "minecolonies:blockminecoloniesrack"
     },
-    "H": {
-      "item": "minecolonies:blockhutdeliveryman"
+    "T": {
+      "item": "ae2:crafting_terminal"
     },
-    "C": {
-      "item": "ae2:calculation_processor"
-    },
-    "P": {
-      "item": "ae2:pattern_provider"
+    "L": {
+      "item": "ae2:logic_processor"
     }
   },
   "result": {
-    "id": "tccolonybridge:colony_bridge",
+    "id": "tccolonybridge:warehouse_terminal",
     "count": 1
   }
 }

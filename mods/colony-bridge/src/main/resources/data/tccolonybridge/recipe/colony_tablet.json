@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    " G ",
-    "WEW",
-    " C "
+    "QWQ",
+    "ETE",
+    "QCQ"
   ],
   "key": {
-    "G": {
-      "item": "minecraft:glass_pane"
+    "Q": {
+      "item": "ae2:quartz_glass"
     },
     "W": {
       "item": "ae2:wireless_receiver"
@@ -16,8 +16,11 @@
     "E": {
       "item": "ae2:engineering_processor"
     },
+    "T": {
+      "item": "ae2:wireless_terminal"
+    },
     "C": {
-      "item": "ae2:energy_cell"
+      "item": "ae2:dense_energy_cell"
     }
   },
   "result": {

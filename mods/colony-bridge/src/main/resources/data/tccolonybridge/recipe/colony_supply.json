@@ -2,13 +2,13 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "EIE",
+    "LIL",
     "RHR",
-    "CPC"
+    "LBL"
   ],
   "key": {
-    "E": {
-      "item": "ae2:engineering_processor"
+    "L": {
+      "item": "ae2:logic_processor"
     },
     "I": {
       "item": "ae2:interface"
@@ -17,17 +17,14 @@
       "item": "minecolonies:blockminecoloniesrack"
     },
     "H": {
-      "item": "minecolonies:blockhutdeliveryman"
+      "item": "minecolonies:blockhutwarehouse"
     },
-    "C": {
-      "item": "ae2:calculation_processor"
-    },
-    "P": {
-      "item": "ae2:pattern_provider"
+    "B": {
+      "item": "ae2:storage_bus"
     }
   },
   "result": {
-    "id": "tccolonybridge:colony_bridge",
+    "id": "tccolonybridge:colony_supply",
     "count": 1
   }
 }

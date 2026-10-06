@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " F ",
+    "EME",
+    " L "
+  ],
+  "key": {
+    "F": {
+      "item": "ae2:fluix_pearl"
+    },
+    "E": {
+      "item": "ae2:engineering_processor"
+    },
+    "M": {
+      "item": "ae2:memory_card"
+    },
+    "L": {
+      "item": "ae2:logic_processor"
+    }
+  },
+  "result": {
+    "id": "tccolonybridge:link_card",
+    "count": 1
+  }
+}

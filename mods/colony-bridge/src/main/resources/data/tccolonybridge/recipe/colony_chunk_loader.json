@@ -3,8 +3,8 @@
   "category": "misc",
   "pattern": [
     "OEO",
-    "PCP",
-    "OEO"
+    "SCS",
+    "OPO"
   ],
   "key": {
     "O": {
@@ -13,11 +13,14 @@
     "E": {
       "item": "minecraft:ender_eye"
     },
-    "P": {
-      "item": "ae2:engineering_processor"
+    "S": {
+      "item": "ae2:singularity"
     },
     "C": {
       "item": "ae2:dense_energy_cell"
+    },
+    "P": {
+      "item": "ae2:engineering_processor"
     }
   },
   "result": {

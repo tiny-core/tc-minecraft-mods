@@ -162,14 +162,7 @@ esquerda volta (a página é só sua; a troca automática pausa 30 s após um cl
 duas colunas. Atualiza 1×/s, só quando algo muda, e só lê o bloco ligado se o chunk dele estiver carregado
 (senão mostra "Bloco ligado não encontrado").
 
-### Receita
-```
- E      E = Processador de Engenharia (AE2)
-IRI     I = Interface ME (AE2)
- E      R = Rack (MineColonies)
-```
-O item fica na aba própria **TC Colony Bridge** do modo criativo. A receita é um JSON comum
-(`data/tccolonybridge/recipe/colony_bridge.json`) e pode ser trocada por datapack/KubeJS.
+Receita: ver [Receitas](#receitas).
 
 ## TC Chunk Loader da Colônia
 Mantém carregados os chunks **reivindicados pela colônia**, gastando energia da rede ME. Um por colônia, cabo ME
@@ -188,12 +181,6 @@ comum por baixo, um canal.
 - Admin: `chunkLoaderEnabled = false` solta tudo no servidor. Atenção: o loader **passa por cima** do limite de
   chunks forçados do FTB Chunks. Ao iniciar o servidor, chunks de loaders que não existem mais são soltos.
 - Conferir no jogo: o `/forceload query` do vanilla provavelmente não lista estes chunks (são tickets de mod); use o contador da tela ou veja se plantações/cidadãos longe continuam trabalhando.
-
-```
-OEO     O = Obsidiana chorona   E = Olho do Ender
-PCP     P = Processador de Engenharia (AE2)   C = Célula de energia densa (AE2)
-OEO
-```
 
 ## TC Tablet da Colônia
 Acesso de qualquer lugar aos blocos de uma colônia: abre **as mesmas telas** do Terminal, da Ponte e do Abastecedor
@@ -217,12 +204,22 @@ que estão no mundo, com uma barra de abas em cima da janela.
   Ao quebrar a Ponte, o tablet cai no chão.
 - A barra sob o ícone mostra a bateria (`tabletCapacity`, padrão 100.000 FE).
 
-```
- G      G = Painel de vidro
-WEW     W = Receptor sem fio (AE2)   E = Processador de Engenharia (AE2)
- C      C = Célula de energia (AE2)
-```
-Receita em `data/tccolonybridge/recipe/colony_tablet.json`. Modelo provisório (textura do mapa vanilla).
+Modelo provisório (textura do mapa vanilla).
+
+## Receitas
+Caras de propósito: cada bloco substitui trabalho manual da colônia, então pede componentes de meio/fim de jogo do
+AE2 e, nos blocos ligados ao armazém, itens do MineColonies. São JSON comuns em `data/tccolonybridge/recipe/` e
+podem ser trocadas por datapack/KubeJS. Confira no JEI/EMI do ATM10 (o KubeJS do modpack pode mudar itens).
+
+| Item | Grade | Legenda |
+|---|---|---|
+| TC Ponte ME da Colônia | `EIE` `RHR` `CPC` | E Processador de Engenharia · I Interface ME · R Rack · H Cabana do Entregador · C Processador de Cálculo · P Pattern Provider |
+| TC Abastecedor da Colônia | `LIL` `RHR` `LBL` | L Processador Lógico · I Interface ME · R Rack · H Cabana do Armazém · B Storage Bus |
+| TC Monitor da Colônia | `QQQ` `LML` `FFF` | Q Vidro de quartzo vibrante · L Processador Lógico · M Monitor semiescuro · F Cristal de Fluix |
+| TC Terminal do Armazém | `ECE` `RTR` `ELE` | E Engenharia · C Cálculo · R Rack · T Crafting Terminal · L Lógico |
+| TC Chunk Loader da Colônia | `OEO` `SCS` `OPO` | O Obsidiana chorona · E Olho do Ender · S Singularidade · C Célula de energia densa · P Engenharia |
+| TC Tablet da Colônia | `QWQ` `ETE` `QCQ` | Q Vidro de quartzo · W Receptor sem fio · E Engenharia · T Terminal sem fio · C Célula de energia densa |
+| TC Cartão de Ligação | ` F ` `EME` ` L ` | F Pérola de Fluix · E Engenharia · M Memory Card · L Lógico |
 
 ## Setup
 Este mod faz parte do workspace **TC Minecraft Mods** (ver o `README.md` da raiz: build, VS Code, testes).
