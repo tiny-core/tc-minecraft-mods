@@ -48,7 +48,10 @@ entrega (`RackDelivery`) ou `RequestCrafter` → `ColonyAccess.reassign()`.
 
 ## Regras próprias
 
-- MineColonies só em `integration/`. AE2 além do nó da grid: `integration/ae2/` ou `logic/crafting/`.
+- MineColonies só em `integration/` (o compilador garante: `ColonyRef`, `OpenRequest` e os tipos do MineColonies são
+  privados ao pacote). AE2: tipos de dados (`AEItemKey`, `KeyCounter`, `IGrid`) podem circular; **operações** que
+  movem itens, energia, crafts ou padrões ficam em `integration/ae2/`, `logic/crafting/`, `logic/warehouse/` e no
+  requester da Ponte (`logic/bridge/CraftDelivery`).
 - Checar permissão da colônia antes de ligar um bloco a ela e respeitar a segurança do AE2
   (`setOwningPlayer` já é chamado).
 - Qualquer mudança em `RackDelivery.deliver()`/`WarehouseStock` precisa manter SIMULATE antes de MODULATE

@@ -1,7 +1,5 @@
 package org.tinycore.colonybridge.block.terminal;
 
-import appeng.api.config.Actionable;
-import appeng.api.config.PowerMultiplier;
 import appeng.api.networking.IGrid;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -12,6 +10,7 @@ import org.tinycore.colonybridge.block.AbstractBridgeBlockEntity;
 import org.tinycore.colonybridge.block.bridge.ColonyBridgeBlockEntity;
 import org.tinycore.colonybridge.integration.ColonyAccess;
 import org.tinycore.colonybridge.integration.ae2.BridgeNetwork;
+import org.tinycore.colonybridge.integration.ae2.GridPower;
 import org.tinycore.colonybridge.logic.BridgeStatus;
 import org.tinycore.colonybridge.logic.colony.ColonyBlockType;
 import org.tinycore.colonybridge.logic.terminal.TerminalLink;
@@ -67,18 +66,16 @@ public class WarehouseTerminalBlockEntity extends AbstractBridgeBlockEntity {
     }
 
     /**
-     * Cobra da rede a energia de {@code items} itens movidos ({@code terminalEnergyPerItem} cada). O
-     * {@code PowerMultiplier.CONFIG} aplica o multiplicador de energia da config do AE2, como as operações
-     * do próprio AE2. Se a rede não tiver o suficiente, tira o que houver (a ação já só acontece com a
-     * rede ativa, que exige energia).
+     * Cobra da rede a energia de {@code items} itens movidos ({@code terminalEnergyPerItem} cada), com o
+     * multiplicador de energia da config do AE2 ({@link GridPower#chargeAe}). Se a rede não tiver o suficiente,
+     * tira o que houver (a ação já só acontece com a rede ativa, que exige energia).
      */
     public void chargeItems(long items) {
         IGrid grid = managedNode().getGrid();
         if (grid == null || items <= 0) {
             return;
         }
-        double cost = items * Config.TERMINAL_ENERGY_PER_ITEM.get();
-        grid.getEnergyService().extractAEPower(cost, Actionable.MODULATE, PowerMultiplier.CONFIG);
+        GridPower.chargeAe(grid, items * Config.TERMINAL_ENERGY_PER_ITEM.get());
     }
 
     @Override
