@@ -2,6 +2,7 @@ package org.tinycore.cloud.registry;
 
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
+import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -17,12 +18,15 @@ public final class ModBlocks {
     private static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(TcCloud.MOD_ID);
 
     public static final DeferredBlock<CloudLinkBlock> CLOUD_LINK = BLOCKS.register("cloud_link",
-            () -> new CloudLinkBlock(BlockBehaviour.Properties.of()
-                    .strength(2.2f, 11f)
-                    .sound(SoundType.METAL)
-                    .requiresCorrectToolForDrops()));
+        () -> new CloudLinkBlock(BlockBehaviour.Properties.of()
+            .strength(2.2f, 11f)
+            .sound(SoundType.METAL)
+            .requiresCorrectToolForDrops()
+            .noOcclusion()
+            .pushReaction(PushReaction.BLOCK))); // pistão não separa as duas metades
 
-    private ModBlocks() {}
+    private ModBlocks() {
+    }
 
     public static void register(IEventBus modBus) {
         BLOCKS.register(modBus);

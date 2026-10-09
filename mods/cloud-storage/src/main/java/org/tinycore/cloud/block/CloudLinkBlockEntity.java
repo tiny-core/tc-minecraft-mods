@@ -8,6 +8,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
@@ -30,16 +31,20 @@ import java.util.UUID;
 public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNodeHost, CloudLinkNode.Host {
 
     private final CloudLinkNode node;
+    private final Runnable onCloudChange = this::refreshMounts;
     private @Nullable UUID owner;
     private String ownerName = "";
     private NetworkAccess access = NetworkAccess.FULL;
     private int priority;
-    /** Canal escolhido na tela; null = o padrão do dono (Link novo ou de antes dos canais múltiplos). */
+    /**
+     * Canal escolhido na tela; null = o padrão do dono (Link novo ou de antes dos canais múltiplos).
+     */
     private @Nullable UUID channel;
     private boolean nodeCreated;
     private @Nullable CloudService listeningTo;
-    private final Runnable onCloudChange = this::refreshMounts;
-    /** Onde o canal já está montado quando este Link não conseguiu montá-lo (para a tela). */
+    /**
+     * Onde o canal já está montado quando este Link não conseguiu montá-lo (para a tela).
+     */
     private @Nullable GlobalPos conflict;
 
     public CloudLinkBlockEntity(BlockPos pos, BlockState state) {
@@ -47,7 +52,9 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         this.node = new CloudLinkNode(this);
     }
 
-    /** Tick do servidor: cria o nó no primeiro tick e se registra no serviço quando ele existir. */
+    /**
+     * Tick do servidor: cria o nó no primeiro tick e se registra no serviço quando ele existir.
+     */
     public void serverTick() {
         if (level == null) return;
         if (!nodeCreated) {
@@ -62,6 +69,20 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
                 listeningTo = service;
                 refreshMounts();
             }
+        }
+        updateActive(service);
+    }
+
+    /**
+     * Aceso ({@link CloudLinkBlock#ACTIVE}) = o Link funciona agora: rede AE2 ligada (energia + canal) <b>e</b> a
+     * nuvem do dono aberta neste servidor (dono online, com lease). Só troca o blockstate quando muda (cada troca
+     * vai aos clientes).
+     */
+    private void updateActive(@Nullable CloudService service) {
+        boolean active = node.isActive() && service != null && owner != null && service.session(owner) != null;
+        BlockState state = getBlockState();
+        if (state.hasProperty(CloudLinkBlock.ACTIVE) && state.getValue(CloudLinkBlock.ACTIVE) != active) {
+            level.setBlock(worldPosition, state.setValue(CloudLinkBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
         }
     }
 
@@ -128,7 +149,9 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         return channel;
     }
 
-    /** Troca o canal deste Link (a tela já conferiu que é do dono); remonta no AE2. */
+    /**
+     * Troca o canal deste Link (a tela já conferiu que é do dono); remonta no AE2.
+     */
     public void setChannel(@NotNull UUID channel) {
         if (channel.equals(this.channel)) return;
         this.channel = channel;
@@ -173,7 +196,7 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
     // ---------------------------------------------------------------- NBT
 
     @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void saveAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.saveAdditional(tag, registries);
         node.save(tag);
         if (owner != null) tag.putUUID("owner", owner);
@@ -184,7 +207,7 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
     }
 
     @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+    protected void loadAdditional(@NotNull CompoundTag tag, HolderLookup.@NotNull Provider registries) {
         super.loadAdditional(tag, registries);
         node.load(tag);
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;

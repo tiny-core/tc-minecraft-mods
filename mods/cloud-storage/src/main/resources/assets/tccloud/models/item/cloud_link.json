@@ -1,1 +1,3 @@
-{ "parent": "tccloud:block/cloud_link" }
+{
+  "parent": "tccloud:block/cloud_link"
+}

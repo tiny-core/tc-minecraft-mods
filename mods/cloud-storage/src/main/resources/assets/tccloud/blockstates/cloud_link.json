@@ -1,1 +1,13 @@
-{ "variants": { "": { "model": "tccloud:block/cloud_link" } } }
+{
+  "variants": {
+    "half=lower,active=false": {
+      "model": "tccloud:block/cloud_link_off"
+    },
+    "half=lower,active=true": {
+      "model": "tccloud:block/cloud_link"
+    },
+    "half=upper": {
+      "model": "tccloud:block/cloud_link_upper"
+    }
+  }
+}
