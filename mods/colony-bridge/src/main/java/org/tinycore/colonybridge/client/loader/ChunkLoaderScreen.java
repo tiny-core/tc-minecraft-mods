@@ -18,6 +18,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.RedstoneIcons;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 import org.tinycore.core.client.ui.UiFormat;
 
 import java.util.List;
@@ -52,7 +53,7 @@ public class ChunkLoaderScreen extends AbstractContainerScreen<ChunkLoaderMenu> 
         topPos += TabletTabBar.offset(menu.tabletView());
         TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
-        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP)));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.loader"));
         powerButton = addRenderableWidget(toolbar.add(new IconButton(0, 0,
                 () -> send(ChunkLoaderActionPayload.TOGGLE)).icon(new ItemStack(Items.LEVER))));

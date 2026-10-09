@@ -28,6 +28,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.RedstoneIcons;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 import org.tinycore.core.client.ui.UiFormat;
 
 import java.util.HashSet;
@@ -110,7 +111,7 @@ public class ColonyBridgeScreen extends AbstractContainerScreen<ColonyBridgeMenu
 
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
         tabToolbar = new SideToolbar(SideToolbar.Side.RIGHT);
-        helpButton = tool(toolbar, new IconButton(0, 0, () -> {}).glyph("?"));
+        helpButton = tool(toolbar, new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP));
         craftingButton = tool(toolbar,
                 new IconButton(0, 0, () -> send(settings.withCrafting(!settings.craftingEnabled()))));
         redstoneButton = tool(toolbar,

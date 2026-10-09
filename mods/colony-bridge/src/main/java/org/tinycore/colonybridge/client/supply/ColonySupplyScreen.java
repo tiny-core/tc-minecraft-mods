@@ -24,6 +24,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.RedstoneIcons;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class ColonySupplyScreen extends AbstractContainerScreen<ColonySupplyMenu
         topPos += TabletTabBar.offset(menu.tabletView()); // abre espaço para as abas do tablet acima da janela
         TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
-        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP)));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.supply"));
         redstoneButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleRedstone)));
         craftButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::toggleCraft)

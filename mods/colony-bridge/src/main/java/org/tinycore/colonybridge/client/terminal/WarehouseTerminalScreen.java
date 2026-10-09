@@ -25,6 +25,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.ItemGrid;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 import org.tinycore.core.grid.ItemListing;
 
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
         TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, top);
 
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
-        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP)));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.terminal"));
         sortButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleSort)));
         addRenderableWidget(toolbar.add(GridHeightButton.create(this::rebuildWidgets)));
@@ -127,7 +128,7 @@ public class WarehouseTerminalScreen extends AbstractContainerScreen<WarehouseTe
     }
 
     private void updateSortButton() {
-        sortButton.glyph(sort == ItemListing.Sort.AMOUNT ? "#" : "A");
+        sortButton.sprite(sort == ItemListing.Sort.AMOUNT ? TcIcons.SORT_AMOUNT : TcIcons.SORT_NAME);
         sortButton.setTooltipText(Component.translatable(sort == ItemListing.Sort.AMOUNT
                 ? "gui.tccolonybridge.terminal.sort.amount" : "gui.tccolonybridge.terminal.sort.name"));
     }

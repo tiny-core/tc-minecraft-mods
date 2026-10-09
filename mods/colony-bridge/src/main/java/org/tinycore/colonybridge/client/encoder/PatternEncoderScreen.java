@@ -23,6 +23,7 @@ import org.tinycore.colonybridge.network.EncoderActionPayload;
 import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 import org.tinycore.core.client.ui.UiFormat;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class PatternEncoderScreen extends AbstractContainerScreen<PatternEncoder
         topPos += TabletTabBar.offset(menu.tabletView()); // abas do tablet acima da janela
         TabletTabBar.add(menu.tabletView(), this::addRenderableWidget, leftPos, topPos);
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
-        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP)));
         help.setTooltipText(Component.translatable("gui.tccolonybridge.help.encoder"));
         IconButton encodeAll = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(ItemStack.EMPTY))
                 .icon(new ItemStack(BuiltInRegistries.ITEM.get(PATTERN_ICON)))));
