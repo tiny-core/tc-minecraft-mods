@@ -27,10 +27,10 @@ public final class GridHeightButton {
     }
 
     private static void describe(IconButton button, GridHeight height) {
-        button.glyph(switch (height) {
-            case SMALL -> "5";
-            case MEDIUM -> "8";
-            case TALL -> "↕";
+        button.sprite(switch (height) {
+            case SMALL -> TcIcons.GRID_SMALL;
+            case MEDIUM -> TcIcons.GRID_MEDIUM;
+            case TALL -> TcIcons.GRID_TALL;
         });
         button.setTooltipText(Component.translatable("gui.tccore.grid_height",
                 Component.translatable("gui.tccore.grid_height." + height.name().toLowerCase())));

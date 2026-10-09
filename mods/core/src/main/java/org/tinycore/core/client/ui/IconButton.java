@@ -6,13 +6,17 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
+
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
 /**
- * Botão quadrado com ícone, como os da barra lateral e as abas dos terminais do AE2: o ícone é um item
- * do jogo (ou um caractere, ex.: "?"), e o texto aparece só no tooltip. Assim nenhum texto estoura o
+ * Botão quadrado com ícone, como os da barra lateral e as abas dos terminais do AE2: o ícone é um item do jogo, um
+ * sprite 16×16 ({@link #sprite}, ex.: os do {@link TcIcons}) ou um caractere (só nos botões pequenos: setas, "x"),
+ * e o texto aparece só no tooltip. Assim nenhum texto estoura o
  * botão, qualquer que seja a fonte ou o idioma.
  * <p>
  * Um "selo" colorido no canto ({@link #setBadge}) mostra estado sem texto (ex.: verde = ligado).
@@ -27,6 +31,7 @@ public class IconButton extends AbstractButton {
     private final Runnable onPress;
     private ItemStack icon = ItemStack.EMPTY;
     private String glyph = "";
+    private @Nullable ResourceLocation sprite;
     private boolean selected;
     /** Cor do selo no canto inferior direito; 0 = sem selo. */
     private int badge;
@@ -45,12 +50,22 @@ public class IconButton extends AbstractButton {
     public IconButton icon(ItemStack value) {
         this.icon = value;
         this.glyph = "";
+        this.sprite = null;
         return this;
     }
 
     public IconButton glyph(String value) {
         this.glyph = value;
         this.icon = ItemStack.EMPTY;
+        this.sprite = null;
+        return this;
+    }
+
+    /** Ícone desenhado de uma textura 16×16 (caminho completo, ex.: {@code tccore:textures/gui/icons/help.png}). */
+    public IconButton sprite(ResourceLocation texture) {
+        this.sprite = texture;
+        this.icon = ItemStack.EMPTY;
+        this.glyph = "";
         return this;
     }
 
@@ -86,7 +101,10 @@ public class IconButton extends AbstractButton {
         g.fill(x, y, x + width, y + height, border);
         g.fill(x + 1, y + 1, x + width - 1, y + height - 1,
                 selected || highlighted ? ScreenStyle.HOVER : ScreenStyle.PANEL);
-        if (!icon.isEmpty()) {
+        if (sprite != null) {
+            // blit(textura, x, y, u, v, largura, altura, largura da textura, altura da textura)
+            g.blit(sprite, x + (width - 16) / 2, y + (height - 16) / 2, 0, 0, 16, 16, 16, 16);
+        } else if (!icon.isEmpty()) {
             g.renderItem(icon, x + 1, y + 1);
         } else if (!glyph.isEmpty()) {
             var font = Minecraft.getInstance().font;
