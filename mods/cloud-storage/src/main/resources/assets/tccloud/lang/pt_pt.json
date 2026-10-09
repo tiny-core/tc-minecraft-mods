@@ -59,5 +59,11 @@
   "gui.tccloud.channel.feedback.limit": "Limite de canais desta nuvem atingido.",
   "gui.tccloud.channel.feedback.no_lease": "A nuvem não está ligada para si neste servidor.",
   "gui.tccloud.channel.feedback.unsupported": "Este TCMine ainda não permite criar nem mudar o nome de canais.",
-  "gui.tccloud.channel.feedback.failed": "Não foi possível falar com a nuvem; tente novamente."
+  "gui.tccloud.channel.feedback.failed": "Não foi possível falar com a nuvem; tente novamente.",
+  "gui.tccloud.access.extract_only": "só retirar",
+  "gui.tccloud.access.hint": "%s\nClique para mudar. Quem acede a esta rede AE2 pode usar o que ela permite enquanto está online.",
+  "gui.tccloud.access.terminal_only.hint": "A rede não vê este canal; só este ecrã guarda e retira.",
+  "gui.tccloud.access.deposit_only.hint": "A rede pode guardar aqui, mas não vê nem retira nada.",
+  "gui.tccloud.access.extract_only.hint": "A rede vê e retira itens, mas nunca guarda aqui (nada entra sozinho).",
+  "gui.tccloud.access.full.hint": "A rede guarda e retira como num drive."
 }

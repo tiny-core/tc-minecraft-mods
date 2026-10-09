@@ -48,7 +48,7 @@ final class CloudMEStorage implements MEStorage {
     @Override
     public long insert(AEKey what, long amount, Actionable mode, IActionSource source) {
         CloudService service = CloudService.get();
-        if (service == null || !(what instanceof AEItemKey itemKey) || !access.get().mounts()) return 0;
+        if (service == null || !(what instanceof AEItemKey itemKey) || !access.get().allowsInsert()) return 0;
         return service.inventory().insert(owner, channel, itemKey.toStack(), amount, mode == Actionable.SIMULATE).accepted();
     }
 

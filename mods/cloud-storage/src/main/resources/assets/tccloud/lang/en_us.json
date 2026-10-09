@@ -59,5 +59,11 @@
   "gui.tccloud.channel.feedback.limit": "Channel limit reached for this cloud.",
   "gui.tccloud.channel.feedback.no_lease": "The cloud is not connected for you on this server.",
   "gui.tccloud.channel.feedback.unsupported": "This TCMine does not support creating or renaming channels yet.",
-  "gui.tccloud.channel.feedback.failed": "Could not reach the cloud; try again."
+  "gui.tccloud.channel.feedback.failed": "Could not reach the cloud; try again.",
+  "gui.tccloud.access.extract_only": "take only",
+  "gui.tccloud.access.hint": "%s\nClick to change. Anyone with access to this AE2 network can use what it allows while you are online.",
+  "gui.tccloud.access.terminal_only.hint": "The network does not see this channel; only this screen stores and takes.",
+  "gui.tccloud.access.deposit_only.hint": "The network can store here but cannot see or take anything.",
+  "gui.tccloud.access.extract_only.hint": "The network sees and takes items, but never stores here (no automatic deposits).",
+  "gui.tccloud.access.full.hint": "The network stores and takes like a drive."
 }

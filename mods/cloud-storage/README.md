@@ -24,12 +24,20 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
 1. Em `config/tccloud-common.toml`, ligue `devFileBackend = true` (a nuvem de teste fica em
    `tccloud-dev-backend.json`, na pasta do jogo/servidor, e é a mesma para todos os mundos).
 2. Pegue o **TC Cloud Link** na aba criativa "TC Cloud Storage" e coloque-o ligado a uma rede AE2 (qualquer
-   lado). Só quem colocou abre a tela.
+   lado do bloco de baixo). Ele tem **dois blocos de altura** (precisa do espaço de cima livre) e acende quando a
+   rede AE2 está ligada e a sua nuvem está aberta neste servidor. Só quem colocou abre a tela, clicando em
+   qualquer parte.
 3. Na tela: clique esquerdo tira um stack, direito tira 1; com item no cursor, esquerdo guarda tudo e direito
-   guarda 1; shift-clique no inventário guarda o stack. O botão `!` mostra os itens que não podem ser usados
+   guarda 1; shift-clique no inventário guarda o stack. O botão de aviso (triângulo) mostra os itens que não podem ser usados
    neste servidor (apagados, com o motivo).
-4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 (`T` só esta tela, `D` só guardar, `R` guardar e retirar) e prioridade
-   (`+`/`-`).
+4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 e prioridade
+   (setas). Os botões são ícones; o tooltip diz o que cada um faz. Modos da rede AE2 (o botão alterna nesta ordem):
+   - **só esta tela** (cadeado): a rede não vê o canal;
+   - **só guardar** (seta verde entrando): a rede guarda, mas não vê nem retira;
+   - **só retirar** (seta laranja saindo): a rede vê e retira, mas nada entra sozinho na nuvem;
+   - **guardar e retirar** (as duas setas, padrão): como um drive.
+
+   Quem acessa a rede AE2 usa o que o modo permite enquanto o dono está online.
 5. **Canais:** a linha "Canal" no topo escolhe o canal deste Link (◀ ▶); `+` cria um canal (digite o nome, Enter
    confirma, Esc cancela) e já passa o Link para ele; `✎` renomeia. Cada Link mostra e monta na rede AE2 o seu
    canal; o mesmo canal só pode estar montado em um Link por servidor. Limite: o do painel do TCMine, ou

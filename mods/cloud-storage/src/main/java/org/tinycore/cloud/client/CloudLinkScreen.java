@@ -10,6 +10,7 @@ import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
+import org.tinycore.cloud.TcCloud;
 import org.tinycore.cloud.block.NetworkAccess;
 import org.tinycore.cloud.item.ItemCompatibility;
 import org.tinycore.cloud.item.TransferRejection;
@@ -26,6 +27,7 @@ import org.tinycore.core.client.ui.IconButton;
 import org.tinycore.core.client.ui.ItemGrid;
 import org.tinycore.core.client.ui.ScreenStyle;
 import org.tinycore.core.client.ui.SideToolbar;
+import org.tinycore.core.client.ui.TcIcons;
 import org.tinycore.core.grid.ItemListing;
 
 import java.util.ArrayList;
@@ -92,14 +94,14 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         topPos = (height - CloudLinkMenu.HEIGHT - extra) / 2 + extra; // janela inteira centralizada
         int top = topPos - extra;
         toolbar = new SideToolbar(SideToolbar.Side.LEFT);
-        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).glyph("?")));
+        IconButton help = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> {}).sprite(TcIcons.HELP)));
         help.setTooltipText(Component.translatable("gui.tccloud.help"));
         sortButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleSort)));
-        incompatibleButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::toggleIncompatible).glyph("!")));
+        incompatibleButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::toggleIncompatible).sprite(TcIcons.WARNING)));
         incompatibleButton.setTooltipText(Component.translatable("gui.tccloud.show_incompatible"));
         accessButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.CYCLE_ACCESS, ""))));
-        priorityUp = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_UP, "")).glyph("+")));
-        priorityDown = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_DOWN, "")).glyph("-")));
+        priorityUp = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_UP, "")).sprite(TcIcons.PRIORITY_UP)));
+        priorityDown = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_DOWN, "")).sprite(TcIcons.PRIORITY_DOWN)));
         addRenderableWidget(toolbar.add(GridHeightButton.create(this::rebuildWidgets)));
         toolbar.layout(leftPos, top, CloudLinkMenu.WIDTH);
         updateSortButton();
@@ -132,7 +134,7 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     }
 
     private void updateSortButton() {
-        sortButton.glyph(sort == ItemListing.Sort.AMOUNT ? "#" : "A");
+        sortButton.sprite(sort == ItemListing.Sort.AMOUNT ? TcIcons.SORT_AMOUNT : TcIcons.SORT_NAME);
         sortButton.setTooltipText(Component.translatable(sort == ItemListing.Sort.AMOUNT
                 ? "gui.tccloud.sort.amount" : "gui.tccloud.sort.name"));
     }
@@ -195,12 +197,15 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
 
     private void updateToolbar(LinkHeader header) {
         NetworkAccess access = NetworkAccess.byId(header.access());
-        accessButton.glyph(switch (access) {
-            case TERMINAL_ONLY -> "T";
-            case DEPOSIT_ONLY -> "D";
-            case FULL -> "R";
-        });
-        accessButton.setTooltipText(Component.translatable("gui.tccloud.access", Component.translatable(access.translationKey())));
+        accessButton.sprite(TcIcons.icon(TcCloud.MOD_ID, switch (access) {
+            case TERMINAL_ONLY -> "access_terminal";
+            case DEPOSIT_ONLY -> "access_deposit";
+            case EXTRACT_ONLY -> "access_extract";
+            case FULL -> "access_full";
+        }));
+        accessButton.setTooltipText(Component.translatable("gui.tccloud.access.hint",
+                Component.translatable("gui.tccloud.access", Component.translatable(access.translationKey())))
+                .append("\n").append(Component.translatable(access.translationKey() + ".hint")));
         Component priority = Component.translatable("gui.tccloud.priority", header.priority());
         priorityUp.setTooltipText(priority);
         priorityDown.setTooltipText(priority);
