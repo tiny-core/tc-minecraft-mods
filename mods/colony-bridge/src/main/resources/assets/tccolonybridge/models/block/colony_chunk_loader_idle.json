@@ -1,3 +1,8 @@
 {
-  "parent": "tccolonybridge:block/colony_chunk_loader"
+  "parent": "tccolonybridge:block/colony_chunk_loader",
+  "textures": {
+    "core": "tccolonybridge:block/kit_core_idle",
+    "lamp": "tccolonybridge:block/kit_lamp_idle",
+    "screen": "tccolonybridge:block/kit_screen_idle"
+  }
 }

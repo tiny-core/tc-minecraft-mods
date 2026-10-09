@@ -1,1 +1,3 @@
-{ "parent": "tccolonybridge:block/colony_bridge" }
+{
+  "parent": "tccolonybridge:block/colony_bridge_idle"
+}

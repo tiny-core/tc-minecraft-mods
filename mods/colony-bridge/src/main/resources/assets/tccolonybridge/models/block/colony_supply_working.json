@@ -1,3 +1,8 @@
 {
-  "parent": "tccolonybridge:block/colony_supply"
+  "parent": "tccolonybridge:block/colony_supply",
+  "textures": {
+    "core": "tccolonybridge:block/kit_core_working",
+    "lamp": "tccolonybridge:block/kit_lamp_working",
+    "screen": "tccolonybridge:block/kit_screen_working"
+  }
 }
