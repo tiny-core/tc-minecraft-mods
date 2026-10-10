@@ -20,17 +20,30 @@ Servidor fora do TCMine: defina `TCMINE_CLOUD_URL` e `TCMINE_CLOUD_KEY` no ambie
 O que o dono vê e decide no painel: regras de item (e a fila de itens suspeitos que o mod recusou), lotes em
 quarentena, operações em dúvida depois de uma queda, mundos que voltaram no tempo e o histórico de tudo.
 
-## Sem o TCMine (testes)
-1. Em `config/tccloud-common.toml`, ligue `devFileBackend = true` (a nuvem de teste fica em
-   `tccloud-dev-backend.json`, na pasta do jogo/servidor, e é a mesma para todos os mundos).
-2. Pegue o **TC Cloud Link** na aba criativa "TC Cloud Storage" e coloque-o ligado a uma rede AE2 (qualquer
-   lado do bloco de baixo). Ele tem **dois blocos de altura** (precisa do espaço de cima livre) e acende quando a
-   rede AE2 está ligada e a sua nuvem está aberta neste servidor. Só quem colocou abre a tela, clicando em
-   qualquer parte.
-3. Na tela: clique esquerdo tira um stack, direito tira 1; com item no cursor, esquerdo guarda tudo e direito
+## Sem o TCMine: nuvem local (singleplayer e servidor próprio)
+Sem o TCMine, o mod usa a **nuvem local**: os canais ficam num arquivo deste computador, fora dos mundos. Guarde
+itens num mundo e pegue-os em outro. Já vem ligada (`localCloud = true` em `config/tccloud-common.toml`).
+
+- **Arquivo:** `localCloudFile`. O padrão, `tccloud-local.json`, fica na pasta do jogo (uma nuvem por instância). Com
+  um caminho **absoluto** (ex.: `C:/Users/voce/tccloud-local.json`), várias instâncias e modpacks deste computador
+  usam a mesma nuvem.
+- **Uma instância por vez:** quem abre o arquivo primeiro fica com ele; outra instância aberta ao mesmo tempo fica
+  com a nuvem desligada (aparece no log). Isso evita que uma apague as mudanças da outra.
+- **Trocar de mundo:** ao sair, o canal é liberado depois de salvo. Se o jogo fechar sem salvar, o canal fica
+  "em uso" por até `localLeaseTtlSeconds` (90 s) antes de abrir em outro mundo.
+- **Cota opcional:** `localQuotaMaxTotal` e `localQuotaMaxTypes` (0 = sem limite).
+- **Servidor dedicado sem TCMine:** também funciona (uma nuvem só para aquele servidor), mas exige `online-mode=true`.
+- Quem testou versões antigas: o arquivo `tccloud-dev-backend.json` é renomeado sozinho para `tccloud-local.json`.
+
+Como usar:
+1. Faça (ou pegue na aba criativa "TC Cloud Storage") um **TC Cloud Link** e coloque-o. Com o AE2, ligue-o a uma
+   rede ME (qualquer lado do bloco de baixo). Ele tem **dois blocos de altura** (precisa do espaço de cima livre) e
+   acende quando a sua nuvem está aberta (e, com o AE2 num modo que usa a rede, quando a rede está ligada). Só quem
+   colocou abre a tela, clicando em qualquer parte.
+2. Na tela: clique esquerdo tira um stack, direito tira 1; com item no cursor, esquerdo guarda tudo e direito
    guarda 1; shift-clique no inventário guarda o stack. O botão de aviso (triângulo) mostra os itens que não podem ser usados
    neste servidor (apagados, com o motivo).
-4. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), modo da rede AE2 e prioridade
+3. Barra lateral: altura da grade (5 linhas, 8 ou a janela toda, a mesma escolha do Terminal do Armazém), e, com o AE2, modo da rede e prioridade
    (setas). Os botões são ícones; o tooltip diz o que cada um faz. Modos da rede AE2 (o botão alterna nesta ordem):
    - **só esta tela** (cadeado): a rede não vê o canal;
    - **só guardar** (seta verde entrando): a rede guarda, mas não vê nem retira;
@@ -38,15 +51,15 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
    - **guardar e retirar** (as duas setas, padrão): como um drive.
 
    Quem acessa a rede AE2 usa o que o modo permite enquanto o dono está online.
-5. **Canais:** a linha "Canal" no topo escolhe o canal deste Link (◀ ▶); `+` cria um canal (digite o nome, Enter
+4. **Canais:** a linha "Canal" no topo escolhe o canal deste Link (◀ ▶); `+` cria um canal (digite o nome, Enter
    confirma, Esc cancela) e já passa o Link para ele; `✎` renomeia. Cada Link mostra e monta na rede AE2 o seu
    canal; o mesmo canal só pode estar montado em um Link por servidor. Limite: o do painel do TCMine, ou
    `maxChannels` (padrão 8). Com o TCMine, criar/renomear depende de endpoints que ele ainda não tem: a tela avisa;
-   escolher entre canais existentes já funciona. Na nuvem de teste, tudo funciona.
-6. No topo da tela, a **barra de cota** mostra quanto do canal está ocupado (a barra segue o limite mais apertado
+   escolher entre canais existentes já funciona. Na nuvem local, tudo funciona.
+5. No topo da tela, a **barra de cota** mostra quanto do canal está ocupado (a barra segue o limite mais apertado
    entre itens e tipos; amarela a partir de 75 %, vermelha a partir de 95 %). O tooltip traz os dois números. A cota
-   vem do painel do TCMine; na nuvem de teste, use `devQuotaMaxTotal` e `devQuotaMaxTypes` (0 = sem limite).
-7. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
+   vem do painel do TCMine; na nuvem local, de `localQuotaMaxTotal` e `localQuotaMaxTypes` (0 = sem limite).
+6. Quebrar o bloco não derruba itens: eles estão na nuvem. Coloque outro Link (até em outro mundo) e eles
    estão lá.
 
 Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag

@@ -90,7 +90,7 @@ public final class CloudService {
     static void start(@NotNull MinecraftServer server) {
         CloudBackend backend = CloudBackends.create(server);
         if (backend == null) {
-            TcCloud.LOG.info("Nuvem desligada neste servidor (sem backend configurado).");
+            TcCloud.LOG.info("Nuvem desligada neste servidor (sem TCMine e sem nuvem local; ver mensagens acima).");
             return;
         }
         Path folder = server.getWorldPath(LevelResource.ROOT).resolve("tccloud");

@@ -17,13 +17,13 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * As regras do TCMine, em miniatura, para o backend de desenvolvimento ({@link FileCloudBackend}): lease com
+ * As regras do TCMine, em miniatura, para a nuvem local ({@link LocalCloudBackend}): lease com
  * época e expiração, lote aplicado uma vez só, saldo nunca negativo, saldo esperado conferido e quarentena.
- * Síncrono e sem Minecraft, para ser testado em JUnit; o {@code FileCloudBackend} só cuida de thread e arquivo.
+ * Síncrono e sem Minecraft, para ser testado em JUnit; o {@code LocalCloudBackend} só cuida de thread e arquivo.
  *
  * <p>Os campos públicos sem getters são o formato do JSON salvo (o Gson lê e grava campo a campo).
  */
-public final class DevCloudState {
+public final class LocalCloudState {
 
     public Map<String, PlayerState> players = new HashMap<>();
     public Map<String, ItemState> items = new HashMap<>();
@@ -58,7 +58,7 @@ public final class DevCloudState {
     public static final String DEFAULT_CHANNEL = "Principal";
 
     /**
-     * @param holder quem pede (o {@code worldId} do mundo, no backend de desenvolvimento)
+     * @param holder quem pede (o {@code worldId} do mundo, na nuvem local)
      * @param ttlMs  lease sem heartbeat por mais que isso pode ser tomado por outro
      */
     public synchronized @NotNull CloudBackend.LeaseResult acquire(@NotNull UUID player, @NotNull String holder,

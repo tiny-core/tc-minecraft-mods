@@ -16,7 +16,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Tudo o que o mod pede à nuvem (plano §8). Duas implementações: {@link FileCloudBackend} (arquivo local, para
+ * Tudo o que o mod pede à nuvem (plano §8). Duas implementações: {@link LocalCloudBackend} (arquivo local, para
  * desenvolver e testar sem o TCMine) e, na fase 4, a HTTP do TCMine. O resto do mod só conhece esta interface.
  *
  * <p>Todos os métodos são assíncronos ({@code CompletableFuture} ≈ {@code Task} em C#) e completam fora da

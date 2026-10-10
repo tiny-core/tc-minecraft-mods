@@ -27,7 +27,7 @@ import org.tinycore.cloud.server.CloudServerEvents;
  *   <li>{@code item}: impressão digital canônica do item e detecção de referência ao mundo;</li>
  *   <li>{@code item.policy}: regras de item do dono da nuvem;</li>
  *   <li>{@code server}: o serviço da nuvem no servidor (sessões, diário, envio, eventos);</li>
- *   <li>{@code integration.tcmine}: backends (arquivo local de desenvolvimento; TCMine na fase 4);</li>
+ *   <li>{@code integration.tcmine}: backends (nuvem local num arquivo; TCMine);</li>
  *   <li>{@code integration.ae2}: o que fala com o AE2 (nó, armazenamento, células), <b>opcional</b>: só é usado com
  *       o AE2 instalado ({@code integration.Ae2Compat});</li>
  *   <li>{@code block}, {@code menu}, {@code network}, {@code client}, {@code registry}: o TC Cloud Link e sua tela.</li>

@@ -14,16 +14,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
- * {@link DevCloudState}: as regras que o TCMine real também terá (lease com época, lote idempotente, saldo
- * nunca negativo, quarentena). O backend de desenvolvimento é o primeiro "contrato" do protocolo.
+ * {@link LocalCloudState}: as regras que o TCMine real também terá (lease com época, lote idempotente, saldo
+ * nunca negativo, quarentena). A nuvem local é o primeiro "contrato" do protocolo.
  */
-class DevCloudStateTest {
+class LocalCloudStateTest {
 
     private static final UUID PLAYER = UUID.randomUUID();
     private static final long TTL = 60_000;
     private static final EncodedItem DIAMOND = new EncodedItem("fp-diamond", "minecraft:diamond", "Diamante", new byte[]{1});
 
-    private static CloudBackend.LeaseResult.Granted grant(DevCloudState state, String holder, long now) {
+    private static CloudBackend.LeaseResult.Granted grant(LocalCloudState state, String holder, long now) {
         return assertInstanceOf(CloudBackend.LeaseResult.Granted.class, state.acquire(PLAYER, holder, now, TTL));
     }
 
@@ -34,15 +34,15 @@ class DevCloudStateTest {
 
     @Test
     void primeiroAcessoCriaOCanalPrincipal() {
-        CloudBackend.LeaseResult.Granted g = grant(new DevCloudState(), "mundoA", 0);
+        CloudBackend.LeaseResult.Granted g = grant(new LocalCloudState(), "mundoA", 0);
         assertEquals(1, g.epoch());
         assertEquals(1, g.channels().size());
-        assertEquals(DevCloudState.DEFAULT_CHANNEL, g.channels().getFirst().name());
+        assertEquals(LocalCloudState.DEFAULT_CHANNEL, g.channels().getFirst().name());
     }
 
     @Test
     void outroMundoNaoPegaOCanalAteExpirarOuLiberar() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         grant(state, "mundoA", 0);
         assertInstanceOf(CloudBackend.LeaseResult.Busy.class, state.acquire(PLAYER, "mundoB", 1000, TTL));
         assertEquals(2, grant(state, "mundoB", TTL + 1).epoch(), "expirou: nova época");
@@ -50,7 +50,7 @@ class DevCloudStateTest {
 
     @Test
     void releaseSoComTodosOsLotesConfirmados() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         CloudBackend.LeaseResult.Granted g = grant(state, "mundoA", 0);
         UUID channel = g.channels().getFirst().id();
         state.submit(batch(channel, 1, 1, 5, 5), List.of(DIAMOND), "mundoA");
@@ -64,7 +64,7 @@ class DevCloudStateTest {
 
     @Test
     void reenvioEhDuplicadoENaoAplicaDuasVezes() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         UUID channel = grant(state, "mundoA", 0).channels().getFirst().id();
         Batch b = batch(channel, 1, 1, 10, 10);
         assertEquals(CloudBackend.BatchResult.APPLIED, state.submit(b, List.of(DIAMOND), "mundoA"));
@@ -74,7 +74,7 @@ class DevCloudStateTest {
 
     @Test
     void epocaVelhaSaldoNegativoEDivergenciaVaoParaQuarentena() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         UUID channel = grant(state, "mundoA", 0).channels().getFirst().id();
         state.submit(batch(channel, 1, 1, 10, 10), List.of(DIAMOND), "mundoA");
         assertEquals(CloudBackend.BatchResult.QUARANTINED, state.submit(batch(channel, 1, 2, -11, -1), List.of(), "mundoA"));
@@ -87,14 +87,14 @@ class DevCloudStateTest {
 
     @Test
     void buracoNaSequenciaVaiParaQuarentena() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         UUID channel = grant(state, "mundoA", 0).channels().getFirst().id();
         assertEquals(CloudBackend.BatchResult.QUARANTINED, state.submit(batch(channel, 1, 2, 1, 1), List.of(DIAMOND), "mundoA"));
     }
 
     @Test
     void criaERenomeiaCanaisComAsRegrasDoTcmine() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         CloudBackend.LeaseResult.Granted g = grant(state, "mundoA", 0);
         CloudBackend.ChannelResult created = state.createChannel(PLAYER, "  Minérios ", "mundoA", 3);
         assertEquals(true, created.ok());
@@ -116,7 +116,7 @@ class DevCloudStateTest {
 
     @Test
     void loteNoCanalCriadoEhAceito() {
-        DevCloudState state = new DevCloudState();
+        LocalCloudState state = new LocalCloudState();
         CloudBackend.LeaseResult.Granted g = grant(state, "mundoA", 0);
         UUID novo = state.createChannel(PLAYER, "Novo", "mundoA", 8).id();
         assertEquals(CloudBackend.BatchResult.APPLIED,

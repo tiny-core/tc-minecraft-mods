@@ -8,12 +8,13 @@ expõe isso à rede do AE2. Plano completo: `docs/planos/tc-cloud-storage.md` (r
 do TCMine: `docs/planos/tc-cloud-storage-tcmine.md`. **Ler o plano antes de mudar qualquer regra de
 `cloud/`.**
 
-Estado: **fase 4** — fala com o TCMine de verdade (`HttpCloudBackend`, API `/api/cloud/v1`); backend de
-desenvolvimento (arquivo local, `devFileBackend=true`) continua para testes sem o TCMine. Vários canais por jogador:
+Estado: **fase 4** — fala com o TCMine de verdade (`HttpCloudBackend`, API `/api/cloud/v1`); sem o TCMine,
+a **nuvem local** (`LocalCloudBackend`, arquivo deste computador com trava de uma instância; `localCloud=true`, padrão)
+é a nuvem do singleplayer e de servidores próprios — é um recurso, não só teste. Vários canais por jogador:
 cada Link escolhe o seu; criar/renomear pela tela (`PlayerChannels`; no TCMine depende dos endpoints de canal).
 
 Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do GuideMe>` (padrão:
-`mods/colony-bridge/libs`). Ligar `devFileBackend = true` em `run/config/tccloud-common.toml`.
+`mods/colony-bridge/libs`). A nuvem local já vem ligada (`run/tccloud-local.json`).
 
 ## Regras que não podem ser quebradas
 
@@ -47,7 +48,7 @@ Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do
 | `item/` | `ItemCodec` (bytes ↔ `ItemStack`), `ItemCatalog` (caches), `TransferGuard` + probes, `CanonicalNbt`, `ItemFingerprint`, `WorldReferenceDetector`, `CloudItemTags` |
 | `item/policy/` | `ItemPolicy`, `ItemRule` |
 | `server/` | `CloudService` (ciclo de vida, diário, saves, política), `PlayerLeases`, `PlayerChannels` (criar/renomear), `JournalWriter`, `BatchOutbox`, `CloudReports` + `DoubtfulOutbox` + `SuspectCollector` (relatórios ao dono), `CloudInventory` (guardar/retirar/listar), `ChannelMounts`, `CloudServerEvents`, `CloudCommands` |
-| `integration/tcmine/` | `CloudBackend` (interface), `HttpCloudBackend` + `CloudApiDto` + `CloudCredentials` (TCMine), `FileCloudBackend` + `DevCloudState` (desenvolvimento) |
+| `integration/tcmine/` | `CloudBackend` (interface), `HttpCloudBackend` + `CloudApiDto` + `CloudCredentials` (TCMine), `LocalCloudBackend` + `LocalCloudState` (desenvolvimento) |
 | `integration/` | `Ae2Compat`: diz se o AE2 está instalado e só então chama o `Ae2Bridge` |
 | `integration/ae2/` | **Opcional.** `Ae2Bridge` (entrada única), `CloudLinkNode` (nó + `IStorageProvider`, é a `LinkNetwork` do Link), `CloudMEStorage`, `Ae2CellProbe` |
 | `block/`, `menu/`, `network/`, `client/`, `registry/` | TC Cloud Link, tela (grade do core), pacotes, registros |

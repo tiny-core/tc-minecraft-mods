@@ -10,27 +10,35 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class Config {
     private static final ModConfigSpec.Builder B = new ModConfigSpec.Builder();
 
-    public static final ModConfigSpec.BooleanValue DEV_FILE_BACKEND = B
-            .comment("Liga o backend de desenvolvimento: a \"nuvem\" vira o arquivo tccloud-dev-backend.json na pasta",
-                    "do jogo/servidor (compartilhado entre mundos). Só para testes; em produção a nuvem é o TCMine.")
-            .define("devFileBackend", false);
+    public static final ModConfigSpec.BooleanValue LOCAL_CLOUD = B
+            .comment("Nuvem local: sem o TCMine, os canais ficam num arquivo deste computador (localCloudFile) e são os",
+                    "mesmos em todos os mundos que o usam. É a nuvem do singleplayer. Com o TCMine configurado, ele tem",
+                    "prioridade e isto é ignorado. Em servidor dedicado exige online-mode=true.")
+            .define("localCloud", true);
+
+    public static final ModConfigSpec.ConfigValue<String> LOCAL_CLOUD_FILE = B
+            .comment("Arquivo da nuvem local. Relativo = dentro da pasta do jogo/servidor (uma nuvem por instância).",
+                    "Absoluto (ex.: C:/Users/voce/tccloud-local.json) = a mesma nuvem para várias instâncias e modpacks",
+                    "deste computador; só uma instância por vez usa o arquivo (as outras ficam com a nuvem desligada).")
+            .define("localCloudFile", "tccloud-local.json");
 
     public static final ModConfigSpec.IntValue MAX_CHANNELS = B
-            .comment("Canais por jogador quando a nuvem não define (nuvem de teste, ou TCMine com 0).")
+            .comment("Canais por jogador quando a nuvem não define (nuvem local, ou TCMine com 0).")
             .defineInRange("maxChannels", 8, 1, 64);
 
-    public static final ModConfigSpec.IntValue DEV_QUOTA_MAX_TYPES = B
-            .comment("Cota da nuvem de teste (devFileBackend): máximo de tipos de item por canal. 0 = sem limite.",
+    public static final ModConfigSpec.IntValue LOCAL_QUOTA_MAX_TYPES = B
+            .comment("Cota da nuvem local: máximo de tipos de item por canal. 0 = sem limite.",
                     "Com o TCMine, a cota vem do painel e isto é ignorado.")
-            .defineInRange("devQuotaMaxTypes", 0, 0, 1_000_000);
+            .defineInRange("localQuotaMaxTypes", 0, 0, 1_000_000);
 
-    public static final ModConfigSpec.LongValue DEV_QUOTA_MAX_TOTAL = B
-            .comment("Cota da nuvem de teste (devFileBackend): soma máxima das quantidades por canal. 0 = sem limite.")
-            .defineInRange("devQuotaMaxTotal", 0L, 0L, Long.MAX_VALUE);
+    public static final ModConfigSpec.LongValue LOCAL_QUOTA_MAX_TOTAL = B
+            .comment("Cota da nuvem local: soma máxima das quantidades por canal. 0 = sem limite.")
+            .defineInRange("localQuotaMaxTotal", 0L, 0L, Long.MAX_VALUE);
 
-    public static final ModConfigSpec.IntValue DEV_LEASE_TTL_SECONDS = B
-            .comment("Backend de desenvolvimento: segundos sem heartbeat até o lease de um jogador expirar.")
-            .defineInRange("devLeaseTtlSeconds", 90, 30, 3600);
+    public static final ModConfigSpec.IntValue LOCAL_LEASE_TTL_SECONDS = B
+            .comment("Nuvem local: segundos sem heartbeat até o canal de um jogador poder ser aberto em outro mundo",
+                    "(ex.: o jogo fechou sem salvar).")
+            .defineInRange("localLeaseTtlSeconds", 90, 30, 3600);
 
     public static final ModConfigSpec.IntValue HEARTBEAT_SECONDS = B
             .comment("Intervalo do heartbeat dos leases ao backend.")

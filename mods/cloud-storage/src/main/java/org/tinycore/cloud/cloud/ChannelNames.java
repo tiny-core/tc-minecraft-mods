@@ -8,7 +8,7 @@ import java.util.Locale;
 
 /**
  * Regra pura dos nomes de canal (criar e renomear), aplicada no servidor de jogo antes de pedir à nuvem e de novo
- * pela nuvem de teste. O cliente nunca decide: o texto que chega dele é tratado como hostil.
+ * pela nuvem local. O cliente nunca decide: o texto que chega dele é tratado como hostil.
  */
 public final class ChannelNames {
 

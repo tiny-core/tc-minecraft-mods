@@ -17,6 +17,10 @@ Mudanças por versão de cada mod TC. A versão de cada mod fica no `gradle.prop
 - Botões de ajuda e de ordem com ícones no lugar de letras.
 
 ### TC Cloud Storage 0.4.0 (exige TC Core 0.3.0)
+- **Nuvem local:** sem o TCMine, os canais ficam num arquivo deste computador (`localCloud`, ligada por padrão;
+  `localCloudFile` relativo = por instância, absoluto = compartilhada entre instâncias e modpacks). Uma instância por
+  vez (trava de arquivo); servidor dedicado exige `online-mode`. Substitui o backend de desenvolvimento
+  (`devFileBackend`/`dev*` viraram `local*`; `tccloud-dev-backend.json` é renomeado sozinho).
 - **AE2 opcional:** sem ele, o Cloud Link funciona só pela tela (guardar, retirar, canais, cota) e ganha uma receita
   vanilla; com ele, tudo como antes. O Link não gasta mais energia da rede (`linkIdlePower` removido).
 - Modo de rede **só retirar**: a rede AE2 vê e tira itens da nuvem, mas não guarda nada nela.
@@ -44,10 +48,10 @@ Mudanças por versão de cada mod TC. A versão de cada mod fica no `gradle.prop
 - Protocolo de rede 13: cliente e servidor precisam da mesma versão.
 
 ### TC Cloud Storage 0.3.0 (exige TC Core 0.2.0)
-- **Vários canais:** cada Cloud Link escolhe o seu canal; criar e renomear pela tela (nuvem de teste completa; no
+- **Vários canais:** cada Cloud Link escolhe o seu canal; criar e renomear pela tela (nuvem local completa; no
   TCMine, escolher já funciona e criar/renomear aguardam os endpoints `POST /channels` e `/channels/rename`).
 - Barra de cota do canal no topo da tela do Cloud Link (itens e tipos, com cores perto do limite); cota opcional
-  na nuvem de teste (`devQuotaMaxTotal`, `devQuotaMaxTypes`).
+  na nuvem local (`localQuotaMaxTotal`, `localQuotaMaxTypes`).
 - Receita do TC Cloud Link.
 - Grade começa com 5 linhas, botão de altura e busca por `#tag`.
 - Fala com a nuvem do TCMine (fase 4): chave entregue pelo TCMine, política de itens, relatórios.
