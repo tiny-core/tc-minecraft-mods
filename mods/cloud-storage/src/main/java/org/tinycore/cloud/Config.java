@@ -61,10 +61,6 @@ public final class Config {
             .comment("Máximo de tipos de item enviados para a tela do TC Cloud Link (protege contra pacotes gigantes).")
             .defineInRange("maxSyncEntries", 2000, 100, 20000);
 
-    public static final ModConfigSpec.DoubleValue LINK_IDLE_POWER = B
-            .comment("Consumo parado do TC Cloud Link na rede AE2 (AE/t).")
-            .defineInRange("linkIdlePower", 2.0, 0.0, 1000.0);
-
     public static final ModConfigSpec SPEC = B.build();
 
     private Config() {}

@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 import org.tinycore.cloud.TcCloud;
 import org.tinycore.cloud.block.NetworkAccess;
+import org.tinycore.cloud.integration.Ae2Compat;
 import org.tinycore.cloud.item.ItemCompatibility;
 import org.tinycore.cloud.item.TransferRejection;
 import org.tinycore.cloud.menu.CloudLinkMenu;
@@ -66,9 +67,10 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     private SideToolbar toolbar;
     private IconButton sortButton;
     private IconButton incompatibleButton;
-    private IconButton accessButton;
-    private IconButton priorityUp;
-    private IconButton priorityDown;
+    /** Só com o AE2 (null sem ele). */
+    private @Nullable IconButton accessButton;
+    private @Nullable IconButton priorityUp;
+    private @Nullable IconButton priorityDown;
     private EditBox search;
     private ItemGrid<LinkEntry> grid;
     private List<LinkEntry> filtered = List.of();
@@ -99,9 +101,11 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         sortButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::cycleSort)));
         incompatibleButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, this::toggleIncompatible).sprite(TcIcons.WARNING)));
         incompatibleButton.setTooltipText(Component.translatable("gui.tccloud.show_incompatible"));
-        accessButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.CYCLE_ACCESS, ""))));
-        priorityUp = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_UP, "")).sprite(TcIcons.PRIORITY_UP)));
-        priorityDown = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_DOWN, "")).sprite(TcIcons.PRIORITY_DOWN)));
+        if (Ae2Compat.LOADED) { // modo da rede e prioridade só existem com o AE2
+            accessButton = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.CYCLE_ACCESS, ""))));
+            priorityUp = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_UP, "")).sprite(TcIcons.PRIORITY_UP)));
+            priorityDown = addRenderableWidget(toolbar.add(new IconButton(0, 0, () -> send(LinkAction.PRIORITY_DOWN, "")).sprite(TcIcons.PRIORITY_DOWN)));
+        }
         addRenderableWidget(toolbar.add(GridHeightButton.create(this::rebuildWidgets)));
         toolbar.layout(leftPos, top, CloudLinkMenu.WIDTH);
         updateSortButton();
@@ -196,6 +200,7 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
     }
 
     private void updateToolbar(LinkHeader header) {
+        if (accessButton == null) return; // sem o AE2
         NetworkAccess access = NetworkAccess.byId(header.access());
         accessButton.sprite(TcIcons.icon(TcCloud.MOD_ID, switch (access) {
             case TERMINAL_ONLY -> "access_terminal";
@@ -249,7 +254,8 @@ public class CloudLinkScreen extends AbstractContainerScreen<CloudLinkMenu> {
         if (status == CloudStatus.READ_ONLY && !header.detail().isEmpty()) {
             return new Line(Component.translatable("gui.tccloud.read_only_reason", header.detail()), ScreenStyle.WARNING);
         }
-        if (status == CloudStatus.ACTIVE && NetworkAccess.byId(header.access()).mounts() && !header.networkUp()) {
+        if (Ae2Compat.LOADED && status == CloudStatus.ACTIVE && NetworkAccess.byId(header.access()).mounts()
+                && !header.networkUp()) {
             return new Line(Component.translatable("gui.tccloud.network_down"), ScreenStyle.TEXT_MUTED);
         }
         return null;

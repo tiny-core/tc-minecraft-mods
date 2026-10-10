@@ -29,6 +29,8 @@ Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do
 - Todo item que entra passa pelo `TransferGuard` (via `CloudInventory`); o AE2 e a tela nunca chamam a
   `PlayerCloudSession` direto.
 - Config é `COMMON`, nunca `SERVER`.
+- **AE2 opcional:** nenhuma classe fora de `integration/ae2/` importa o AE2; o resto fala com `block/LinkNetwork` e
+  `integration/Ae2Compat`. Testar sem o AE2: `./gradlew :cloud-storage:runServer -Plibs_dir=<pasta vazia>`.
 - URL e chave do TCMine: variáveis de ambiente (`TCMINE_CLOUD_URL`, `TCMINE_CLOUD_KEY`) ou o
   `tccloud-server.json` que o TCMine grava na pasta do servidor a cada start (`CloudCredentials`). Nunca em
   config do mod. A chave nunca vai para log (`CloudCredentials.toString` mostra só o prefixo).
@@ -46,5 +48,6 @@ Dev: `./gradlew :cloud-storage:runClient -Plibs_dir=<pasta com o jar do AE2 e do
 | `item/policy/` | `ItemPolicy`, `ItemRule` |
 | `server/` | `CloudService` (ciclo de vida, diário, saves, política), `PlayerLeases`, `PlayerChannels` (criar/renomear), `JournalWriter`, `BatchOutbox`, `CloudReports` + `DoubtfulOutbox` + `SuspectCollector` (relatórios ao dono), `CloudInventory` (guardar/retirar/listar), `ChannelMounts`, `CloudServerEvents`, `CloudCommands` |
 | `integration/tcmine/` | `CloudBackend` (interface), `HttpCloudBackend` + `CloudApiDto` + `CloudCredentials` (TCMine), `FileCloudBackend` + `DevCloudState` (desenvolvimento) |
-| `integration/ae2/` | `CloudLinkNode` (nó + `IStorageProvider`), `CloudMEStorage`, `Ae2CellProbe`, `Ae2Capabilities` |
+| `integration/` | `Ae2Compat`: diz se o AE2 está instalado e só então chama o `Ae2Bridge` |
+| `integration/ae2/` | **Opcional.** `Ae2Bridge` (entrada única), `CloudLinkNode` (nó + `IStorageProvider`, é a `LinkNetwork` do Link), `CloudMEStorage`, `Ae2CellProbe` |
 | `block/`, `menu/`, `network/`, `client/`, `registry/` | TC Cloud Link, tela (grade do core), pacotes, registros |

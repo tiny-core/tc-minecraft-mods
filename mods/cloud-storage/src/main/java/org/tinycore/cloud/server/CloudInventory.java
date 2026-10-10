@@ -8,7 +8,8 @@ import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.Config;
 import org.tinycore.cloud.cloud.BalanceKey;
 import org.tinycore.cloud.cloud.PlayerCloudSession;
-import org.tinycore.cloud.integration.ae2.Ae2CellProbe;
+import org.tinycore.cloud.integration.Ae2Compat;
+import org.tinycore.cloud.item.ContentProbe;
 import org.tinycore.cloud.item.EncodedItem;
 import org.tinycore.cloud.item.ItemCatalog;
 import org.tinycore.cloud.item.ItemCompatibility;
@@ -41,7 +42,10 @@ public final class CloudInventory {
         this.service = service;
         this.catalog = new ItemCatalog(registries, ModList.get()::isLoaded, service::maxItemBytes,
                 WorldReferenceDetector.withDefaults(), Config.CATALOG_CACHE_SIZE.get());
-        this.guard = new TransferGuard(service::policy, List.of(new VanillaContentProbe(), new Ae2CellProbe()));
+        List<ContentProbe> probes = new ArrayList<>();
+        probes.add(new VanillaContentProbe());
+        probes.addAll(Ae2Compat.contentProbes()); // células do AE2, se ele estiver instalado
+        this.guard = new TransferGuard(service::policy, probes);
     }
 
     public @NotNull InsertResult insert(@NotNull UUID player, @NotNull UUID channel, @NotNull ItemStack stack,

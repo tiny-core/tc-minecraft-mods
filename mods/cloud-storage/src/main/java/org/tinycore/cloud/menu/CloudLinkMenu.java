@@ -13,6 +13,7 @@ import net.minecraft.world.item.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.tinycore.cloud.block.CloudLinkBlockEntity;
+import org.tinycore.cloud.integration.Ae2Compat;
 import org.tinycore.cloud.registry.ModMenus;
 import org.tinycore.cloud.server.CloudInventory;
 import org.tinycore.cloud.server.ChannelFeedback;
@@ -108,7 +109,7 @@ public class CloudLinkMenu extends AbstractContainerMenu {
     public void handleAction(@NotNull ServerPlayer player, @NotNull LinkAction action, @NotNull String fingerprint) {
         if (link == null || sync == null) return;
         switch (action) {
-            case CYCLE_ACCESS -> link.setAccess(link.access().next());
+            case CYCLE_ACCESS -> { if (Ae2Compat.LOADED) link.setAccess(link.access().next()); }
             case PRIORITY_UP -> link.setPriority(Math.min(PRIORITY_LIMIT, link.priority() + 1));
             case PRIORITY_DOWN -> link.setPriority(Math.max(-PRIORITY_LIMIT, link.priority() - 1));
             case SELECT_CHANNEL, CREATE_CHANNEL, RENAME_CHANNEL -> channelAction(player, action, fingerprint);

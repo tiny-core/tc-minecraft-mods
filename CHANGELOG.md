@@ -17,6 +17,8 @@ Mudanças por versão de cada mod TC. A versão de cada mod fica no `gradle.prop
 - Botões de ajuda e de ordem com ícones no lugar de letras.
 
 ### TC Cloud Storage 0.4.0 (exige TC Core 0.3.0)
+- **AE2 opcional:** sem ele, o Cloud Link funciona só pela tela (guardar, retirar, canais, cota) e ganha uma receita
+  vanilla; com ele, tudo como antes. O Link não gasta mais energia da rede (`linkIdlePower` removido).
 - Modo de rede **só retirar**: a rede AE2 vê e tira itens da nuvem, mas não guarda nada nela.
 - Botões com ícones (modo da rede, ordem, incompatíveis, prioridade, ajuda); o tooltip do modo explica o que a rede
   pode fazer e avisa que quem acessa a rede usa o canal enquanto o dono está online.

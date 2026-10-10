@@ -52,11 +52,16 @@ quarentena, operações em dúvida depois de uma queda, mundos que voltaram no t
 Itens recusados na entrada: com itens dentro (shulker, mochila, célula do AE2 cheia), grandes demais, na tag
 `#tccloud:never_transfer` ou com sinais de guardar dados no mundo.
 
-Receita (cara de propósito: o Link leva itens entre servidores), em `data/tccloud/recipe/cloud_link.json`:
+**AE2 é opcional.** Com ele, o Link monta o canal na rede ME (modos e prioridade na barra lateral). Sem ele, o Link
+funciona só pela tela (guardar, retirar, canais, cota) e os botões de rede somem. O Link não gasta energia.
+
+Receitas (caras de propósito: o Link leva itens entre mundos e servidores), em `data/tccloud/recipe/`:
 ```
-RSR     R = Anel de quantum (AE2)   S = Singularidade entrelaçada (AE2)
-PDP     P = Processador de Cálculo (AE2)   D = ME Drive (AE2)
-RCR     C = Componente de armazenamento 64k (AE2)
+Com AE2 (cloud_link.json)                      Sem AE2 (cloud_link_vanilla.json)
+RSR  R = Anel de quantum                       EDE  E = Fragmento de eco
+PDP  S = Singularidade entrelaçada              DCD  D = Bloco de diamante
+RCR  P = Processador de Cálculo, D = ME Drive   ENE  C = Baú do Ender, N = Estrela do Nether
+     C = Componente de armazenamento 64k
 ```
 
 Admin: `/tccloud checkpoint` salva o mundo com flush e torna tudo durável (usado pelo backup do TCMine).

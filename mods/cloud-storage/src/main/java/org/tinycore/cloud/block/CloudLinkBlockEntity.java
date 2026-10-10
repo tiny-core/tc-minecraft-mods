@@ -1,9 +1,6 @@
 package org.tinycore.cloud.block;
 
-import appeng.api.networking.IGridNode;
-import appeng.api.networking.IInWorldGridNodeHost;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -13,24 +10,25 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.tinycore.cloud.integration.ae2.CloudLinkNode;
+import org.tinycore.cloud.integration.Ae2Compat;
 import org.tinycore.cloud.registry.ModBlockEntities;
 import org.tinycore.cloud.server.CloudService;
 
 import java.util.UUID;
 
 /**
- * Estado do TC Cloud Link no mundo: o dono (quem colocou), o canal escolhido, o modo de acesso da rede, a prioridade e o nó AE2
- * ({@link CloudLinkNode}). Não guarda item nenhum: os itens estão na nuvem, então quebrar o bloco não derruba
- * nada.
+ * Estado do TC Cloud Link no mundo: o dono (quem colocou), o canal escolhido, o modo de acesso da rede, a prioridade e a
+ * ligação com a rede ({@link LinkNetwork}: o nó do AE2 quando ele está instalado; nada sem ele). Não guarda item
+ * nenhum: os itens estão na nuvem, então quebrar o bloco não derruba nada.
  *
  * <p>Registra-se no {@code CloudListeners} do serviço para remontar o canal no AE2 quando o dono entra, sai ou
  * muda de situação. O registro é feito no tick, porque o block entity pode carregar antes de o serviço existir
  * (chunks de spawn carregam antes do {@code ServerStartedEvent}).
  */
-public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNodeHost, CloudLinkNode.Host {
+public class CloudLinkBlockEntity extends BlockEntity implements LinkHost {
 
-    private final CloudLinkNode node;
+    /** Ligação com a rede AE2 ({@code CloudLinkNode}), ou {@link LinkNetwork#NONE} sem o AE2. */
+    private final LinkNetwork node;
     private final Runnable onCloudChange = this::refreshMounts;
     private @Nullable UUID owner;
     private String ownerName = "";
@@ -49,7 +47,7 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
 
     public CloudLinkBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.CLOUD_LINK.get(), pos, state);
-        this.node = new CloudLinkNode(this);
+        this.node = Ae2Compat.network(this);
     }
 
     /**
@@ -74,12 +72,14 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
     }
 
     /**
-     * Aceso ({@link CloudLinkBlock#ACTIVE}) = o Link funciona agora: rede AE2 ligada (energia + canal) <b>e</b> a
-     * nuvem do dono aberta neste servidor (dono online, com lease). Só troca o blockstate quando muda (cada troca
-     * vai aos clientes).
+     * Aceso ({@link CloudLinkBlock#ACTIVE}) = o Link funciona agora: a nuvem do dono está aberta neste servidor
+     * (dono online, com lease) <b>e</b>, se o Link monta o canal numa rede AE2, essa rede está ligada. Sem o AE2, ou
+     * no modo "só esta tela", basta a nuvem. Só troca o blockstate quando muda (cada troca vai aos clientes).
      */
     private void updateActive(@Nullable CloudService service) {
-        boolean active = node.isActive() && service != null && owner != null && service.session(owner) != null;
+        boolean cloudOpen = service != null && owner != null && service.session(owner) != null;
+        boolean networkOk = !Ae2Compat.LOADED || !access.mounts() || node.isActive();
+        boolean active = cloudOpen && networkOk;
         BlockState state = getBlockState();
         if (state.hasProperty(CloudLinkBlock.ACTIVE) && state.getValue(CloudLinkBlock.ACTIVE) != active) {
             level.setBlock(worldPosition, state.setValue(CloudLinkBlock.ACTIVE, active), Block.UPDATE_CLIENTS);
@@ -186,11 +186,9 @@ public class CloudLinkBlockEntity extends BlockEntity implements IInWorldGridNod
         return node.isActive();
     }
 
-    // ---------------------------------------------------------------- AE2
-
-    @Override
-    public @Nullable IGridNode getGridNode(Direction dir) {
-        return node.gridNode();
+    /** Ligação com a rede (para a capability do AE2 achar o nó). */
+    public @NotNull LinkNetwork network() {
+        return node;
     }
 
     // ---------------------------------------------------------------- NBT

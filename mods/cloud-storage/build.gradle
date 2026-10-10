@@ -16,6 +16,11 @@ neoForge {
         server {
             server()
             programArgument '--nogui'
+            // Porta opcional (-Pserver_port=25570), para quando a 25565 já está em uso na máquina.
+            if (project.findProperty('server_port')) {
+                programArgument '--port'
+                programArgument project.findProperty('server_port').toString()
+            }
         }
     }
 

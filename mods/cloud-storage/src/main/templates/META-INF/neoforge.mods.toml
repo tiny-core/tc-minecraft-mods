@@ -33,9 +33,10 @@ o jogador reencontra os itens em outro servidor do mesmo dono.
     ordering="AFTER"
     side="BOTH"
 
+# AE2 opcional: com ele, o Cloud Link monta o canal na rede ME; sem ele, funciona só pela tela.
 [[dependencies.${mod_id}]]
     modId="ae2"
-    type="required"
+    type="optional"
     versionRange="[${ae2_version},20)"
     ordering="AFTER"
     side="BOTH"

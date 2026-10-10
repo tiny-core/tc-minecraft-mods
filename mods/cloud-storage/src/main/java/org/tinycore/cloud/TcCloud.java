@@ -7,7 +7,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import org.slf4j.Logger;
-import org.tinycore.cloud.integration.ae2.Ae2Capabilities;
+import org.tinycore.cloud.integration.Ae2Compat;
 import org.tinycore.cloud.network.ModNetwork;
 import org.tinycore.cloud.registry.ModBlockEntities;
 import org.tinycore.cloud.registry.ModBlocks;
@@ -28,7 +28,8 @@ import org.tinycore.cloud.server.CloudServerEvents;
  *   <li>{@code item.policy}: regras de item do dono da nuvem;</li>
  *   <li>{@code server}: o serviço da nuvem no servidor (sessões, diário, envio, eventos);</li>
  *   <li>{@code integration.tcmine}: backends (arquivo local de desenvolvimento; TCMine na fase 4);</li>
- *   <li>{@code integration.ae2}: o que fala com o AE2 (nó, armazenamento, células);</li>
+ *   <li>{@code integration.ae2}: o que fala com o AE2 (nó, armazenamento, células), <b>opcional</b>: só é usado com
+ *       o AE2 instalado ({@code integration.Ae2Compat});</li>
  *   <li>{@code block}, {@code menu}, {@code network}, {@code client}, {@code registry}: o TC Cloud Link e sua tela.</li>
  * </ul>
  * {@code @Mod} (≈ atributo em C#) diz ao NeoForge que esta classe é a entrada do mod {@value #MOD_ID}.
@@ -48,7 +49,7 @@ public final class TcCloud {
         ModMenus.register(modBus);
         ModCreativeTabs.register(modBus);
         modBus.addListener(ModNetwork::register);
-        modBus.addListener(Ae2Capabilities::register);
+        Ae2Compat.init(modBus); // AE2 opcional: só registra a parte dele se estiver instalado
         CloudServerEvents.register(NeoForge.EVENT_BUS);
     }
 }
