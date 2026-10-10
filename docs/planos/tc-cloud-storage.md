@@ -59,7 +59,7 @@ Novo mod em `mods/cloud-storage/` (modid `tccloud`), dependendo do `tccore` e do
 | `registry/`, `Config` | Registros e config | — |
 
 **Interface `CloudBackend`** (≈ `interface` do C#) com duas implementações: `HttpCloudBackend` (TCMine
-real) e `FileCloudBackend` (arquivo local, para desenvolver e testar sem o TCMine). Todo o resto do
+real) e `LocalCloudBackend` (arquivo local, para desenvolver e testar sem o TCMine). Todo o resto do
 mod só conhece a interface.
 
 **Sem chave, sem nuvem.** A URL e a chave chegam pelo arquivo `tccloud-server.json` que o TCMine grava
@@ -251,7 +251,7 @@ há divergência: o lote vai para a quarentena e o canal é congelado. Isso dete
 |---|---|---|
 | **0. Spike de riscos** ✅ | Respostas lendo o código do NeoForge 21.1.252 e do AE2 19.2.17 (§11) | feito em 2026-10-01 |
 | **1. Núcleo puro** ✅ | `mods/cloud-storage/`: `cloud/`, `cloud/journal/`, `item/`, `item/policy/` com JUnit (40 testes, incluindo `CrashSimulationTest`) | feito em 2026-10-01 |
-| **2. Mod com `FileCloudBackend`** ✅ | TC Cloud Link, AE2, tela (grade no `tccore`), filtro compatível/incompatível, lease simulado, `/tccloud checkpoint` | testado pelo autor no ATM10 (singleplayer) em 2026-10-01 |
+| **2. Mod com `LocalCloudBackend`** ✅ | TC Cloud Link, AE2, tela (grade no `tccore`), filtro compatível/incompatível, lease simulado, `/tccloud checkpoint` | testado pelo autor no ATM10 (singleplayer) em 2026-10-01 |
 | **3. TCMine: tabelas + API** ✅ | No repositório TCMine (`master`): domínio, API, painel, entrega da chave e governança — `docs/CLOUD-STORAGE.md` de lá | 733 testes no TCMine, CI verde |
 | **4. Integração real** ✅ | `HttpCloudBackend` (API `/api/cloud/v1` do TCMine), credenciais por `tccloud-server.json` ou variáveis de ambiente, `online-mode` obrigatório, política de itens com atualização pelo heartbeat, relatórios de suspeitos e de operações em dúvida | código e teste de ponta a ponta local (TCMine + servidor do mod: hello, chave, formato do JSON) em 2026-10-05; falta o autor testar dois servidores reais |
 | **5. Painel** ✅ | Feito junto da fase 3, no TCMine (fatias C e D) | dono resolve tudo sem SQL |
